@@ -26,40 +26,50 @@ int proNetAdhocPtpSend(int id, const void * data, int * len, uint32_t timeout, i
 				// Valid Arguments
 				if(data != NULL && len != NULL && *len > 0)
 				{
-					// Schedule Timeout Removal
-					if(flag) timeout = 0;
-					
-					// Apply Send Timeout Settings to Socket
-					sceNetInetSetsockopt(socket->id, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
-					
-					// Send Data
-					int sent = sceNetInetSend(socket->id, data, *len, ((flag) ? (INET_MSG_DONTWAIT) : (0)));
-					
-					// Success
-					if(sent > 0)
+					// Not Alerted
+					if((socket->rcv_sb_cc & ADHOC_F_ALERTSEND) == 0)
 					{
-						// Save Length
-						*len = sent;
+						// Schedule Timeout Removal
+						if(flag) timeout = 0;
 						
-						// Return Success
-						return 0;
+						// Apply Send Timeout Settings to Socket
+						sceNetInetSetsockopt(socket->id, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
+						
+						// Send Data
+						int sent = sceNetInetSend(socket->id, data, *len, ((flag) ? (INET_MSG_DONTWAIT) : (0)));
+						
+						// Success
+						if(sent > 0)
+						{
+							// Save Length
+							*len = sent;
+							
+							// Return Success
+							return 0;
+						}
+						
+						// Non-Critical Error
+						else if(sent == -1 && sceNetInetGetErrno() == EAGAIN)
+						{
+							// Blocking Situation
+							if(flag) return ADHOC_WOULD_BLOCK;
+							
+							// Timeout
+							return ADHOC_TIMEOUT;
+						}
+						
+						// Change Socket State
+						socket->state = PTP_STATE_CLOSED;
+						
+						// Disconnected
+						return ADHOC_DISCONNECTED;
 					}
 					
-					// Non-Critical Error
-					else if(sent == -1 && sceNetInetGetErrno() == EAGAIN)
-					{
-						// Blocking Situation
-						if(flag) return ADHOC_WOULD_BLOCK;
-						
-						// Timeout
-						return ADHOC_TIMEOUT;
-					}
+					// Clear Alert
+					socket->rcv_sb_cc = 0;
 					
-					// Change Socket State
-					socket->state = PTP_STATE_CLOSED;
-					
-					// Disconnected
-					return ADHOC_DISCONNECTED;
+					// Return Alerted Result
+					return ADHOC_SOCKET_ALERTED;
 				}
 				
 				// Invalid Arguments

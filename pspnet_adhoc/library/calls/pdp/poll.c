@@ -16,6 +16,9 @@ int proNetAdhocPollSocket(SceNetAdhocPollSd * sds, int nsds, uint32_t timeout, i
 		// Valid Arguments
 		if(sds != NULL && nsds > 0)
 		{
+			// Alert Trigger
+			int triggeralert = 0;
+			
 			// Socket Check
 			int i = 0; for(; i < nsds; i++)
 			{
@@ -24,7 +27,23 @@ int proNetAdhocPollSocket(SceNetAdhocPollSd * sds, int nsds, uint32_t timeout, i
 				
 				// Invalid Socket
 				if(socket == NULL || !_pdpSocketInList(socket)) return ADHOC_INVALID_SOCKET_ID;
+				
+				// Alerted Socket
+				if((socket->rcv_sb_cc & ADHOC_F_ALERTPOLL) != 0)
+				{
+					// Erase Alert
+					socket->rcv_sb_cc = 0;
+					
+					// Set Received Event
+					sds[i].revents = ADHOC_EV_ALERT;
+					
+					// Trigger Alert
+					triggeralert = 1;
+				}
 			}
+			
+			// Alert Exit
+			if(triggeralert) return ADHOC_EXCEPTION_EVENT;
 			
 			// Allocate Infrastructure Memory
 			SceNetInetPollfd * isds = (SceNetInetPollfd *)malloc(sizeof(SceNetInetPollfd) * nsds);

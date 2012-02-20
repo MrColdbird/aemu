@@ -9,6 +9,33 @@
  */
 int proNetAdhocPtpFlush(int id, uint32_t timeout, int flag)
 {
-	THROW_UNIMPLEMENTED(__func__);
-	return 0;
+	// Cast Socket
+	SceNetAdhocPtpStat * socket = (SceNetAdhocPtpStat *)id;
+	
+	// Library initialized
+	if(_init)
+	{
+		// Valid Socket
+		if(socket != NULL && _ptpSocketInList(socket))
+		{
+			// Not alert
+			if((socket->rcv_sb_cc & ADHOC_F_ALERTFLUSH) == 0)
+			{
+				// Dummy Result
+				return 0;
+			}
+			
+			// Clear Alert
+			socket->rcv_sb_cc = 0;
+			
+			// Return Alerted Result
+			return ADHOC_SOCKET_ALERTED;
+		}
+		
+		// Invalid Socket
+		return ADHOC_INVALID_SOCKET_ID;
+	}
+	
+	// Library uninitialized
+	return ADHOC_NOT_INITIALIZED;
 }

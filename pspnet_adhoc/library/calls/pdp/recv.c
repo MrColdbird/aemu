@@ -25,113 +25,123 @@ int proNetAdhocPdpRecv(int id, SceNetEtherAddr * saddr, uint16_t * sport, void *
 			// Valid Arguments
 			if(saddr != NULL && sport != NULL && buf != NULL && len != NULL && *len > 0)
 			{
-				#ifndef PDP_DIRTY_MAGIC
-				// Schedule Timeout Removal
-				// if(flag) timeout = 0;
-				#else
-				// Nonblocking Simulator
-				int wouldblock = 0;
-				
-				// Minimum Timeout
-				uint32_t mintimeout = 250000;
-				
-				// Nonblocking Call
-				if(flag)
+				// Not Alerted
+				if((socket->rcv_sb_cc & ADHOC_F_ALERTRECV) == 0)
 				{
-					// Erase Nonblocking Flag
-					flag = 0;
+					#ifndef PDP_DIRTY_MAGIC
+					// Schedule Timeout Removal
+					// if(flag) timeout = 0;
+					#else
+					// Nonblocking Simulator
+					int wouldblock = 0;
 					
-					// Set Wouldblock Behaviour
-					wouldblock = 1;
+					// Minimum Timeout
+					uint32_t mintimeout = 250000;
 					
-					// Set Minimum Timeout (250ms)
-					if(timeout < mintimeout) timeout = mintimeout;
-				}
-				#endif
-				
-				// Apply Receive Timeout Settings to Socket
-				sceNetInetSetsockopt(socket->id, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
-				
-				// Sender Address
-				SceNetInetSockaddrIn sin;
-				uint32_t sinlen;
-				
-				// Receive Data
-				int received = sceNetInetRecvfrom(socket->id, buf, *len, ((flag != 0) ? (INET_MSG_DONTWAIT) : (0)), (SceNetInetSockaddr *)&sin, &sinlen);
-				
-				// Received Data
-				if(received > 0)
-				{
-					// Get Peer List Size
-					int buflen = 0;
-					if(sceNetAdhocctlGetPeerList(&buflen, NULL) == 0 && buflen > 0)
+					// Nonblocking Call
+					if(flag)
 					{
-						// Allocate Memory
-						SceNetAdhocctlPeerInfo * peers = (SceNetAdhocctlPeerInfo *)malloc(buflen);
+						// Erase Nonblocking Flag
+						flag = 0;
 						
-						// Allocated Memory
-						if(peers != NULL)
+						// Set Wouldblock Behaviour
+						wouldblock = 1;
+						
+						// Set Minimum Timeout (250ms)
+						if(timeout < mintimeout) timeout = mintimeout;
+					}
+					#endif
+					
+					// Apply Receive Timeout Settings to Socket
+					sceNetInetSetsockopt(socket->id, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+					
+					// Sender Address
+					SceNetInetSockaddrIn sin;
+					uint32_t sinlen;
+					
+					// Receive Data
+					int received = sceNetInetRecvfrom(socket->id, buf, *len, ((flag != 0) ? (INET_MSG_DONTWAIT) : (0)), (SceNetInetSockaddr *)&sin, &sinlen);
+					
+					// Received Data
+					if(received > 0)
+					{
+						// Get Peer List Size
+						int buflen = 0;
+						if(sceNetAdhocctlGetPeerList(&buflen, NULL) == 0 && buflen > 0)
 						{
-							// Peer Search Success
-							int peerfound = 0;
+							// Allocate Memory
+							SceNetAdhocctlPeerInfo * peers = (SceNetAdhocctlPeerInfo *)malloc(buflen);
 							
-							// Get Peer List
-							if(sceNetAdhocctlGetPeerList(&buflen, peers) == 0 && buflen > 0)
+							// Allocated Memory
+							if(peers != NULL)
 							{
-								// Log Peer List
-								#ifdef DEBUG
-								printk("Discovered %d Peers for PDP Receive Query\n", buflen / sizeof(SceNetAdhocctlPeerInfo));
-								#endif
+								// Peer Search Success
+								int peerfound = 0;
 								
-								// Iterate Peers
-								SceNetAdhocctlPeerInfo * peer = peers;
-								for(; peer != NULL; peer = peer->next)
+								// Get Peer List
+								if(sceNetAdhocctlGetPeerList(&buflen, peers) == 0 && buflen > 0)
 								{
-									// IP Match found
-									if(peer->ip_addr == sin.sin_addr)
+									// Log Peer List
+									#ifdef DEBUG
+									printk("Discovered %d Peers for PDP Receive Query\n", buflen / sizeof(SceNetAdhocctlPeerInfo));
+									#endif
+									
+									// Iterate Peers
+									SceNetAdhocctlPeerInfo * peer = peers;
+									for(; peer != NULL; peer = peer->next)
 									{
-										// Log Matching Peer
-										#ifdef DEBUG
-										printk("Found Matching Peer for PDP Receive (%s)\n", (char *)peer->nickname.data);
-										#endif
-										
-										// Provide Sender Information
-										*saddr = peer->mac_addr;
-										*sport = sceNetNtohs(sin.sin_port);
-										
-										// Save Length
-										*len = received;
-										
-										// Peer found
-										peerfound = 1;
-										
-										// Stop Peer Search
-										break;
+										// IP Match found
+										if(peer->ip_addr == sin.sin_addr)
+										{
+											// Log Matching Peer
+											#ifdef DEBUG
+											printk("Found Matching Peer for PDP Receive (%s)\n", (char *)peer->nickname.data);
+											#endif
+											
+											// Provide Sender Information
+											*saddr = peer->mac_addr;
+											*sport = sceNetNtohs(sin.sin_port);
+											
+											// Save Length
+											*len = received;
+											
+											// Peer found
+											peerfound = 1;
+											
+											// Stop Peer Search
+											break;
+										}
 									}
 								}
-							}
-							
-							// Free Memory
-							free(peers);
-							
-							// Peer found
-							if(peerfound)
-							{
-								// Success
-								return 0;
+								
+								// Free Memory
+								free(peers);
+								
+								// Peer found
+								if(peerfound)
+								{
+									// Success
+									return 0;
+								}
 							}
 						}
 					}
+					
+					#ifdef PDP_DIRTY_MAGIC
+					// Restore Nonblocking Flag for Return Value
+					if(wouldblock) flag = 1;
+					#endif
+					
+					// Nothing received
+					if(flag) return ADHOC_WOULD_BLOCK;
+					return ADHOC_TIMEOUT;
 				}
 				
-				#ifdef PDP_DIRTY_MAGIC
-				// Restore Nonblocking Flag for Return Value
-				if(wouldblock) flag = 1;
-				#endif
+				// Clear Alert
+				socket->rcv_sb_cc = 0;
 				
-				// Nothing received
-				if(flag) return ADHOC_WOULD_BLOCK;
-				return ADHOC_TIMEOUT;
+				// Return Alerted Result
+				return ADHOC_SOCKET_ALERTED;
 			}
 			
 			// Invalid Argument
