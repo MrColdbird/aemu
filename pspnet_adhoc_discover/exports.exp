@@ -1,0 +1,18 @@
+PSP_BEGIN_EXPORTS
+
+PSP_EXPORT_START(syslib, 0, 0x8000)
+PSP_EXPORT_FUNC_HASH(module_start)
+PSP_EXPORT_FUNC_HASH(module_stop)
+PSP_EXPORT_VAR_HASH(module_info)
+PSP_EXPORT_END
+
+PSP_EXPORT_START(sceNetAdhocDiscover, 0x0011, 0x0001)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocDiscoverInitStart)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocDiscoverStop)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocDiscoverTerm)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocDiscoverUpdate)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocDiscoverGetStatus)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocDiscoverRequestSuspend)
+PSP_EXPORT_END
+
+PSP_END_EXPORTS

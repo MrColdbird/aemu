@@ -1,0 +1,38 @@
+PSP_BEGIN_EXPORTS
+
+PSP_EXPORT_START(syslib, 0, 0x8000)
+PSP_EXPORT_FUNC_HASH(module_start)
+PSP_EXPORT_FUNC_HASH(module_stop)
+PSP_EXPORT_VAR_HASH(module_info)
+PSP_EXPORT_END
+
+PSP_EXPORT_START(sceNetAdhoc, 0x0011, 0x0001)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocInit)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocTerm)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocPollSocket)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocSetSocketAlert)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocGetSocketAlert)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocPdpCreate)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocPdpSend)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocPdpDelete)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocPdpRecv)
+PSP_EXPORT_FUNC_NID(sceNetAdhoc_67346A2A, 0x67346A2A)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocGetPdpStat)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocPtpOpen)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocPtpConnect)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocPtpListen)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocPtpAccept)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocPtpSend)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocPtpRecv)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocPtpFlush)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocPtpClose)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocGetPtpStat)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocGameModeCreateMaster)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocGameModeCreateReplica)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocGameModeUpdateMaster)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocGameModeDeleteMaster)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocGameModeUpdateReplica)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocGameModeDeleteReplica)
+PSP_EXPORT_END
+
+PSP_END_EXPORTS

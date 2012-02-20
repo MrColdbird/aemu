@@ -1,0 +1,34 @@
+PSP_BEGIN_EXPORTS
+
+PSP_EXPORT_START(syslib, 0, 0x8000)
+PSP_EXPORT_FUNC_HASH(module_start)
+PSP_EXPORT_FUNC_HASH(module_stop)
+PSP_EXPORT_VAR_HASH(module_info)
+PSP_EXPORT_END
+
+PSP_EXPORT_START(sceNetAdhocctl, 0x0011, 0x0001)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocctlInit)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocctlJoin)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocctlGetPeerList)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocctlGetPeerInfo)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocctlGetAddrByName)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocctlTerm)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocctlConnect)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocctlCreate)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocctlCreateEnterGameMode)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocctlCreateEnterGameModeMin)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocctlJoinEnterGameMode)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocctlScan)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocctlDisconnect)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocctlExitGameMode)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocctlAddHandler)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocctlDelHandler)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocctlGetState)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocctlGetAdhocId)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocctlGetNameByAddr)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocctlGetParameter)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocctlGetScanInfo)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocctlGetGameModeInfo)
+PSP_EXPORT_END
+
+PSP_END_EXPORTS

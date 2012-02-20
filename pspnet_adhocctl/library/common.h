@@ -1,0 +1,137 @@
+#ifndef _ADHOCCTL_COMMON_H_
+#define _ADHOCCTL_COMMON_H_
+
+// --- Basic Includes ---
+
+// Basic Types
+#include <stdint.h>
+
+// Heap Control
+#include <malloc.h>
+
+// String Handling
+#include <string.h>
+
+// Time Access
+#include <time.h>
+
+// WLAN Switch Access
+#include <pspwlan.h>
+
+// Access Point Control
+#include <pspnet_apctl.h>
+
+// Netconfig Utility
+#include <psputility.h>
+
+// --- Kernel Debugger ---
+
+// Kernel Debug Printer
+#include "../../atpro/logs.h"
+
+// --- Emulator Basics ---
+
+// Adhocctl Library Types
+#include "structures.h"
+
+// Adhocctl Global Data
+#include "globals.h"
+
+// Adhocctl Common Functions
+#include "functions.h"
+
+// --- Improved PSPSDK Header ---
+
+// Internet Library
+#include "../../pspnet_adhoc/library/pspsdk/pspnet_inet.h"
+
+// Networking Library
+#include "../../pspnet_adhoc/library/pspsdk/pspnet.h"
+
+// --- Global Library Calls ---
+
+// sceNetAdhocctlInit
+#include "calls/init.h"
+
+// sceNetAdhocctlTerm
+#include "calls/term.h"
+
+// sceNetAdhocctlGetState
+#include "calls/getstate.h"
+
+// sceNetAdhocctlGetAdhocId
+#include "calls/getadhocid.h"
+
+// sceNetAdhocctlGetParameter
+#include "calls/getparameter.h"
+
+// sceNetAdhocctlAddHandler
+#include "calls/addhandler.h"
+
+// sceNetAdhocctlDelHandler
+#include "calls/delhandler.h"
+
+// sceNetAdhocctlScan
+#include "calls/scan.h"
+
+// sceNetAdhocctlGetScanInfo
+#include "calls/getscaninfo.h"
+
+// sceNetAdhocctlGetPeerInfo
+#include "calls/getpeerinfo.h"
+
+// sceNetAdhocctlGetPeerList
+#include "calls/getpeerlist.h"
+
+// sceNetAdhocctlGetAddrByName
+#include "calls/getaddrbyname.h"
+
+// sceNetAdhocctlGetNameByAddr
+#include "calls/getnamebyaddr.h"
+
+// --- Adhoc Mode Calls ---
+
+// sceNetAdhocctlCreate
+#include "calls/adhocmode/create.h"
+
+// sceNetAdhocctlConnect
+#include "calls/adhocmode/connect.h"
+
+// sceNetAdhocctlJoin
+#include "calls/adhocmode/join.h"
+
+// sceNetAdhocctlDisconnect
+#include "calls/adhocmode/disconnect.h"
+
+// --- Game Mode Calls ---
+
+// sceNetAdhocctlCreateEnterGameMode
+#include "calls/gamemode/create.h"
+
+// sceNetAdhocctlCreateEnterGameModeMin
+#include "calls/gamemode/createmin.h"
+
+// sceNetAdhocctlJoinEnterGameMode
+#include "calls/gamemode/join.h"
+
+// sceNetAdhocctlExitGameMode
+#include "calls/gamemode/exit.h"
+
+// sceNetAdhocctlGetGameModeInfo
+#include "calls/gamemode/getinfo.h"
+
+// --- Kernel Utility Calls ---
+
+// sceUtilityNetconfInitStart
+#include "calls/netconf/init.h"
+
+// sceUtilityNetconfGetStatus
+#include "calls/netconf/getstatus.h"
+
+// sceUtilityNetconfUpdate
+#include "calls/netconf/update.h"
+
+// sceUtilityNetconfShutdownStart
+#include "calls/netconf/shutdown.h"
+
+#endif

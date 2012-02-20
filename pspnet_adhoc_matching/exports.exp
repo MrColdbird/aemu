@@ -1,0 +1,28 @@
+PSP_BEGIN_EXPORTS
+
+PSP_EXPORT_START(syslib, 0, 0x8000)
+PSP_EXPORT_FUNC_HASH(module_start)
+PSP_EXPORT_FUNC_HASH(module_stop)
+PSP_EXPORT_VAR_HASH(module_info)
+PSP_EXPORT_END
+
+PSP_EXPORT_START(sceNetAdhocMatching, 0x0011, 0x0001)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocMatchingInit)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocMatchingTerm)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocMatchingCreate)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocMatchingStart)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocMatchingStop)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocMatchingDelete)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocMatchingSelectTarget)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocMatchingCancelTarget)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocMatchingCancelTargetWithOpt)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocMatchingSendData)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocMatchingAbortSendData)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocMatchingSetHelloOpt)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocMatchingGetHelloOpt)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocMatchingGetMembers)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocMatchingGetPoolMaxAlloc)
+PSP_EXPORT_FUNC_HASH(sceNetAdhocMatchingGetPoolStat)
+PSP_EXPORT_END
+
+PSP_END_EXPORTS
