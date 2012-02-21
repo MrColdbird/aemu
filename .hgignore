@@ -1,0 +1,6 @@
+syntax: glob
+.*.sw?
+*.o
+*.prx
+*.elf
+*~
