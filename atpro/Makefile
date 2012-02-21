@@ -6,8 +6,8 @@ OBJS = main.o libs.o logs.o
 
 CFLAGS = -Os -G0 -Wall -fno-pic
 
-INCDIR = /home/coldbird/Workspace/PROCFW/procfw/include
-LIBDIR = /home/coldbird/Workspace/PROCFW/procfw/libs
+INCDIR = ../../procfw/include
+LIBDIR = ../../procfw/libs
 
 LIBS = -lpspsystemctrl_kernel
 
