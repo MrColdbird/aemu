@@ -2,7 +2,6 @@
 
 // Function Prototypes
 int _countAvailableNetworks(void);
-int _isFirstNetworkInhabitant(SceNetAdhocctlStatusFriend * friend);
 
 /**
  * Acquire Network Scan Result in Linked List
@@ -39,26 +38,14 @@ int proNetAdhocctlGetScanInfo(int * buflen, SceNetAdhocctlScanInfo * buf)
 				// Minimum Argument Requirements
 				if(requestcount > 0)
 				{
-					// Iterate Friends
-					SceNetAdhocctlStatusFriend * friend = _friends; while(friend != NULL && discovered < requestcount)
+					// Group List Element
+					SceNetAdhocctlScanInfo * group = _networks;
+					
+					// Iterate Group List
+					for(; group != NULL && discovered < requestcount; group = group->next)
 					{
-						// Discovered Active Network Peer
-						if(friend->base.network_type != ADHOCCTL_NETWORK_TYPE_DISCONNECTED && (sceKernelGetSystemTimeWide() - friend->last_recv) < ADHOCCTL_DEAD_FRIEND_TIMEOUT)
-						{
-							// Currently undiscovered Network
-							if(_isFirstNetworkInhabitant(friend))
-							{
-								// Store Information
-								buf[discovered].channel = 1;
-								buf[discovered].group_name = friend->base.group_name;
-								buf[discovered].bssid.mac_addr = friend->base.player_mac;
-								buf[discovered].mode = (friend->base.network_type == ADHOCCTL_NETWORK_TYPE_ADHOC) ? (ADHOCCTL_MODE_ADHOC) : (ADHOCCTL_MODE_GAMEMODE);
-								discovered++;
-							}
-						}
-						
-						// Move Pointer
-						friend = friend->next;
+						// Copy Group Information
+						buf[discovered++] = *group;
 					}
 					
 					// Link List
@@ -67,6 +54,9 @@ int proNetAdhocctlGetScanInfo(int * buflen, SceNetAdhocctlScanInfo * buf)
 						// Link Network
 						buf[i].next = &buf[i + 1];
 					}
+					
+					// Fix Last Element
+					if(discovered > 0) buf[discovered - 1].next = NULL;
 				}
 				
 				// Fix Size
@@ -97,45 +87,12 @@ int _countAvailableNetworks(void)
 	// Network Count
 	int count = 0;
 	
-	// Iterate Friends
-	SceNetAdhocctlStatusFriend * friend = _friends; while(friend != NULL)
-	{
-		// Discovered Active Network Peer
-		if(friend->base.network_type != ADHOCCTL_NETWORK_TYPE_DISCONNECTED && (sceKernelGetSystemTimeWide() - friend->last_recv) < ADHOCCTL_DEAD_FRIEND_TIMEOUT)
-		{
-			// Unique Network discovered
-			if(_isFirstNetworkInhabitant(friend)) count++;
-		}
-		
-		// Move Pointer
-		friend = friend->next;
-	}
+	// Group Reference
+	SceNetAdhocctlScanInfo * group = _networks;
+	
+	// Count Groups
+	for(; group != NULL; group = group->next) count++;
 	
 	// Return Network Count
 	return count;
-}
-
-/**
- * Check whether a Friend is the first occuring Inhabitant in a Virtual Network
- * @param friend To-be-checked Friend
- * @return Boolean Result
- */
-int _isFirstNetworkInhabitant(SceNetAdhocctlStatusFriend * friend)
-{
-	// Iterate Friends
-	SceNetAdhocctlStatusFriend * friend_before = _friends; while(friend_before != NULL && friend_before != friend)
-	{
-		// Duplicate Network discovered
-		if(strncmp((char *)friend_before->base.group_name.data, (char *)friend->base.group_name.data, ADHOCCTL_GROUPNAME_LEN) == 0)
-		{
-			// Not unique
-			return 0;
-		}
-		
-		// Move Pointer
-		friend_before = friend_before->next;
-	}
-	
-	// Unique Inhabitant
-	return 1;
 }

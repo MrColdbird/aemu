@@ -83,4 +83,14 @@ void _ptpAppendInternal(SceNetAdhocPtpStat * node);
  */
 int _IsPTPPortInUse(uint16_t port);
 
+/**
+ * Lock Network
+ */
+void _acquireNetworkLock(void);
+
+/**
+ * Unlock Network
+ */
+void _freeNetworkLock(void);
+
 #endif

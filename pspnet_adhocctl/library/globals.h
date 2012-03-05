@@ -3,15 +3,8 @@
 
 // Adhoc-Control Metaport
 #define ADHOCCTL_METAPORT 27312
-#define ADHOCCTL_MAX_PLAYERS 16
-#define ADHOCCTL_SEND_TIMEOUT 1000000
-#define ADHOCCTL_RECV_TIMEOUT (ADHOCCTL_SEND_TIMEOUT / ADHOCCTL_MAX_PLAYERS)
-#define ADHOCCTL_DEAD_FRIEND_TIMEOUT (ADHOCCTL_SEND_TIMEOUT * 20)
-
-// PC Debugger
-#define ADHOCCTL_PC_DEBUGGER_IP "192.168.1.103"
-#define ADHOCCTL_PC_DEBUGGER_MAC "\x00\x1F\x1F\x3C\x59\x48"
-#define ADHOCCTL_PC_DEBUGGER_NAME "Debugger"
+#define ADHOCCTL_RECV_TIMEOUT 100000
+#define ADHOCCTL_PING_TIMEOUT 10000000
 
 // Error Codes
 #define ADHOC_NO_ENTRY 0x80410716
@@ -28,19 +21,25 @@
 // Library State
 extern int _init;
 
+// Thread Status
+extern int _thread_status;
+
 // Game Product Code
 extern SceNetAdhocctlAdhocId _product_code;
+
+// Game Group
+extern SceNetAdhocctlParameter _parameter;
+
+// Peer List
+extern SceNetAdhocctlPeerInfo * _friends;
+
+// Scan Network List
+extern SceNetAdhocctlScanInfo * _networks;
 
 // Event Handler
 #define ADHOCCTL_MAX_HANDLER 4
 extern SceNetAdhocctlHandler _event_handler[ADHOCCTL_MAX_HANDLER];
 extern void * _event_args[ADHOCCTL_MAX_HANDLER];
-
-// Friend Control Status
-extern SceNetAdhocctlStatusFriend * _friends;
-
-// Local Control Status
-extern SceNetAdhocctlStatusBase _status;
 
 // Access Point Setting
 extern int _hotspot;
@@ -48,8 +47,13 @@ extern int _hotspot;
 // Meta Socket
 extern int _metasocket;
 
+#ifdef ENABLE_PEERLOCK
 // Peer Locker
 extern int _peerlock;
+#endif
+
+// Network Locker
+extern int _networklock;
 
 // Netconf Status
 extern int _netconf_status;

@@ -17,16 +17,31 @@ int proNetAdhocctlCreate(const SceNetAdhocctlGroupName * group_name)
 		if(_validNetworkName(group_name))
 		{
 			// Disconnected State
-			if(_status.network_type == ADHOCCTL_NETWORK_TYPE_DISCONNECTED)
+			if(_thread_status == ADHOCCTL_STATE_DISCONNECTED)
 			{
-				// Clear Network Name
-				memset(&_status.group_name, 0, sizeof(_status.group_name));
-				
-				// Overwrite Network Name if given
-				if(group_name != NULL) _status.group_name = *group_name;
+				// Set Network Name
+				if(group_name != NULL) _parameter.group_name = *group_name;
 				
 				// Set Connected State
-				_status.network_type = ADHOCCTL_NETWORK_TYPE_ADHOC;
+				_thread_status = ADHOCCTL_STATE_CONNECTED;
+				
+				// Prepare Connect Packet
+				SceNetAdhocctlConnectPacketC2S packet;
+				
+				// Set Packet Opcode
+				packet.base.opcode = OPCODE_CONNECT;
+				
+				// Set Target Group
+				packet.group = *group_name;
+				
+				// Acquire Network Lock
+				_acquireNetworkLock();
+				
+				// Send Packet
+				sceNetInetSend(_metasocket, &packet, sizeof(packet), INET_MSG_DONTWAIT);
+				
+				// Free Network Lock
+				_freeNetworkLock();
 				
 				// Notify Event Handlers
 				int i = 0; for(; i < ADHOCCTL_MAX_HANDLER; i++)

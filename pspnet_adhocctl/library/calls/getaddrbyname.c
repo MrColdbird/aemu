@@ -39,34 +39,21 @@ int proNetAdhocctlGetAddrByName(const SceNetAdhocctlNickname * nickname, int * b
 				// Minimum Space available
 				if(requestcount > 0)
 				{
-					// Iterate Friends
-					SceNetAdhocctlStatusFriend * friend = _friends; while(friend != NULL && discovered < requestcount)
+					// Peer Reference
+					SceNetAdhocctlPeerInfo * peer = _friends;
+					
+					// Iterate Peers
+					for(; peer != NULL && discovered < requestcount; peer = peer->next)
 					{
-						#ifndef NO_FRIEND_TIMEOUT
-						// Active Friend
-						if((sceKernelGetSystemTimeWide() - friend->last_recv) < ADHOCCTL_DEAD_FRIEND_TIMEOUT)
-						#endif
+						// Match found
+						if(strcmp((char *)peer->nickname.data, (char *)nickname->data) == 0)
 						{
-							#ifndef NO_FRIEND_GROUP_CHECK
-							// Same Network as Local Player
-							if(friend->base.network_type != ADHOCCTL_NETWORK_TYPE_DISCONNECTED && friend->base.network_type == _status.network_type && strncmp((char *)friend->base.group_name.data, (char *)_status.group_name.data, ADHOCCTL_GROUPNAME_LEN) == 0)
-							#endif
-							{
-								// Matching Name found
-								if(strcmp((char *)friend->base.player_name.data, (char *)nickname->data) == 0)
-								{
-									// Write Data
-									buf[discovered].nickname = *nickname;
-									buf[discovered].mac_addr = friend->base.player_mac;
-									buf[discovered].ip_addr = friend->ip_addr;
-									buf[discovered].last_recv = friend->last_recv;
-									discovered++;
-								}
-							}
+							// Fake Receive Time
+							peer->last_recv = sceKernelGetSystemTimeWide();
+							
+							// Copy Peer Info
+							buf[discovered++] = *peer;
 						}
-						
-						// Move Pointer
-						friend = friend->next;
 					}
 					
 					// Link List
@@ -75,6 +62,9 @@ int proNetAdhocctlGetAddrByName(const SceNetAdhocctlNickname * nickname, int * b
 						// Link Network
 						buf[i].next = &buf[i + 1];
 					}
+					
+					// Fix Last Element
+					if(discovered > 0) buf[discovered - 1].next = NULL;
 				}
 				
 				// Fix Buffer Size
@@ -106,27 +96,14 @@ int _getNicknameCount(const SceNetAdhocctlNickname * nickname)
 	// Counter
 	int count = 0;
 	
-	// Iterate Friends
-	SceNetAdhocctlStatusFriend * friend = _friends; while(friend != NULL)
+	// Peer Reference
+	SceNetAdhocctlPeerInfo * peer = _friends;
+	
+	// Iterate Peers
+	for(; peer != NULL; peer = peer->next)
 	{
-		#ifndef NO_FRIEND_TIMEOUT
-		// Active Friend
-		if((sceKernelGetSystemTimeWide() - friend->last_recv) < ADHOCCTL_DEAD_FRIEND_TIMEOUT)
-		#endif
-		{
-			#ifndef NO_FRIEND_GROUP_CHECK
-			// Same Network as Local Player
-			if(friend->base.network_type != ADHOCCTL_NETWORK_TYPE_DISCONNECTED && friend->base.network_type == _status.network_type && strncmp((char *)friend->base.group_name.data, (char *)_status.group_name.data, ADHOCCTL_GROUPNAME_LEN) == 0)
-			#endif
-			{
-				// Matching Name found
-				if(strcmp((char *)friend->base.player_name.data, (char *)nickname->data) == 0)
-				{
-					// Increase Counter
-					count++;
-				}
-			}
-		}
+		// Match found
+		if(strcmp((char *)peer->nickname.data, (char *)nickname->data) == 0) count++;
 	}
 	
 	// Return Result

@@ -35,8 +35,14 @@ int proNetAdhocPtpSend(int id, const void * data, int * len, uint32_t timeout, i
 						// Apply Send Timeout Settings to Socket
 						sceNetInetSetsockopt(socket->id, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
 						
+						// Acquire Network Lock
+						_acquireNetworkLock();
+						
 						// Send Data
 						int sent = sceNetInetSend(socket->id, data, *len, ((flag) ? (INET_MSG_DONTWAIT) : (0)));
+						
+						// Free Network Lock
+						_freeNetworkLock();
 						
 						// Success
 						if(sent > 0)

@@ -13,20 +13,8 @@ int proNetAdhocctlGetParameter(SceNetAdhocctlParameter * parameter)
 		// Valid Arguments
 		if(parameter != NULL)
 		{
-			// Clear Parameter
-			memset(parameter, 0, sizeof(SceNetAdhocctlParameter));
-			
-			// Fake Channel
-			parameter->channel = 1;
-			
-			// Fake BSSID
-			parameter->bssid.mac_addr = _status.player_mac;
-			
-			// Copy Group Name
-			parameter->group_name = _status.group_name;
-			
-			// Copy Nick Name
-			parameter->nickname = _status.player_name;
+			// Copy Parameter
+			*parameter = _parameter;
 			
 			// Return Success
 			return 0;

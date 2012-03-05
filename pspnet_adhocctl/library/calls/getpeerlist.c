@@ -38,38 +38,17 @@ int proNetAdhocctlGetPeerList(int * buflen, SceNetAdhocctlPeerInfo * buf)
 				// Minimum Arguments
 				if(requestcount > 0)
 				{
-					// Iterate Friends
-					SceNetAdhocctlStatusFriend * friend = _friends; while(friend != NULL && discovered < requestcount)
+					// Peer Reference
+					SceNetAdhocctlPeerInfo * peer = _friends;
+					
+					// Iterate Peers
+					for(; peer != NULL && discovered < requestcount; peer = peer->next)
 					{
-						#ifndef NO_FRIEND_TIMEOUT
-						// Active Friend
-						if((sceKernelGetSystemTimeWide() - friend->last_recv) < ADHOCCTL_DEAD_FRIEND_TIMEOUT)
-						#endif
-						{
-							#ifndef NO_FRIEND_GROUP_CHECK
-							// Same Network as Local Player
-							if(friend->base.network_type != ADHOCCTL_NETWORK_TYPE_DISCONNECTED && friend->base.network_type == _status.network_type && strncmp((char *)friend->base.group_name.data, (char *)_status.group_name.data, ADHOCCTL_GROUPNAME_LEN) == 0)
-							#endif
-							{
-								// Copy Nickname
-								buf[discovered].nickname = friend->base.player_name;
-								
-								// Copy MAC Address
-								buf[discovered].mac_addr = friend->base.player_mac;
-								
-								// Copy IP Address (required for the Adhoc Emulator only, not used by OFW)
-								buf[discovered].ip_addr = friend->ip_addr;
-								
-								// Copy Receive Statistic
-								buf[discovered].last_recv = friend->last_recv;
-								
-								// Increase Counter
-								discovered++;
-							}
-						}
+						// Fake Receive Time
+						peer->last_recv = sceKernelGetSystemTimeWide();
 						
-						// Move Pointer
-						friend = friend->next;
+						// Copy Peer Info
+						buf[discovered++] = *peer;
 					}
 					
 					// Link List
@@ -78,6 +57,9 @@ int proNetAdhocctlGetPeerList(int * buflen, SceNetAdhocctlPeerInfo * buf)
 						// Link Network
 						buf[i].next = &buf[i + 1];
 					}
+					
+					// Fix Last Element
+					if(discovered > 0) buf[discovered - 1].next = NULL;
 				}
 				
 				// Fix Size
@@ -108,26 +90,14 @@ int _getActivePeerCount(void)
 	// Counter
 	int count = 0;
 	
-	// Iterate Friends
-	SceNetAdhocctlStatusFriend * friend = _friends; while(friend != NULL)
+	// Peer Reference
+	SceNetAdhocctlPeerInfo * peer = _friends;
+	
+	// Iterate Peers
+	for(; peer != NULL; peer = peer->next)
 	{
-		#ifndef NO_FRIEND_TIMEOUT
-		// Active Friend
-		if((sceKernelGetSystemTimeWide() - friend->last_recv) < ADHOCCTL_DEAD_FRIEND_TIMEOUT)
-		#endif
-		{
-			#ifndef NO_FRIEND_GROUP_CHECK
-			// Same Network as Local Player
-			if(friend->base.network_type != ADHOCCTL_NETWORK_TYPE_DISCONNECTED && friend->base.network_type == _status.network_type && strncmp((char *)friend->base.group_name.data, (char *)_status.group_name.data, ADHOCCTL_GROUPNAME_LEN) == 0)
-			#endif
-			{
-				// Increase Counter
-				count++;
-			}
-		}
-		
-		// Move Pointer
-		friend = friend->next;
+		// Increase Counter
+		count++;
 	}
 	
 	// Return Result

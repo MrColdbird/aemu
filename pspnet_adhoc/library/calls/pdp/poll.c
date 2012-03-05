@@ -83,8 +83,14 @@ int proNetAdhocPollSocket(SceNetAdhocPollSd * sds, int nsds, uint32_t timeout, i
 					if(timeout == 0) timeout = 1;
 				}
 				
+				// Acquire Network Lock
+				_acquireNetworkLock();
+				
 				// Poll Sockets
 				int affectedsockets = sceNetInetPoll(isds, nsds, timeout);
+				
+				// Free Network Lock
+				_freeNetworkLock();
 				
 				// Sockets affected
 				if(affectedsockets > 0)

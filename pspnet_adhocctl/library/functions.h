@@ -29,4 +29,20 @@ void _acquirePeerLock(void);
  */
 void _freePeerLock(void);
 
+/**
+ * Lock Network
+ */
+void _acquireNetworkLock(void);
+
+/**
+ * Unlock Network
+ */
+void _freeNetworkLock(void);
+
+/**
+ * Recursive Memory Freeing-Helper for Friend-Structures
+ * @param node Current Node in List
+ */
+void _freeFriendsRecursive(SceNetAdhocctlPeerInfo * node);
+
 #endif

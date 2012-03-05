@@ -59,6 +59,9 @@ int proNetAdhocPdpRecv(int id, SceNetEtherAddr * saddr, uint16_t * sport, void *
 					SceNetInetSockaddrIn sin;
 					uint32_t sinlen;
 					
+					// Acquire Network Lock
+					_acquireNetworkLock();
+					
 					// Receive Data
 					int received = sceNetInetRecvfrom(socket->id, buf, *len, ((flag != 0) ? (INET_MSG_DONTWAIT) : (0)), (SceNetInetSockaddr *)&sin, &sinlen);
 					
@@ -120,12 +123,18 @@ int proNetAdhocPdpRecv(int id, SceNetEtherAddr * saddr, uint16_t * sport, void *
 								// Peer found
 								if(peerfound)
 								{
+									// Free Network Lock
+									_freeNetworkLock();
+									
 									// Success
 									return 0;
 								}
 							}
 						}
 					}
+					
+					// Free Network Lock
+					_freeNetworkLock();
 					
 					#ifdef PDP_DIRTY_MAGIC
 					// Restore Nonblocking Flag for Return Value

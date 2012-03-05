@@ -142,9 +142,6 @@ int _IsLocalMAC(const SceNetEtherAddr * addr)
  */
 int _IsPDPPortInUse(uint16_t port)
 {
-	// Adhoc Control Metaport
-	if(port == ADHOCCTL_METAPORT) return 1;
-	
 	// List Iterator
 	SceNetAdhocPdpStat * list = _pdp;
 	

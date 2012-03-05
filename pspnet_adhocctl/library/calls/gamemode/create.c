@@ -13,5 +13,5 @@
 int proNetAdhocctlCreateEnterGameMode(const SceNetAdhocctlGroupName * group_name, int game_type, int num, const SceNetEtherAddr * members, uint32_t timeout, int flag)
 {
 	THROW_UNIMPLEMENTED(__func__);
-	return 0;
+	return -1;
 }

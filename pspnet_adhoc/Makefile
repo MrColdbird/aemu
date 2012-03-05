@@ -32,7 +32,8 @@ library/calls/gamemode/deletemaster.o \
 library/calls/gamemode/deletereplica.o
 
 IMPORTS = \
-imports/sceNetAdhocctl.o
+imports/sceNetAdhocctl.o \
+imports/sceNetAdhocctlIOLock.o
 
 OBJS = main.o ../memab/ATPRO.o $(LIBRARYOBJS) $(IMPORTS)
 

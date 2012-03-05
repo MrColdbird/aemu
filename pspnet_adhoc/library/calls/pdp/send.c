@@ -61,8 +61,14 @@ int proNetAdhocPdpSend(int id, const SceNetEtherAddr * daddr, uint16_t dport, co
 										target.sin_addr = peer_info.ip_addr;
 										target.sin_port = sceNetHtons(dport);
 										
+										// Acquire Network Lock
+										_acquireNetworkLock();
+										
 										// Send Data
 										int sent = sceNetInetSendto(socket->id, data, len, ((flag != 0) ? (INET_MSG_DONTWAIT) : (0)), (SceNetInetSockaddr *)&target, sizeof(target));
+										
+										// Free Network Lock
+										_freeNetworkLock();
 										
 										// Sent Data
 										if(sent == len)
@@ -97,6 +103,9 @@ int proNetAdhocPdpSend(int id, const SceNetEtherAddr * daddr, uint16_t dport, co
 										// Allocated Memory
 										if(peers != NULL)
 										{
+											// Acquire Network Lock
+											_acquireNetworkLock();
+											
 											// Get Peer List
 											if(sceNetAdhocctlGetPeerList(&buflen, peers) == 0 && buflen > 0)
 											{
@@ -132,6 +141,9 @@ int proNetAdhocPdpSend(int id, const SceNetEtherAddr * daddr, uint16_t dport, co
 											#ifdef DEBUG
 											printk("PDP Broadcast complete\n");
 											#endif
+											
+											// Free Network Lock
+											_freeNetworkLock();
 											
 											// Success
 											return 0;

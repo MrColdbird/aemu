@@ -5,13 +5,6 @@
 #define ADHOCCTL_MODE_ADHOC 0
 #define ADHOCCTL_MODE_GAMEMODE 1
 
-// Network Types for Internal Use
-#define ADHOCCTL_NETWORK_TYPE_DISCONNECTED 0
-#define ADHOCCTL_NETWORK_TYPE_ADHOC 1
-#define ADHOCCTL_NETWORK_TYPE_GAME_1A 2
-#define ADHOCCTL_NETWORK_TYPE_GAME_2A 3
-#define ADHOCCTL_NETWORK_TYPE_GAME_2B 4
-
 // Event Types for Event Handler
 #define ADHOCCTL_EVENT_CONNECT 1
 #define ADHOCCTL_EVENT_DISCONNECT 2
@@ -20,6 +13,7 @@
 // Internal Thread States
 #define ADHOCCTL_STATE_DISCONNECTED 0
 #define ADHOCCTL_STATE_CONNECTED 1
+#define ADHOCCTL_STATE_SCANNING 2
 #define ADHOCCTL_STATE_GAMEMODE 3
 
 // Kernel Utility Netconf Adhoc Types
@@ -58,7 +52,7 @@ typedef struct SceNetAdhocctlBSSId {
 } SceNetAdhocctlBSSId;
 
 // Virtual Network Information
-typedef struct SceNetAdhocctlScanInfo{
+typedef struct SceNetAdhocctlScanInfo {
 	struct SceNetAdhocctlScanInfo * next;
 	int channel;
 	SceNetAdhocctlGroupName group_name;
@@ -97,29 +91,6 @@ typedef struct SceNetAdhocctlGameModeInfo {
 	SceNetEtherAddr member[ADHOCCTL_GAMEMODE_MAX_MEMBERS];
 } SceNetAdhocctlGameModeInfo;
 
-// Control Status Base Data
-typedef struct SceNetAdhocctlStatusBase {
-	SceNetAdhocctlGroupName group_name;
-	SceNetAdhocctlNickname player_name;
-	SceNetEtherAddr player_mac;
-	uint8_t network_type;
-	uint8_t gamemode_master;
-} SceNetAdhocctlStatusBase;
-
-// Control Status Network Addon
-typedef struct SceNetAdhocctlStatusPacket {
-	SceNetAdhocctlStatusBase base;
-	uint8_t product_code[ADHOCCTL_ADHOCID_LEN];
-} SceNetAdhocctlStatusPacket;
-
-// Local Control Status
-typedef struct SceNetAdhocctlStatusFriend {
-	struct SceNetAdhocctlStatusFriend * next;
-	SceNetAdhocctlStatusBase base;
-	uint32_t ip_addr;
-	uint64_t last_recv;
-} SceNetAdhocctlStatusFriend;
-
 // Adhoc Network Control Handler
 typedef void(*SceNetAdhocctlHandler)(int event, int error_code, void * arg);
 
@@ -151,5 +122,7 @@ typedef struct SceUtilityNetconfParam {
 	uint32_t browser_flag;
 	uint32_t wifisvc_available;
 } SceUtilityNetconfParam;
+
+#include "../../pspnet_adhocctl_server/packets.h"
 
 #endif

@@ -7,5 +7,5 @@
 int proNetAdhocctlExitGameMode(void)
 {
 	THROW_UNIMPLEMENTED(__func__);
-	return 0;
+	return -1;
 }

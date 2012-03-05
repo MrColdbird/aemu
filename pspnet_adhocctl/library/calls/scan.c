@@ -10,14 +10,16 @@ int proNetAdhocctlScan(void)
 	if(_init == 1)
 	{
 		// Not connected
-		if(_status.network_type == ADHOCCTL_NETWORK_TYPE_DISCONNECTED)
+		if(_thread_status == ADHOCCTL_STATE_DISCONNECTED)
 		{
-			// Notify Event Handlers
-			int i = 0; for(; i < ADHOCCTL_MAX_HANDLER; i++)
-			{
-				// Active Handler
-				if(_event_handler[i] != NULL) _event_handler[i](ADHOCCTL_EVENT_SCAN, 0, _event_args[i]);
-			}
+			// Set Thread Status to Scanning
+			_thread_status = ADHOCCTL_STATE_SCANNING;
+			
+			// Prepare Scan Request Packet
+			uint8_t opcode = OPCODE_SCAN;
+			
+			// Send Scan Request Packet
+			sceNetInetSend(_metasocket, &opcode, 1, INET_MSG_DONTWAIT);
 			
 			// Return Success
 			return 0;

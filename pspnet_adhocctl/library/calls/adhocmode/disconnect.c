@@ -10,13 +10,37 @@ int proNetAdhocctlDisconnect(void)
 	if(_init == 1)
 	{
 		// Connected State (Adhoc Mode)
-		if(_status.network_type == ADHOCCTL_NETWORK_TYPE_ADHOC)
+		if(_thread_status == ADHOCCTL_STATE_CONNECTED)
 		{
 			// Clear Network Name
-			memset(&_status.group_name, 0, sizeof(_status.group_name));
+			memset(&_parameter.group_name, 0, sizeof(_parameter.group_name));
 			
 			// Set Disconnected State
-			_status.network_type = ADHOCCTL_NETWORK_TYPE_DISCONNECTED;
+			_thread_status = ADHOCCTL_STATE_DISCONNECTED;
+			
+			// Prepare Packet
+			uint8_t opcode = OPCODE_DISCONNECT;
+			
+			// Acquire Network Lock
+			_acquireNetworkLock();
+			
+			// Send Disconnect Request Packet
+			sceNetInetSend(_metasocket, &opcode, 1, INET_MSG_DONTWAIT);
+			
+			// Free Network Lock
+			_freeNetworkLock();
+			
+			// Multithreading Lock
+			_acquirePeerLock();
+			
+			// Clear Peer List
+			_freeFriendsRecursive(_friends);
+			
+			// Delete Peer Reference
+			_friends = NULL;
+			
+			// Multithreading Unlock
+			_freePeerLock();
 			
 			// Notify Event Handlers
 			int i = 0; for(; i < ADHOCCTL_MAX_HANDLER; i++)

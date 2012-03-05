@@ -3,18 +3,24 @@
 // Library State
 int _init = 0;
 
+// Thread Status
+int _thread_status = ADHOCCTL_STATE_DISCONNECTED;
+
 // Game Product Code
 SceNetAdhocctlAdhocId _product_code;
+
+// Game Group
+SceNetAdhocctlParameter _parameter;
+
+// Peer List
+SceNetAdhocctlPeerInfo * _friends = NULL;
+
+// Scan Network List
+SceNetAdhocctlScanInfo * _networks = NULL;
 
 // Event Handler
 SceNetAdhocctlHandler _event_handler[ADHOCCTL_MAX_HANDLER];
 void * _event_args[ADHOCCTL_MAX_HANDLER];
-
-// Friend Control Status
-SceNetAdhocctlStatusFriend * _friends = NULL;
-
-// Local Control Status
-SceNetAdhocctlStatusBase _status;
 
 // Access Point Setting Name
 int _hotspot = -1;
@@ -22,25 +28,26 @@ int _hotspot = -1;
 // Meta Socket
 int _metasocket = -1;
 
+#ifdef ENABLE_PEERLOCK
 // Peer Locker
 int _peerlock = 0;
+#endif
+
+// Network Locker
+int _networklock = 0;
 
 // Bit-Values
 int _one = 1;
 int _zero = 0;
 
 // Function Prototypes
-int _initNetwork(const SceNetAdhocctlAdhocId * adhoc_id);
-int _readConfig(void);
+int _initNetwork(const SceNetAdhocctlAdhocId * adhoc_id, uint32_t server_ip);
+int _readHotspotConfig(void);
 int _findHotspotConfigId(char * ssid);
-int _readFriendList(void);
-int _readFriend(int fd);
+int _readServerConfig(void);
 int _friendFinder(SceSize args, void * argp);
-void _sendControlStatus(void);
-void _recvControlStatus(void);
-#ifdef DEBUG
-int _addDebugFriend(void);
-#endif
+void _addFriend(SceNetAdhocctlConnectPacketS2C * packet);
+void _deleteFriendByIP(uint32_t ip);
 
 /**
  * Initialize the Adhoc-Control Emulator
@@ -57,14 +64,17 @@ int proNetAdhocctlInit(int stacksize, int prio, const SceNetAdhocctlAdhocId * ad
 		// Minimum Stacksize (just to fake SCE behaviour)
 		if(stacksize >= 3072)
 		{
-			// Read Friendlist
-			if(_readFriendList() > 0)
+			// Read Hotspot Configuration
+			if(_readHotspotConfig() == 0)
 			{
-				// Read Configuration
-				if(_readConfig() == 0)
+				// Get Server IP
+				uint32_t ip = _readServerConfig();
+				
+				// Read Server Configuration
+				if(ip != 0)
 				{
 					// Initialize Networking
-					if(_initNetwork(adhoc_id) == 0)
+					if(_initNetwork(adhoc_id, ip) == 0)
 					{
 						// Create Main Thread
 						int update = sceKernelCreateThread("friend_finder", _friendFinder, prio, 32768, 0, NULL);
@@ -77,9 +87,6 @@ int proNetAdhocctlInit(int stacksize, int prio, const SceNetAdhocctlAdhocId * ad
 							
 							// Start Main Thread
 							sceKernelStartThread(update, 0, NULL);
-							
-							// Wait for Convergence
-							sceKernelDelayThread(ADHOCCTL_SEND_TIMEOUT);
 							
 							// Return Success
 							return 0;
@@ -103,9 +110,10 @@ int proNetAdhocctlInit(int stacksize, int prio, const SceNetAdhocctlAdhocId * ad
 /**
  * Initialize Networking Components for Adhocctl Emulator
  * @param adhoc_id Game Product Code
+ * @param server_ip Server IP
  * @return 0 on success or... -1
  */
-int _initNetwork(const SceNetAdhocctlAdhocId * adhoc_id)
+int _initNetwork(const SceNetAdhocctlAdhocId * adhoc_id, uint32_t server_ip)
 {
 	// WLAN Switch Check
 	if(sceWlanGetSwitchState() == 1)
@@ -144,7 +152,7 @@ int _initNetwork(const SceNetAdhocctlAdhocId * adhoc_id)
 				if(state == 4)
 				{
 					// Create Friend Finder Socket
-					int socket = sceNetInetSocket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+					int socket = sceNetInetSocket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 					
 					// Created Socket
 					if(socket > 0)
@@ -154,18 +162,18 @@ int _initNetwork(const SceNetAdhocctlAdhocId * adhoc_id)
 						sceNetInetSetsockopt(socket, SOL_SOCKET, SO_REUSEPORT, &_one, sizeof(_one));
 						
 						// Apply Receive Timeout Settings to Socket
-						uint32_t timeout = ADHOCCTL_RECV_TIMEOUT;
-						sceNetInetSetsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+						// uint32_t timeout = ADHOCCTL_RECV_TIMEOUT;
+						// sceNetInetSetsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 						
-						// Binding Information for local Port
+						// Prepare Server Address
 						SceNetInetSockaddrIn addr;
 						addr.sin_len = sizeof(addr);
 						addr.sin_family = AF_INET;
-						addr.sin_addr = INADDR_ANY;
+						addr.sin_addr = server_ip;
 						addr.sin_port = sceNetHtons(ADHOCCTL_METAPORT);
 						
-						// Bound Socket to local Port
-						if(sceNetInetBind(socket, (SceNetInetSockaddr *)&addr, sizeof(addr)) == 0)
+						// Connect to Server
+						if(sceNetInetConnect(socket, (SceNetInetSockaddr *)&addr, sizeof(addr)) == 0)
 						{
 							// Save Meta Socket
 							_metasocket = socket;
@@ -178,13 +186,37 @@ int _initNetwork(const SceNetAdhocctlAdhocId * adhoc_id)
 							memset(_event_args, 0, sizeof(_event_args[0]) * ADHOCCTL_MAX_HANDLER);
 							
 							// Clear Internal Control Status
-							memset(&_status, 0, sizeof(_status));
+							memset(&_parameter, 0, sizeof(_parameter));
 							
 							// Read PSP Player Name
-							sceUtilityGetSystemParamString(PSP_SYSTEMPARAM_ID_STRING_NICKNAME, (char *)_status.player_name.data, ADHOCCTL_NICKNAME_LEN);
+							sceUtilityGetSystemParamString(PSP_SYSTEMPARAM_ID_STRING_NICKNAME, (char *)_parameter.nickname.data, ADHOCCTL_NICKNAME_LEN);
 							
 							// Read PSP MAC Address
-							sceWlanGetEtherAddr((void *)&_status.player_mac.data);
+							sceWlanGetEtherAddr((void *)&_parameter.bssid.mac_addr.data);
+							
+							// Prepare Login Packet
+							SceNetAdhocctlLoginPacketC2S packet;
+							
+							// Set Packet Opcode
+							packet.base.opcode = OPCODE_LOGIN;
+							
+							// Set MAC Address
+							packet.mac = _parameter.bssid.mac_addr;
+							
+							// Set Nickname
+							packet.name = _parameter.nickname;
+							
+							// Set Game Product ID
+							memcpy(packet.game.data, adhoc_id->data, ADHOCCTL_ADHOCID_LEN);
+							
+							// Acquire Network Layer Lock
+							_acquireNetworkLock();
+							
+							// Send Login Packet
+							sceNetInetSend(_metasocket, &packet, sizeof(packet), INET_MSG_DONTWAIT);
+							
+							// Free Network Layer Lock
+							_freeNetworkLock();
 							
 							// Return Success
 							return 0;
@@ -212,7 +244,7 @@ int _initNetwork(const SceNetAdhocctlAdhocId * adhoc_id)
  * Read Access Point Configuration Name
  * @return 0 on success or... -1
  */
-int _readConfig(void)
+int _readHotspotConfig(void)
 {
 	// Open Configuration File
 	int fd = sceIoOpen("ms0:/seplugins/hotspot.txt", PSP_O_RDONLY, 0777);
@@ -246,6 +278,11 @@ int _readConfig(void)
 	return -1;
 }
 
+/**
+ * Find Infrastructure Configuration ID for SSID
+ * @param ssid Target SSID
+ * @return Configuration ID > -1 or... -1
+ */
 int _findHotspotConfigId(char * ssid)
 {
 	// Counter
@@ -273,139 +310,37 @@ int _findHotspotConfigId(char * ssid)
 }
 
 /**
- * Read Friend IP List
- * @return Number of read Friends
+ * Read Server IP
+ * @return IP != 0 on success or... 0
  */
-int _readFriendList(void)
+int _readServerConfig(void)
 {
-	// Friend Counter
-	int friends = 0;
+	// Open Configuration File
+	int fd = sceIoOpen("ms0:/seplugins/server.txt", PSP_O_RDONLY, 0777);
 	
-	// Open Friendlist
-	int fd = sceIoOpen("ms0:/seplugins/friendlist.txt", PSP_O_RDONLY, 0777);
-	
-	// Opened Friendlist
+	// Opened Configuration File
 	if(fd >= 0)
 	{
-		// Read Friend
-		while(_readFriend(fd)) friends++;
+		// Line Buffer
+		char line[128];
 		
-		// Close Friendlist
+		// Read Line
+		_readLine(fd, line, sizeof(line));
+		
+		// Server IP
+		uint32_t ip = 0;	
+		
+		// Create IP Address from Line
+		sceNetInetInetAton(line, &ip);
+		
+		// Close Configuration File
 		sceIoClose(fd);
-	}	
-	
-	// Log Friend Count
-	if(friends > 0) printk("Imported %d Friend IPs\n", friends);
-	
-	// No Friends found
-	else printk("Couldn't find Friend IPs\n");
-	
-	#ifdef DEBUG
-	friends += _addDebugFriend();
-	#endif
-	
-	// No Friends found
-	return friends;
-}
-
-#ifdef DEBUG
-/**
- * Add Debugger to Friendlist
- * @return 1 on success or... 0
- */
-int _addDebugFriend(void)
-{
-	// Friend IP
-	uint32_t ip = 0;	
-	
-	// Create IP Address from Line
-	if(sceNetInetInetAton(ADHOCCTL_PC_DEBUGGER_IP, &ip) == 1)
-	{
-		// Allocate Friend IP Entry
-		SceNetAdhocctlStatusFriend * newfriend = (SceNetAdhocctlStatusFriend *)malloc(sizeof(SceNetAdhocctlStatusFriend));
 		
-		// Allocate Success
-		if(newfriend != NULL)
-		{
-			// Clear Memory
-			memset(newfriend, 0, sizeof(SceNetAdhocctlStatusFriend));
-			
-			// Save IP
-			newfriend->ip_addr = ip;
-			
-			// Save MAC
-			memcpy(newfriend->base.player_mac.data, ADHOCCTL_PC_DEBUGGER_MAC, ETHER_ADDR_LEN);
-			
-			// Set Name
-			strcpy(newfriend->base.player_name.data, ADHOCCTL_PC_DEBUGGER_NAME);
-			
-			// Set Connected State
-			newfriend->base.network_type = UTILITY_NETCONF_TYPE_CONNECT_ADHOC;
-			
-			// Set Update Time
-			newfriend->last_recv = sceKernelGetSystemTimeWide();
-			
-			// Link Friend
-			newfriend->next = _friends;
-			
-			// Exchange Array
-			_friends = newfriend;
-			
-			// Success
-			return 1;
-		}
+		// Return IP
+		return ip;
 	}
 	
-	// Failure
-	return 0;
-}
-#endif
-
-/**
- * Read Friend IP from File
- * @param fd File Descriptor to read Friend IP from
- * @return 1 on success or... 0
- */
-int _readFriend(int fd)
-{
-	// TODO Change this to linked list... need to add new structure to structures.h
-	
-	// Line Buffer
-	char line[512];
-	
-	// Read Line
-	_readLine(fd, line, sizeof(line));
-	
-	// Friend IP
-	uint32_t ip = 0;	
-	
-	// Create IP Address from Line
-	if(sceNetInetInetAton(line, &ip) == 1)
-	{
-		// Allocate Friend IP Entry
-		SceNetAdhocctlStatusFriend * newfriend = (SceNetAdhocctlStatusFriend *)malloc(sizeof(SceNetAdhocctlStatusFriend));
-		
-		// Allocate Success
-		if(newfriend != NULL)
-		{
-			// Clear Memory
-			memset(newfriend, 0, sizeof(SceNetAdhocctlStatusFriend));
-			
-			// Save IP
-			newfriend->ip_addr = ip;
-			
-			// Link Friend
-			newfriend->next = _friends;
-			
-			// Exchange Array
-			_friends = newfriend;
-			
-			// Success
-			return 1;
-		}
-	}
-	
-	// Failure
+	// Generic Error
 	return 0;
 }
 
@@ -448,34 +383,194 @@ uint32_t _readLine(int fd, char * buffer, uint32_t buflen)
 }
 
 /**
- * Friend Finder Thread (Sends and Receives Peer Information)
+ * Friend Finder Thread (Receives Peer Information)
  * @param args Length of argp in Bytes (Unused)
  * @param argp Argument (Unused)
  * @return Unused Value - Return 0
  */
 int _friendFinder(SceSize args, void * argp)
 {
+	// Receive Buffer
+	static int rxpos = 0;
+	static uint8_t rx[1024];
+	
+	// Last Ping Time
+	static uint64_t lastping = 0;
+	
 	// Finder Loop
 	while(_init == 1)
 	{
-		// Multithreading Lock
-		_acquirePeerLock();
+		// Acquire Network Lock
+		_acquireNetworkLock();
 		
-		// Send Status Data to Peers
-		_sendControlStatus();
+		// Ping Server
+		if((sceKernelGetSystemTimeWide() - lastping) >= ADHOCCTL_PING_TIMEOUT)
+		{
+			// Update Ping Time
+			lastping = sceKernelGetSystemTimeWide();
+			
+			// Prepare Packet
+			uint8_t opcode = OPCODE_PING;
+			
+			// Send Ping to Server
+			sceNetInetSend(_metasocket, &opcode, 1, INET_MSG_DONTWAIT);
+		}
 		
-		// Receive Status Data from Peers
-		_recvControlStatus();
+		// Wait for Incoming Data
+		int received = sceNetInetRecv(_metasocket, rx + rxpos, sizeof(rx) - rxpos, INET_MSG_DONTWAIT);
 		
-		// Multithreading Unlock
-		_freePeerLock();
+		// Free Network Lock
+		_freeNetworkLock();
+		
+		// Received Data
+		if(received > 0)
+		{
+			// Fix Position
+			rxpos += received;
+			
+			// Log Incoming Traffic
+			#ifdef DEBUG
+			printk("Received %d Bytes of Data from Server\n", received);
+			#endif
+		}
+		
+		// Handle Packets
+		if(rxpos > 0)
+		{
+			// Connect Packet
+			if(rx[0] == OPCODE_CONNECT)
+			{
+				// WTF LOG?
+				#ifdef DEBUG
+				printk("Opcode Size PC: %d PSP: %d\n", rxpos, sizeof(SceNetAdhocctlConnectPacketS2C));
+				#endif
+				
+				// Enough Data available
+				if(rxpos >= sizeof(SceNetAdhocctlConnectPacketS2C))
+				{
+					// Log Incoming Peer
+					#ifdef DEBUG
+					printk("Incoming Peer Data...\n");
+					#endif
+					
+					// Cast Packet
+					SceNetAdhocctlConnectPacketS2C * packet = (SceNetAdhocctlConnectPacketS2C *)rx;
+					
+					// Add User
+					_addFriend(packet);
+					
+					// Move RX Buffer
+					memmove(rx, rx + sizeof(SceNetAdhocctlConnectPacketS2C), sizeof(rx) - sizeof(SceNetAdhocctlConnectPacketS2C));
+					
+					// Fix RX Buffer Length
+					rxpos -= sizeof(SceNetAdhocctlConnectPacketS2C);
+				}
+			}
+			
+			// Disconnect Packet
+			else if(rx[0] == OPCODE_DISCONNECT)
+			{
+				// Enough Data available
+				if(rxpos >= sizeof(SceNetAdhocctlDisconnectPacketS2C))
+				{
+					// Log Incoming Peer Delete Request
+					#ifdef DEBUG
+					printk("Incoming Peer Data Delete Request...\n");
+					#endif
+					
+					// Cast Packet
+					SceNetAdhocctlDisconnectPacketS2C * packet = (SceNetAdhocctlDisconnectPacketS2C *)rx;
+					
+					// Delete User by IP
+					_deleteFriendByIP(packet->ip);
+					
+					// Move RX Buffer
+					memmove(rx, rx + sizeof(SceNetAdhocctlDisconnectPacketS2C), sizeof(rx) - sizeof(SceNetAdhocctlDisconnectPacketS2C));
+					
+					// Fix RX Buffer Length
+					rxpos -= sizeof(SceNetAdhocctlDisconnectPacketS2C);
+				}
+			}
+			
+			// Scan Packet
+			else if(rx[0] == OPCODE_SCAN)
+			{
+				// Enough Data available
+				if(rxpos >= sizeof(SceNetAdhocctlScanPacketS2C))
+				{
+					// Log Incoming Network Information
+					#ifdef DEBUG
+					printk("Incoming Group Information...\n");
+					#endif
+					
+					// Cast Packet
+					SceNetAdhocctlScanPacketS2C * packet = (SceNetAdhocctlScanPacketS2C *)rx;
+					
+					// Allocate Structure Data
+					SceNetAdhocctlScanInfo * group = (SceNetAdhocctlScanInfo *)malloc(sizeof(SceNetAdhocctlScanInfo));
+					
+					// Allocated Structure Data
+					if(group != NULL)
+					{
+						// Clear Memory
+						memset(group, 0, sizeof(SceNetAdhocctlScanInfo));
+						
+						// Link to existing Groups
+						group->next = _networks;
+						
+						// Copy Group Name
+						group->group_name = packet->group;
+						
+						// Set Localhost as Group Host
+						group->bssid = _parameter.bssid;
+						
+						// Link into Group List
+						_networks = group;
+					}
+					
+					// Move RX Buffer
+					memmove(rx, rx + sizeof(SceNetAdhocctlScanPacketS2C), sizeof(rx) - sizeof(SceNetAdhocctlScanPacketS2C));
+					
+					// Fix RX Buffer Length
+					rxpos -= sizeof(SceNetAdhocctlScanPacketS2C);
+				}
+			}
+			
+			// Scan Complete Packet
+			else if(rx[0] == OPCODE_SCAN_COMPLETE)
+			{
+				// Log Scan Completion
+				#ifdef DEBUG
+				printk("Incoming Scan complete response...\n");
+				#endif
+				
+				// Change State
+				_thread_status = ADHOCCTL_STATE_DISCONNECTED;
+				
+				// Notify Event Handlers
+				int i = 0; for(; i < ADHOCCTL_MAX_HANDLER; i++)
+				{
+					// Active Handler
+					if(_event_handler[i] != NULL) _event_handler[i](ADHOCCTL_EVENT_SCAN, 0, _event_args[i]);
+				}
+				
+				// Move RX Buffer
+				memmove(rx, rx + 1, sizeof(rx) - 1);
+				
+				// Fix RX Buffer Length
+				rxpos -= 1;
+			}
+		}
 		
 		//	Delay Thread (10ms)
-		// sceKernelDelayThread(10000);
+		sceKernelDelayThread(10000);
 	}
 	
 	// Notify Caller of Shutdown
-	_init = -1;	
+	_init = -1;
+	
+	// Reset Thread Status
+	_thread_status = ADHOCCTL_STATE_DISCONNECTED;
 	
 	// Kill Thread
 	sceKernelExitDeleteThread(0);
@@ -514,99 +609,106 @@ void _freePeerLock(void)
 }
 
 /**
- * Send Adhoc Control Status to Friends via UDP
+ * Lock Network
  */
-void _sendControlStatus(void)
+void _acquireNetworkLock(void)
 {
-	// Last Network Action Time
-	static uint32_t last_action = 0;
-	
-	// Time to act...
-	if((sceKernelGetSystemTimeLow() - last_action) >= ADHOCCTL_SEND_TIMEOUT)
+	// Wait for Unlock
+	while(_networklock)
 	{
-		// Prepare Status Packet
-		SceNetAdhocctlStatusPacket packet;
-		memset(&packet, 0, sizeof(packet));
+		// Delay Thread
+		sceKernelDelayThread(1);
+	}
+	
+	// Lock Access
+	_networklock = 1;
+}
+
+/**
+ * Unlock Network
+ */
+void _freeNetworkLock(void)
+{
+	// Unlock Access
+	_networklock = 0;
+}
+
+/**
+ * Add Friend to Local List
+ * @param packet Friend Information
+ */
+void _addFriend(SceNetAdhocctlConnectPacketS2C * packet)
+{
+	// Allocate Structure
+	SceNetAdhocctlPeerInfo * peer = (SceNetAdhocctlPeerInfo *)malloc(sizeof(SceNetAdhocctlPeerInfo));
+	
+	// Allocated Structure
+	if(peer != NULL)
+	{
+		// Clear Memory
+		memset(peer, 0, sizeof(SceNetAdhocctlPeerInfo));
 		
-		// Copy Basic Information
-		packet.base = _status;
-		memcpy(packet.product_code, _product_code.data, ADHOCCTL_ADHOCID_LEN);
+		// Link to existing Peers
+		peer->next = _friends;
 		
-		// Iterate Friends
-		SceNetAdhocctlStatusFriend * friend = _friends; while(friend != NULL)
-		{
-			// Fill in Target Structure
-			SceNetInetSockaddrIn target;
-			target.sin_family = AF_INET;
-			target.sin_addr = friend->ip_addr;
-			target.sin_port = sceNetHtons(ADHOCCTL_METAPORT);
-			
-			// Send Status Message
-			sceNetInetSendto(_metasocket, (void *)&packet, sizeof(packet), INET_MSG_DONTWAIT, (SceNetInetSockaddr *)&target, sizeof(target));
-			
-			// Move Pointer
-			friend = friend->next;
-		}
+		// Save Nickname
+		peer->nickname = packet->name;
 		
-		// Update Action Time
-		last_action = sceKernelGetSystemTimeLow();
+		// Save MAC Address
+		peer->mac_addr = packet->mac;
+		
+		// Save IP Address
+		peer->ip_addr = packet->ip;
+		
+		// Multithreading Lock
+		_acquirePeerLock();
+		
+		// Link into Peerlist
+		_friends = peer;
+		
+		// Multithreading Unlock
+		_freePeerLock();
 	}
 }
 
 /**
- * Receive Adhoc Control Status from Friends via UDP
+ * Delete Friend from Local List
+ * @param ip Friend IP
  */
-void _recvControlStatus(void)
+void _deleteFriendByIP(uint32_t ip)
 {
-	// Status Packet
-	SceNetAdhocctlStatusPacket packet;
+	// Previous Peer Reference
+	SceNetAdhocctlPeerInfo * prev = NULL;
 	
-	// Sender Address
-	SceNetInetSockaddrIn sin;
-	uint32_t sinlen;
+	// Peer Pointer
+	SceNetAdhocctlPeerInfo * peer = _friends;
 	
-	#ifdef DEBUG
-	// Update Debugger Timestamp
-	if(_friends != NULL) _friends->last_recv = sceKernelGetSystemTimeWide();
-	#endif
-	
-	// Receive Data
-	// int received = sceNetInetRecvfrom(_metasocket, (void *)&packet, sizeof(packet), INET_MSG_DONTWAIT, (SceNetInetSockaddr *)&sin, &sinlen);
-	
-	// Receive Data with Timeout Value from _initNetwork
-	int received = sceNetInetRecvfrom(_metasocket, (void *)&packet, sizeof(packet), 0, (SceNetInetSockaddr *)&sin, &sinlen);
-	
-	// Received Data
-	if(received == sizeof(packet))
+	// Iterate Peers
+	for(; peer != NULL; peer = peer->next)
 	{
-		// Iterate Friends
-		SceNetAdhocctlStatusFriend * friend = _friends; while(friend != NULL)
+		// Found Peer
+		if(peer->ip_addr == ip)
 		{
-			// Check Data
-			int ipcheck = (friend->ip_addr == sin.sin_addr);
-			int productcheck = (strncmp((char *)packet.product_code, (char *)_product_code.data, ADHOCCTL_ADHOCID_LEN) == 0);
+			// Multithreading Lock
+			_acquirePeerLock();
 			
-			// Friend found playing the same game
-			//if(friend->ip_addr == sin.sin_addr && strncmp((char *)packet.product_code, (char *)_product_code.data, ADHOCCTL_ADHOCID_LEN) == 0)
-			if(ipcheck && productcheck)
-			{
-				// Log Update
-				#ifdef DEBUG
-				printk("Updated %s's Control Status\n", (char *)packet.base.player_name.data);
-				#endif
-				
-				// Update Friend Status
-				friend->base = packet.base;
-				
-				// Update Last Receive Timer
-				friend->last_recv = sceKernelGetSystemTimeWide();
-				
-				// Stop Friend Iteration
-				break;
-			}
+			// Unlink Left (Beginning)
+			if(prev == NULL) _friends = peer->next;
 			
-			// Move Pointer
-			friend = friend->next;
+			// Unlink Left (Other)
+			else prev->next = peer->next;
+			
+			// Multithreading Unlock
+			_freePeerLock();
+			
+			// Free Memory
+			free(peer);
+			
+			// Stop Search
+			break;
 		}
+		
+		// Set Previous Reference
+		prev = peer;
 	}
 }

@@ -31,4 +31,9 @@ PSP_EXPORT_FUNC_HASH(sceNetAdhocctlGetScanInfo)
 PSP_EXPORT_FUNC_HASH(sceNetAdhocctlGetGameModeInfo)
 PSP_EXPORT_END
 
+PSP_EXPORT_START(sceNetAdhocctlIOLock, 0x0011, 0x0001)
+PSP_EXPORT_FUNC_HASH(_acquireNetworkLock)
+PSP_EXPORT_FUNC_HASH(_freeNetworkLock)
+PSP_EXPORT_END
+
 PSP_END_EXPORTS

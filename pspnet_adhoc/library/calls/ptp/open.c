@@ -134,6 +134,9 @@ void _ptpAppendInternal(SceNetAdhocPtpStat * node)
  */
 int _IsPTPPortInUse(uint16_t port)
 {
+	// Adhoc Control Metaport
+	if(port == ADHOCCTL_METAPORT) return 1;
+	
 	// Iterator Veriable
 	SceNetAdhocPtpStat * list = _ptp;
 	

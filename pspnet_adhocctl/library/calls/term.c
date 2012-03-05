@@ -1,7 +1,7 @@
 #include "../common.h"
 
 // Function Prototypes
-void _freeFriendsRecursive(SceNetAdhocctlStatusFriend * node);
+void _freeNetworkRecursive(SceNetAdhocctlScanInfo * node);
 
 /**
  * Terminate Adhoc-Control Emulator
@@ -18,11 +18,23 @@ int proNetAdhocctlTerm(void)
 		// Wait for internal thread cooldown
 		while(_init != -1) sceKernelDelayThread(10000);
 		
+		// Multithreading Lock
+		_acquirePeerLock();
+		
 		// Free Friends Memory
 		_freeFriendsRecursive(_friends);
 		
 		// Delete Friends Reference
 		_friends = NULL;
+		
+		// Multithreading Unlock
+		_freePeerLock();
+		
+		// Free Group Memory
+		_freeNetworkRecursive(_networks);
+		
+		// Delete Group Reference
+		_networks = NULL;
 		
 		// Delete Socket
 		sceNetInetClose(_metasocket);
@@ -48,13 +60,29 @@ int proNetAdhocctlTerm(void)
  * Recursive Memory Freeing-Helper for Friend-Structures
  * @param node Current Node in List
  */
-void _freeFriendsRecursive(SceNetAdhocctlStatusFriend * node)
+void _freeFriendsRecursive(SceNetAdhocctlPeerInfo * node)
 {
 	// End of List
 	if(node == NULL) return;
 	
 	// Increase Recursion Depth
 	_freeFriendsRecursive(node->next);
+	
+	// Free Memory
+	free(node);
+}
+
+/**
+ * Recursive Memory Freeing-Helper for Group-Structures
+ * @param node Current Node in List
+ */
+void _freeNetworkRecursive(SceNetAdhocctlScanInfo * node)
+{
+	// End of List
+	if(node == NULL) return;
+	
+	// Increase Recursion Depth
+	_freeNetworkRecursive(node->next);
 	
 	// Free Memory
 	free(node);

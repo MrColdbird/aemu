@@ -6,6 +6,7 @@ PSPNET_ADHOCCTL = pspnet_adhocctl
 PSPNET_ADHOC_MATCHING = pspnet_adhoc_matching
 PSPNET_ADHOC_DOWNLOAD = pspnet_adhoc_download
 PSPNET_ADHOC_DISCOVER = pspnet_adhoc_discover
+PSPNET_ADHOCCTL_SERVER = pspnet_adhocctl_server
 DISTRIBUTE = dist
 
 FLAGS = CONFIG_620=1
@@ -40,8 +41,9 @@ all:
 	@mkdir $(DISTRIBUTE) || true
 	@mkdir $(DISTRIBUTE)/seplugins || true
 	@mkdir $(DISTRIBUTE)/kd || true
+	@mkdir $(DISTRIBUTE)/server || true
 	@touch $(DISTRIBUTE)/seplugins/hotspot.txt || true
-	@touch $(DISTRIBUTE)/seplugins/friendlist.txt || true
+	@touch $(DISTRIBUTE)/seplugins/server.txt || true
 
 	@cd $(ATPRO); make $(FLAGS)
 	@cd $(MEMAB); make $(FLAGS)
@@ -51,6 +53,7 @@ all:
 #	@cd $(PSPNET_ADHOC_MATCHING); make $(FLAGS)
 #	@cd $(PSPNET_ADHOC_DOWNLOAD); make $(FLAGS)
 #	@cd $(PSPNET_ADHOC_DISCOVER); make $(FLAGS)
+	@cd $(PSPNET_ADHOCCTL_SERVER); make $(FLAGS)
 
 clean:
 	@cd $(ATPRO); make clean $(FLAGS)
@@ -61,4 +64,5 @@ clean:
 #	@cd $(PSPNET_ADHOC_MATCHING); make clean $(FLAGS)
 #	@cd $(PSPNET_ADHOC_DOWNLOAD); make clean $(FLAGS)
 #	@cd $(PSPNET_ADHOC_DISCOVER); make clean $(FLAGS)
+	@cd $(PSPNET_ADHOCCTL_SERVER); make clean $(FLAGS)
 	@rm -rf $(DISTRIBUTE) || true

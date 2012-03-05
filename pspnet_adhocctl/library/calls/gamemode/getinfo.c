@@ -8,5 +8,5 @@
 int proNetAdhocctlGetGameModeInfo(SceNetAdhocctlGameModeInfo * info)
 {
 	THROW_UNIMPLEMENTED(__func__);
-	return 0;
+	return -1;
 }

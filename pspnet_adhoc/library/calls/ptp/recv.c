@@ -32,8 +32,14 @@ int proNetAdhocPtpRecv(int id, void * buf, int * len, uint32_t timeout, int flag
 					// Apply Send Timeout Settings to Socket
 					sceNetInetSetsockopt(socket->id, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 					
+					// Acquire Network Lock
+					_acquireNetworkLock();
+					
 					// Receive Data
 					int received = sceNetInetRecv(socket->id, buf, *len, ((flag) ? (INET_MSG_DONTWAIT) : (0)));
+					
+					// Free Network Lock
+					_freeNetworkLock();
 					
 					// Received Data
 					if(received > 0)
