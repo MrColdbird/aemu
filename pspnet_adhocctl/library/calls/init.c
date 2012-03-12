@@ -33,8 +33,10 @@ int _metasocket = -1;
 int _peerlock = 0;
 #endif
 
+#ifdef ENABLE_NETLOCK
 // Network Locker
 int _networklock = 0;
+#endif
 
 // Bit-Values
 int _one = 1;
@@ -77,7 +79,7 @@ int proNetAdhocctlInit(int stacksize, int prio, const SceNetAdhocctlAdhocId * ad
 					if(_initNetwork(adhoc_id, ip) == 0)
 					{
 						// Create Main Thread
-						int update = sceKernelCreateThread("friend_finder", _friendFinder, prio, 32768, 0, NULL);
+						int update = sceKernelCreateThread("friend_finder", _friendFinder, 0x18/*prio*/, 32768, 0, NULL);
 						
 						// Created Main Thread
 						if(update >= 0)
@@ -440,11 +442,6 @@ int _friendFinder(SceSize args, void * argp)
 			// Connect Packet
 			if(rx[0] == OPCODE_CONNECT)
 			{
-				// WTF LOG?
-				#ifdef DEBUG
-				printk("Opcode Size PC: %d PSP: %d\n", rxpos, sizeof(SceNetAdhocctlConnectPacketS2C));
-				#endif
-				
 				// Enough Data available
 				if(rxpos >= sizeof(SceNetAdhocctlConnectPacketS2C))
 				{
@@ -613,6 +610,7 @@ void _freePeerLock(void)
  */
 void _acquireNetworkLock(void)
 {
+	#ifdef ENABLE_NETLOCK
 	// Wait for Unlock
 	while(_networklock)
 	{
@@ -622,6 +620,7 @@ void _acquireNetworkLock(void)
 	
 	// Lock Access
 	_networklock = 1;
+	#endif
 }
 
 /**
@@ -629,8 +628,10 @@ void _acquireNetworkLock(void)
  */
 void _freeNetworkLock(void)
 {
+	#ifdef ENABLE_NETLOCK
 	// Unlock Access
 	_networklock = 0;
+	#endif
 }
 
 /**

@@ -75,6 +75,9 @@ int proNetAdhocPtpOpen(const SceNetEtherAddr * saddr, uint16_t sport, const SceN
 								internal->lport = sport;
 								internal->pport = dport;
 								
+								// Set Buffer Size
+								internal->rcv_sb_cc = bufsize;
+								
 								// Append to internal PTP Socket List
 								_ptpAppendInternal(internal);
 								

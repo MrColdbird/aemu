@@ -30,7 +30,7 @@ int proNetAdhocPdpRecv(int id, SceNetEtherAddr * saddr, uint16_t * sport, void *
 				{
 					#ifndef PDP_DIRTY_MAGIC
 					// Schedule Timeout Removal
-					// if(flag) timeout = 0;
+					if(flag) timeout = 0;
 					#else
 					// Nonblocking Simulator
 					int wouldblock = 0;
@@ -57,7 +57,10 @@ int proNetAdhocPdpRecv(int id, SceNetEtherAddr * saddr, uint16_t * sport, void *
 					
 					// Sender Address
 					SceNetInetSockaddrIn sin;
-					uint32_t sinlen;
+					
+					// Set Address Length (so we get the sender ip)
+					uint32_t sinlen = sizeof(sin);
+					sin.sin_len = (uint8_t)sinlen;
 					
 					// Acquire Network Lock
 					_acquireNetworkLock();
@@ -68,68 +71,24 @@ int proNetAdhocPdpRecv(int id, SceNetEtherAddr * saddr, uint16_t * sport, void *
 					// Received Data
 					if(received > 0)
 					{
-						// Get Peer List Size
-						int buflen = 0;
-						if(sceNetAdhocctlGetPeerList(&buflen, NULL) == 0 && buflen > 0)
+						// Peer MAC
+						SceNetEtherAddr mac;
+						
+						// Find Peer MAC
+						if(_resolveIP(sin.sin_addr, &mac) == 0)
 						{
-							// Allocate Memory
-							SceNetAdhocctlPeerInfo * peers = (SceNetAdhocctlPeerInfo *)malloc(buflen);
+							// Provide Sender Information
+							*saddr = mac;
+							*sport = sceNetNtohs(sin.sin_port);
 							
-							// Allocated Memory
-							if(peers != NULL)
-							{
-								// Peer Search Success
-								int peerfound = 0;
-								
-								// Get Peer List
-								if(sceNetAdhocctlGetPeerList(&buflen, peers) == 0 && buflen > 0)
-								{
-									// Log Peer List
-									#ifdef DEBUG
-									printk("Discovered %d Peers for PDP Receive Query\n", buflen / sizeof(SceNetAdhocctlPeerInfo));
-									#endif
-									
-									// Iterate Peers
-									SceNetAdhocctlPeerInfo * peer = peers;
-									for(; peer != NULL; peer = peer->next)
-									{
-										// IP Match found
-										if(peer->ip_addr == sin.sin_addr)
-										{
-											// Log Matching Peer
-											#ifdef DEBUG
-											printk("Found Matching Peer for PDP Receive (%s)\n", (char *)peer->nickname.data);
-											#endif
-											
-											// Provide Sender Information
-											*saddr = peer->mac_addr;
-											*sport = sceNetNtohs(sin.sin_port);
-											
-											// Save Length
-											*len = received;
-											
-											// Peer found
-											peerfound = 1;
-											
-											// Stop Peer Search
-											break;
-										}
-									}
-								}
-								
-								// Free Memory
-								free(peers);
-								
-								// Peer found
-								if(peerfound)
-								{
-									// Free Network Lock
-									_freeNetworkLock();
-									
-									// Success
-									return 0;
-								}
-							}
+							// Save Length
+							*len = received;
+							
+							// Free Network Lock
+							_freeNetworkLock();
+							
+							// Return Success
+							return 0;
 						}
 					}
 					

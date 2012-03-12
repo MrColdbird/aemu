@@ -61,6 +61,9 @@ extern SceNetAdhocGameModeBufferStat * _gmb;
 // Initialized Switch
 extern int _init;
 
+// Manage Infrastructure Modules Switch
+extern int _manage_modules;
+
 // Global One
 extern int _one;
 

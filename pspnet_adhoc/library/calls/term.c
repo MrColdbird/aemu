@@ -27,7 +27,10 @@ int proNetAdhocTerm(void)
 		sceNetInetTerm();		
 		
 		// Unload Internet Modules
-		sceUtilityUnloadModule(PSP_MODULE_NET_INET);
+		if(_manage_modules != 0) sceUtilityUnloadModule(PSP_MODULE_NET_INET);
+		
+		// Drop Module Management
+		_manage_modules = 0;
 		
 		// Library shutdown
 		_init = 0;

@@ -4,6 +4,7 @@ all:
 TARGET = pspnet_adhocctl
 
 LIBRARYOBJS = \
+library/functions.o \
 library/calls/init.o \
 library/calls/term.o \
 library/calls/getstate.o \
@@ -56,16 +57,12 @@ else
 CFLAGS += -DDEBUG=1
 endif
 
-ifeq ($(NO_FRIEND_TIMEOUT), 1)
-CFLAGS += -DNO_FRIEND_TIMEOUT=1
+ifeq ($(ENABLE_PEERLOCK), 1)
+CFLAGS += -DENABLE_PEERLOCK=1
 endif
 
-ifeq ($(NO_FRIEND_GROUP_CHECK), 1)
-CFLAGS += -DNO_FRIEND_GROUP_CHECK=1
-endif
-
-ifeq ($(PDP_DIRTY_MAGIC), 1)
-CFLAGS += -DPDP_DIRTY_MAGIC=1
+ifeq ($(ENABLE_NETLOCK), 1)
+CFLAGS += -DENABLE_NETLOCK=1
 endif
 
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti

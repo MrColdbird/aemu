@@ -4,7 +4,7 @@
 // Adhoc-Control Metaport
 #define ADHOCCTL_METAPORT 27312
 #define ADHOCCTL_RECV_TIMEOUT 100000
-#define ADHOCCTL_PING_TIMEOUT 10000000
+#define ADHOCCTL_PING_TIMEOUT 5000000
 
 // Error Codes
 #define ADHOC_NO_ENTRY 0x80410716
@@ -52,8 +52,10 @@ extern int _metasocket;
 extern int _peerlock;
 #endif
 
+#ifdef ENABLE_NETLOCK
 // Network Locker
 extern int _networklock;
+#endif
 
 // Netconf Status
 extern int _netconf_status;

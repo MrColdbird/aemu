@@ -30,8 +30,9 @@ int proNetAdhocGetSocketAlert(int id, int * flag)
 			if(flag != NULL)
 			{
 				// Misuse RX Buffer Field for Socket Alert
-				if(pdp != NULL) *flag = pdp->rcv_sb_cc;
-				else if(ptp != NULL) *flag = ptp->rcv_sb_cc;
+				// if(pdp != NULL) *flag = pdp->rcv_sb_cc;
+				// else if(ptp != NULL) *flag = ptp->rcv_sb_cc;
+				*flag = 0;
 				
 				// Return Success
 				return 0;

@@ -33,7 +33,8 @@ library/calls/gamemode/deletereplica.o
 
 IMPORTS = \
 imports/sceNetAdhocctl.o \
-imports/sceNetAdhocctlIOLock.o
+imports/sceNetAdhocctlIOLock.o \
+imports/sceNetAdhocctlInternal.o
 
 OBJS = main.o ../memab/ATPRO.o $(LIBRARYOBJS) $(IMPORTS)
 
@@ -50,6 +51,10 @@ endif
 
 ifeq ($(CONFIG_660), 1)
 CFLAGS += -DCONFIG_660=1
+endif
+
+ifeq ($(PDP_DIRTY_MAGIC), 1)
+CFLAGS += -DPDP_DIRTY_MAGIC=1
 endif
 
 ifeq ($(RELEASE), 1)

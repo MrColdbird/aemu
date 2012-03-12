@@ -10,7 +10,7 @@ int proUtilityNetconfShutdownStart(void)
 	if(_netconf_status == UTILITY_NETCONF_STATUS_FINISHED)
 	{
 		// Set Library Status
-		_netconf_status = UTILITY_NETCONF_STATUS_NONE;
+		_netconf_status = UTILITY_NETCONF_STATUS_SHUTDOWN;
 		
 		// Return Success
 		return 0;

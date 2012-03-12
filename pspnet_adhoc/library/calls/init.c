@@ -12,6 +12,9 @@ SceNetAdhocGameModeBufferStat * _gmb = NULL;
 // Initialized Switch
 int _init = 0;
 
+// Manage Infrastructure Modules Switch
+int _manage_modules = 0;
+
 // Global One
 int _one = 1;
 
@@ -27,11 +30,24 @@ int proNetAdhocInit(void)
 	// Library uninitialized
 	if(!_init)
 	{
-		// Load Internet Modules
-		sceUtilityLoadModule(PSP_MODULE_NET_INET);
-		
 		// Initialize Internet Library
-		if(sceNetInetInit() == 0)
+		int result = sceNetInetInit();
+		
+		// Missing Internet Modules
+		if(result != 0)
+		{
+			// Load Internet Modules
+			sceUtilityLoadModule(PSP_MODULE_NET_INET);
+			
+			// Enable Manual Infrastructure Module Control
+			_manage_modules = 1;
+			
+			// Re-Initialize Internet Library
+			result = sceNetInetInit();
+		}
+		
+		// Initialized Internet Library
+		if(result == 0)
 		{
 			// Library initialized
 			_init = 1;

@@ -66,6 +66,7 @@ int proNetAdhocPdpCreate(const SceNetEtherAddr * saddr, uint16_t sport, int bufs
 								internal->id = socket;
 								internal->laddr = *saddr;
 								internal->lport = sport;
+								internal->rcv_sb_cc = bufsize;
 								
 								// Empty Internal PDP Socket List
 								if(_pdp == NULL)

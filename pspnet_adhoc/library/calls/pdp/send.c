@@ -43,7 +43,7 @@ int proNetAdhocPdpSend(int id, const SceNetEtherAddr * daddr, uint16_t dport, co
 								#endif
 								
 								// Schedule Timeout Removal
-								// if(flag) timeout = 0;
+								if(flag) timeout = 0;
 								
 								// Apply Send Timeout Settings to Socket
 								sceNetInetSetsockopt(socket->id, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
@@ -51,16 +51,14 @@ int proNetAdhocPdpSend(int id, const SceNetEtherAddr * daddr, uint16_t dport, co
 								// Single Target
 								if(!_isBroadcastMAC(daddr))
 								{
-									// Get Single Peer Information
-									SceNetAdhocctlPeerInfo peer_info;
-									if(sceNetAdhocctlGetPeerInfo(daddr, sizeof(SceNetAdhocctlPeerInfo), &peer_info) == 0)
+									// Fill in Target Structure
+									SceNetInetSockaddrIn target;
+									target.sin_family = AF_INET;
+									target.sin_port = sceNetHtons(dport);
+									
+									// Get Peer IP
+									if(_resolveMAC((SceNetEtherAddr *)daddr, &target.sin_addr) == 0)
 									{
-										// Fill in Target Structure
-										SceNetInetSockaddrIn target;
-										target.sin_family = AF_INET;
-										target.sin_addr = peer_info.ip_addr;
-										target.sin_port = sceNetHtons(dport);
-										
 										// Acquire Network Lock
 										_acquireNetworkLock();
 										
@@ -73,11 +71,6 @@ int proNetAdhocPdpSend(int id, const SceNetEtherAddr * daddr, uint16_t dport, co
 										// Sent Data
 										if(sent == len)
 										{
-											// Log Success
-											#ifdef DEBUG
-											printk("Successfully Sent %d Bytes to %s\n", len, (char *)peer_info.nickname.data);
-											#endif
-											
 											// Success
 											return 0;
 										}
@@ -93,65 +86,31 @@ int proNetAdhocPdpSend(int id, const SceNetEtherAddr * daddr, uint16_t dport, co
 								// Broadcast Target
 								else
 								{
-									// Get Peer List Size
-									int buflen = 0;
-									if(sceNetAdhocctlGetPeerList(&buflen, NULL) == 0 && buflen > 0)
+									// Acquire Peer Lock
+									_acquirePeerLock();
+									
+									// Acquire Network Lock
+									_acquireNetworkLock();
+									
+									// Iterate Peers
+									SceNetAdhocctlPeerInfo * peer = _getInternalPeerList();
+									for(; peer != NULL; peer = peer->next)
 									{
-										// Allocate Memory
-										SceNetAdhocctlPeerInfo * peers = (SceNetAdhocctlPeerInfo *)malloc(buflen);
+										// Fill in Target Structure
+										SceNetInetSockaddrIn target;
+										target.sin_family = AF_INET;
+										target.sin_addr = peer->ip_addr;
+										target.sin_port = sceNetHtons(dport);
 										
-										// Allocated Memory
-										if(peers != NULL)
-										{
-											// Acquire Network Lock
-											_acquireNetworkLock();
-											
-											// Get Peer List
-											if(sceNetAdhocctlGetPeerList(&buflen, peers) == 0 && buflen > 0)
-											{
-												// Log Peer List
-												#ifdef DEBUG
-												printk("Discovered %d Peers for PDP Broadcast\n", buflen / sizeof(SceNetAdhocctlPeerInfo));
-												#endif
-												
-												// Iterate Peers
-												SceNetAdhocctlPeerInfo * peer = peers;
-												for(; peer != NULL; peer = peer->next)
-												{
-													// Fill in Target Structure
-													SceNetInetSockaddrIn target;
-													target.sin_family = AF_INET;
-													target.sin_addr = peer->ip_addr;
-													target.sin_port = sceNetHtons(dport);
-													
-													// Send Data
-													int sendresult = sceNetInetSendto(socket->id, data, len, ((flag != 0) ? (INET_MSG_DONTWAIT) : (0)), (SceNetInetSockaddr *)&target, sizeof(target));
-													
-													// Log Result
-													#ifdef DEBUG
-													if(sendresult == len) printk("Successfully Sent %d Bytes to %s (Simulated Broadcast)\n", len, (char *)peer->nickname.data);
-													#endif
-												}
-											}
-											
-											// Free Memory
-											free(peers);
-											
-											// Log Broadcast
-											#ifdef DEBUG
-											printk("PDP Broadcast complete\n");
-											#endif
-											
-											// Free Network Lock
-											_freeNetworkLock();
-											
-											// Success
-											return 0;
-										}
-										
-										// Allocation Error
-										return NET_NO_SPACE;
+										// Send Data
+										sceNetInetSendto(socket->id, data, len, ((flag != 0) ? (INET_MSG_DONTWAIT) : (0)), (SceNetInetSockaddr *)&target, sizeof(target));
 									}
+									
+									// Free Network Lock
+									_freeNetworkLock();
+									
+									// Free Peer Lock
+									_freePeerLock();
 									
 									// Broadcast never fails!
 									return 0;

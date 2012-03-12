@@ -6,6 +6,6 @@
  */
 int proUtilityNetconfUpdate(int speed)
 {
-	// Dummy Call
+	// Dummy
 	return 0;
 }

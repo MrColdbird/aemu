@@ -268,7 +268,7 @@ int server_loop(int server)
 							SceNetAdhocctlGroupName group = packet->group;
 							
 							// Remove Packet from RX Buffer
-							clear_user_rxbuf(user, sizeof(SceNetAdhocctlGroupName));
+							clear_user_rxbuf(user, sizeof(SceNetAdhocctlConnectPacketC2S));
 							
 							// Change Game Group
 							connect_user(user, &group);

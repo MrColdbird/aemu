@@ -29,7 +29,7 @@ int proUtilityNetconfInitStart(SceUtilityNetconfParam * param)
 					if(proNetAdhocctlCreate(&param->adhoc_param->group_name) == 0)
 					{
 						// Set Library Status
-						_netconf_status = UTILITY_NETCONF_STATUS_FINISHED;
+						// _netconf_status = UTILITY_NETCONF_STATUS_INITIALIZE;
 						
 						// Return Success
 						return 0;

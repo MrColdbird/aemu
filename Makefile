@@ -25,12 +25,12 @@ else
 FLAGS += DEBUG=1
 endif
 
-ifeq ($(NO_FRIEND_TIMEOUT), 1)
-FLAGS += NO_FRIEND_TIMEOUT=1
+ifeq ($(ENABLE_PEERLOCK), 1)
+FLAGS += ENABLE_PEERLOCK=1
 endif
 
-ifeq ($(NO_FRIEND_GROUP_CHECK), 1)
-FLAGS += NO_FRIEND_GROUP_CHECK=1
+ifeq ($(ENABLE_NETLOCK), 1)
+FLAGS += ENABLE_NETLOCK=1
 endif
 
 ifeq ($(PDP_DIRTY_MAGIC), 1)
@@ -43,16 +43,17 @@ all:
 	@mkdir $(DISTRIBUTE)/kd || true
 	@mkdir $(DISTRIBUTE)/server || true
 	@touch $(DISTRIBUTE)/seplugins/hotspot.txt || true
-	@touch $(DISTRIBUTE)/seplugins/server.txt || true
+	echo 81.217.28.171 > $(DISTRIBUTE)/seplugins/server.txt
+#	@touch $(DISTRIBUTE)/seplugins/server.txt || true
 
 	@cd $(ATPRO); make $(FLAGS)
 	@cd $(MEMAB); make $(FLAGS)
 	@cd $(PSPNET_ADHOC_AUTH); make $(FLAGS)
 	@cd $(PSPNET_ADHOC); make $(FLAGS)
 	@cd $(PSPNET_ADHOCCTL); make $(FLAGS)
-#	@cd $(PSPNET_ADHOC_MATCHING); make $(FLAGS)
-#	@cd $(PSPNET_ADHOC_DOWNLOAD); make $(FLAGS)
-#	@cd $(PSPNET_ADHOC_DISCOVER); make $(FLAGS)
+	@cd $(PSPNET_ADHOC_MATCHING); make $(FLAGS)
+	@cd $(PSPNET_ADHOC_DOWNLOAD); make $(FLAGS)
+	@cd $(PSPNET_ADHOC_DISCOVER); make $(FLAGS)
 	@cd $(PSPNET_ADHOCCTL_SERVER); make $(FLAGS)
 
 clean:
@@ -61,8 +62,8 @@ clean:
 	@cd $(PSPNET_ADHOC_AUTH); make clean $(FLAGS)
 	@cd $(PSPNET_ADHOC); make clean $(FLAGS)
 	@cd $(PSPNET_ADHOCCTL); make clean $(FLAGS)
-#	@cd $(PSPNET_ADHOC_MATCHING); make clean $(FLAGS)
-#	@cd $(PSPNET_ADHOC_DOWNLOAD); make clean $(FLAGS)
-#	@cd $(PSPNET_ADHOC_DISCOVER); make clean $(FLAGS)
+	@cd $(PSPNET_ADHOC_MATCHING); make clean $(FLAGS)
+	@cd $(PSPNET_ADHOC_DOWNLOAD); make clean $(FLAGS)
+	@cd $(PSPNET_ADHOC_DISCOVER); make clean $(FLAGS)
 	@cd $(PSPNET_ADHOCCTL_SERVER); make clean $(FLAGS)
 	@rm -rf $(DISTRIBUTE) || true

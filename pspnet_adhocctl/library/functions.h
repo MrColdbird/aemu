@@ -45,4 +45,26 @@ void _freeNetworkLock(void);
  */
 void _freeFriendsRecursive(SceNetAdhocctlPeerInfo * node);
 
+/**
+ * Resolve IP to MAC
+ * @param ip Peer IP Address
+ * @param mac OUT: Peer MAC
+ * @return 0 on success or... ADHOC_NO_ENTRY
+ */
+int _resolveIP(uint32_t ip, SceNetEtherAddr * mac);
+
+/**
+ * Resolve MAC to IP
+ * @param mac Peer MAC Address
+ * @param ip OUT: Peer IP
+ * @return 0 on success or... ADHOC_NO_ENTRY
+ */
+int _resolveMAC(SceNetEtherAddr * mac, uint32_t * ip);
+
+/**
+ * Get First Peer List Element
+ * @return First Internal Peer List Element
+ */
+SceNetAdhocctlPeerInfo * _getInternalPeerList(void);
+
 #endif

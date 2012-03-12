@@ -78,6 +78,9 @@ int proNetAdhocPtpListen(const SceNetEtherAddr * saddr, uint16_t sport, uint32_t
 									// Flag Socket as Listener
 									internal->state = PTP_STATE_LISTEN;
 									
+									// Set Buffer Size
+									internal->rcv_sb_cc = bufsize;
+									
 									// Append to internal PTP Socket List
 									_ptpAppendInternal(internal);
 									

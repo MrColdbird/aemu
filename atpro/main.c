@@ -12,16 +12,19 @@
 
 PSP_MODULE_INFO("ATPRO", PSP_MODULE_KERNEL, 1, 0);
 
+// System Control Module Patcher
+STMOD_HANDLER sysctrl_patcher = NULL;
+
 // Adhoc Module Names
-#define MODULE_LIST_SIZE 4
+#define MODULE_LIST_SIZE 7
 char * module_names[MODULE_LIST_SIZE] = {
 	"memab.prx",
 	"pspnet_adhoc_auth.prx",
 	"pspnet_adhoc.prx",
 	"pspnet_adhocctl.prx",
-//	"pspnet_adhoc_matching.prx",
-//	"pspnet_adhoc_download.prx",
-//	"pspnet_adhoc_discover.prx",
+	"pspnet_adhoc_matching.prx",
+	"pspnet_adhoc_download.prx",
+	"pspnet_adhoc_discover.prx",
 };
 
 // Kernel Module Loader
@@ -69,91 +72,50 @@ int cbdeny(int cbid)
 // Patcher to allow Utility-Made Connections
 void patch_netconf_utility(void * init, void * getstatus, void * update, void * shutdown)
 {
-	// Find Utility Manager
-	SceModule2 * utility = (SceModule2 *)sceKernelFindModuleByName("sceUtility_Driver");
-	printk("sceUtility_Driver Scan: %08X\n", (u32)utility);
+	// Module ID Buffer
+	static int id[100];
 	
-	// Found Utility Manager
-	if(utility != NULL)
+	// Number of Modules
+	int idcount = 0;
+	
+	// Find Module IDs
+	uint32_t k1 = pspSdkSetK1(0);
+	int result = sceKernelGetModuleIdList(id, sizeof(id), &idcount);
+	pspSdkSetK1(k1);
+	
+	// Found Module IDs
+	if(result == 0)
 	{
-		// Export Position
-		int pos = 0; while(pos < utility->ent_size)
+		// Iterate Modules
+		int i = 0; for(; i < idcount; i++)
 		{
-			// Cast Library
-			SceLibraryEntryTable * lib = (SceLibraryEntryTable *)(utility->ent_top + pos);
+			// Find Module
+			SceModule2 * module = (SceModule2 *)sceKernelFindModuleByUID(id[i]);
 			
-			// NID Table
-			uint32_t * nids = (uint32_t *)lib->entrytable;
-			
-			// Address Table
-			uint32_t * addresses = &nids[lib->stubcount + lib->vstubcount];
-			
-			// Utility Export Library found
-			if(strcmp(lib->libname, "sceUtility") == 0)
+			// Found Userspace Module
+			if(module != NULL && (module->text_addr & 0x80000000) == 0)
 			{
-				// Log Discovery
-				printk("Discovered Utility Export Table\n");
-				
-				// Iterate NIDS
-				int i = 0; for(; i < lib->stubcount; i++)
-				{
-					// Init found
-					if(nids[i] == 0x4DB1E739)
-					{
-						// Patch Init
-						_sw(MAKE_JUMP(init), (uint32_t)addresses[i]);
-						_sw(NOP, (uint32_t)(addresses[i] + 4));
-						
-						// Log Patch
-						printk("Patched sceUtilityNetconfInitStart\n");
-					}
-					
-					// GetStatus found
-					else if(nids[i] == 0x6332AA39)
-					{
-						// Patch GetStatus
-						_sw(MAKE_JUMP(getstatus), (uint32_t)addresses[i]);
-						_sw(NOP, (uint32_t)(addresses[i] + 4));
-						
-						// Log Patch
-						printk("Patched sceUtilityNetconfGetStatus\n");
-					}
-					
-					// Update found
-					else if(nids[i] == 0x91E70E35)
-					{
-						// Patch Update
-						_sw(MAKE_JUMP(update), (uint32_t)addresses[i]);
-						_sw(NOP, (uint32_t)(addresses[i] + 4));
-						
-						// Log Patch
-						printk("Patched sceUtilityNetconfUpdate\n");
-					}
-					
-					// Shutdown found
-					else if(nids[i] == 0xF88155F6)
-					{
-						// Patch Shutdown
-						_sw(MAKE_JUMP(shutdown), (uint32_t)addresses[i]);
-						_sw(NOP, (uint32_t)(addresses[i] + 4));
-						
-						// Log Patch
-						printk("Patched sceUtilityNetconfShutdown\n");
-					}
-				}
-				
-				// Delete Memory Cache
-				sceKernelIcacheInvalidateAll();
-				sceKernelDcacheWritebackInvalidateAll();
-				
-				// Stop Search
-				break;
+				// Hook Imports
+				hook_import_bynid((SceModule *)module, "sceUtility", 0x4DB1E739, init);
+				hook_import_bynid((SceModule *)module, "sceUtility", 0x6332AA39, getstatus);
+				hook_import_bynid((SceModule *)module, "sceUtility", 0x91E70E35, update);
+				hook_import_bynid((SceModule *)module, "sceUtility", 0xF88155F6, shutdown);
 			}
-			
-			// Move Position
-			pos += lib->len * 4;
 		}
 	}
+}
+
+// Online Module Start Patcher
+int online_patcher(SceModule2 * module)
+{
+	// Userspace Module
+	if((module->text_addr & 0x80000000) == 0)
+	{
+		// TODO Future Game Specific Compatiblity Patches
+	}
+	
+	// Enable System Control Patching
+	return sysctrl_patcher(module);
 }
 
 // Module Start Event
@@ -199,6 +161,10 @@ int module_start(SceSize args, void * argp)
 					// Disable Home Menu
 					sctrlHENPatchSyscall((void*)sctrlHENFindFunction("sceLoadExec", "LoadExecForUser", 0x4AC57943), cbdeny);
 					printk("Disabled Home Menu!\n");
+					
+					// Enable Module Start Patching
+					sysctrl_patcher = sctrlHENSetStartModuleHandler(online_patcher);
+					printk("Enabled Game-Specific Fixes!\n");
 					
 					// Setup Success
 					return 0;

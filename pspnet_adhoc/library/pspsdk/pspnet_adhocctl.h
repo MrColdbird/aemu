@@ -37,4 +37,46 @@ int sceNetAdhocctlGetPeerInfo(const SceNetEtherAddr * addr, int size, SceNetAdho
  */
 int sceNetAdhocctlGetPeerList(int * buflen, SceNetAdhocctlPeerInfo * buf);
 
+/**
+ * Lock Peerlist
+ */
+void _acquirePeerLock(void);
+
+/**
+ * Unlock Peerlist
+ */
+void _freePeerLock(void);
+
+/**
+ * Lock Network
+ */
+void _acquireNetworkLock(void);
+
+/**
+ * Unlock Network
+ */
+void _freeNetworkLock(void);
+
+/**
+ * Resolve IP to MAC
+ * @param ip Peer IP Address
+ * @param mac OUT: Peer MAC
+ * @return 0 on success or... ADHOC_NO_ENTRY
+ */
+int _resolveIP(uint32_t ip, SceNetEtherAddr * mac);
+
+/**
+ * Resolve MAC to IP
+ * @param mac Peer MAC Address
+ * @param ip OUT: Peer IP
+ * @return 0 on success or... ADHOC_NO_ENTRY
+ */
+int _resolveMAC(SceNetEtherAddr * mac, uint32_t * ip);
+
+/**
+ * Get First Peer List Element
+ * @return First Internal Peer List Element
+ */
+SceNetAdhocctlPeerInfo * _getInternalPeerList(void);
+
 #endif
