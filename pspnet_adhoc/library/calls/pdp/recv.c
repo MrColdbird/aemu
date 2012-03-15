@@ -13,103 +13,93 @@
  */
 int proNetAdhocPdpRecv(int id, SceNetEtherAddr * saddr, uint16_t * sport, void * buf, int * len, uint32_t timeout, int flag)
 {
-	// Cast Socket
-	SceNetAdhocPdpStat * socket = (SceNetAdhocPdpStat *)id;
-	
 	// Library is initialized
 	if(_init)
 	{
 		// Valid Socket ID
-		if(socket != NULL && _pdpSocketInList(socket))
+		if(id > 0 && id <= 255 && _pdp[id - 1] != NULL)
 		{
+			// Cast Socket
+			SceNetAdhocPdpStat * socket = _pdp[id - 1];
+			
 			// Valid Arguments
 			if(saddr != NULL && sport != NULL && buf != NULL && len != NULL && *len > 0)
 			{
-				// Not Alerted
-				if((socket->rcv_sb_cc & ADHOC_F_ALERTRECV) == 0)
+				#ifndef PDP_DIRTY_MAGIC
+				// Schedule Timeout Removal
+				if(flag) timeout = 0;
+				#else
+				// Nonblocking Simulator
+				int wouldblock = 0;
+				
+				// Minimum Timeout
+				uint32_t mintimeout = 250000;
+				
+				// Nonblocking Call
+				if(flag)
 				{
-					#ifndef PDP_DIRTY_MAGIC
-					// Schedule Timeout Removal
-					if(flag) timeout = 0;
-					#else
-					// Nonblocking Simulator
-					int wouldblock = 0;
+					// Erase Nonblocking Flag
+					flag = 0;
 					
-					// Minimum Timeout
-					uint32_t mintimeout = 250000;
+					// Set Wouldblock Behaviour
+					wouldblock = 1;
 					
-					// Nonblocking Call
-					if(flag)
+					// Set Minimum Timeout (250ms)
+					if(timeout < mintimeout) timeout = mintimeout;
+				}
+				#endif
+				
+				// Apply Receive Timeout Settings to Socket
+				sceNetInetSetsockopt(socket->id, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+				
+				// Sender Address
+				SceNetInetSockaddrIn sin;
+				
+				// Set Address Length (so we get the sender ip)
+				uint32_t sinlen = sizeof(sin);
+				sin.sin_len = (uint8_t)sinlen;
+				
+				// Acquire Network Lock
+				_acquireNetworkLock();
+				
+				// Receive Data
+				int received = sceNetInetRecvfrom(socket->id, buf, *len, ((flag != 0) ? (INET_MSG_DONTWAIT) : (0)), (SceNetInetSockaddr *)&sin, &sinlen);
+				
+				// Received Data
+				if(received > 0)
+				{
+					// Peer MAC
+					SceNetEtherAddr mac;
+					
+					// Find Peer MAC
+					if(_resolveIP(sin.sin_addr, &mac) == 0)
 					{
-						// Erase Nonblocking Flag
-						flag = 0;
+						// Provide Sender Information
+						*saddr = mac;
+						*sport = sceNetNtohs(sin.sin_port);
 						
-						// Set Wouldblock Behaviour
-						wouldblock = 1;
+						// Save Length
+						*len = received;
 						
-						// Set Minimum Timeout (250ms)
-						if(timeout < mintimeout) timeout = mintimeout;
+						// Free Network Lock
+						_freeNetworkLock();
+						
+						// Return Success
+						return 0;
 					}
-					#endif
-					
-					// Apply Receive Timeout Settings to Socket
-					sceNetInetSetsockopt(socket->id, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
-					
-					// Sender Address
-					SceNetInetSockaddrIn sin;
-					
-					// Set Address Length (so we get the sender ip)
-					uint32_t sinlen = sizeof(sin);
-					sin.sin_len = (uint8_t)sinlen;
-					
-					// Acquire Network Lock
-					_acquireNetworkLock();
-					
-					// Receive Data
-					int received = sceNetInetRecvfrom(socket->id, buf, *len, ((flag != 0) ? (INET_MSG_DONTWAIT) : (0)), (SceNetInetSockaddr *)&sin, &sinlen);
-					
-					// Received Data
-					if(received > 0)
-					{
-						// Peer MAC
-						SceNetEtherAddr mac;
-						
-						// Find Peer MAC
-						if(_resolveIP(sin.sin_addr, &mac) == 0)
-						{
-							// Provide Sender Information
-							*saddr = mac;
-							*sport = sceNetNtohs(sin.sin_port);
-							
-							// Save Length
-							*len = received;
-							
-							// Free Network Lock
-							_freeNetworkLock();
-							
-							// Return Success
-							return 0;
-						}
-					}
-					
-					// Free Network Lock
-					_freeNetworkLock();
-					
-					#ifdef PDP_DIRTY_MAGIC
-					// Restore Nonblocking Flag for Return Value
-					if(wouldblock) flag = 1;
-					#endif
-					
-					// Nothing received
-					if(flag) return ADHOC_WOULD_BLOCK;
-					return ADHOC_TIMEOUT;
 				}
 				
-				// Clear Alert
-				socket->rcv_sb_cc = 0;
+				// Free Network Lock
+				_freeNetworkLock();
 				
-				// Return Alerted Result
-				return ADHOC_SOCKET_ALERTED;
+				#ifdef PDP_DIRTY_MAGIC
+				// Restore Nonblocking Flag for Return Value
+				if(wouldblock) flag = 1;
+				#endif
+				
+				// Nothing received
+				if(flag) return ADHOC_WOULD_BLOCK;
+				return ADHOC_TIMEOUT;
 			}
 			
 			// Invalid Argument

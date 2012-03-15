@@ -1,8 +1,6 @@
 #include "../common.h"
 
 // Helper Functions
-static void _deleteAllPDP_Internal(SceNetAdhocPdpStat * node);
-static void _deleteAllPTP_Internal(SceNetAdhocPtpStat * node);
 static void _deleteAllGMB_Internal(SceNetAdhocGameModeBufferStat * node);
 
 /**
@@ -45,11 +43,22 @@ int proNetAdhocTerm(void)
  */
 void _deleteAllPDP(void)
 {
-	// Delete Recursively
-	_deleteAllPDP_Internal(_pdp);
-	
-	// Destroy Reference
-	_pdp = NULL;
+	// Iterate Element
+	int i = 0; for(; i < 255; i++)
+	{
+		// Active Socket
+		if(_pdp[i] != NULL)
+		{
+			// Close Socket
+			sceNetInetClose(_pdp[i]->id);
+			
+			// Free Memory
+			free(_pdp[i]);
+			
+			// Delete Reference
+			_pdp[i] = NULL;
+		}
+	}
 }
 
 /**
@@ -57,11 +66,22 @@ void _deleteAllPDP(void)
  */
 void _deleteAllPTP(void)
 {
-	// Delete Recursively
-	_deleteAllPTP_Internal(_ptp);
-	
-	// Destroy Reference
-	_ptp = NULL;
+	// Iterate Element
+	int i = 0; for(; i < 255; i++)
+	{
+		// Active Socket
+		if(_ptp[i] != NULL)
+		{
+			// Close Socket
+			sceNetInetClose(_ptp[i]->id);
+			
+			// Free Memory
+			free(_ptp[i]);
+			
+			// Delete Reference
+			_ptp[i] = NULL;
+		}
+	}
 }
 
 /**
@@ -74,46 +94,6 @@ void _deleteAllGMB(void)
 	
 	// Destroy Reference
 	_gmb = NULL;
-}
-
-/**
- * Recursive Deleter for PDP Sockets
- * @param node Current PDP Node
- */
-static void _deleteAllPDP_Internal(SceNetAdhocPdpStat * node)
-{
-	// Not at the End
-	if(node != NULL)
-	{
-		// Process Rest of the List
-		_deleteAllPDP_Internal(node->next);
-		
-		// Close Connection
-		sceNetInetClose(node->id);
-		
-		// Delete Node
-		free(node);
-	}
-}
-
-/**
- * Recursive Deleter for PTP Sockets
- * @param node Current PTP Node
- */
-static void _deleteAllPTP_Internal(SceNetAdhocPtpStat * node)
-{
-	// Not at the End
-	if(node != NULL)
-	{
-		// Process Rest of the List
-		_deleteAllPTP_Internal(node->next);
-		
-		// Close Connection
-		sceNetInetClose(node->id);
-		
-		// Delete Node
-		free(node);
-	}
 }
 
 /**

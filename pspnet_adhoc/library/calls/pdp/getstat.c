@@ -34,29 +34,27 @@ int proNetAdhocGetPdpStat(int * buflen, SceNetAdhocPdpStat * buf)
 			// Copy Counter
 			int i = 0;
 			
-			// Socket List Iterator Variable
-			SceNetAdhocPdpStat * list = _pdp;
-			
-			// Copy & Link Sockets
-			while(i < count && list != NULL)
+			// Iterate Translation Table
+			int j = 0; for(; j < 255 && i < count; j++)
 			{
-				// Copy Socket Data from internal Memory
-				buf[i] = *list;
-				
-				// Fix Client View Socket ID
-				buf[i].id = (int)list;
-				
-				// Write End of List Reference
-				buf[i].next = NULL;
-				
-				// Link previous Element to this one
-				if(i > 0) buf[i-1].next = &buf[i];
-				
-				// Increment Counter
-				i++;
-				
-				// Move Iterator Variable
-				list = list->next;
+				// Valid Socket Entry
+				if(_pdp[j] != NULL)
+				{
+					// Copy Socket Data from Internal Memory
+					buf[i] = *_pdp[j];
+					
+					// Fix Client View Socket ID
+					buf[i].id = j + 1;
+					
+					// Write End of List Reference
+					buf[i].next = NULL;
+					
+					// Link Previous Element
+					if(i > 0) buf[i - 1].next = &buf[i];
+					
+					// Increment Counter
+					i++;
+				}
 			}
 			
 			// Update Buffer Length
@@ -80,21 +78,11 @@ int proNetAdhocGetPdpStat(int * buflen, SceNetAdhocPdpStat * buf)
  */
 int _getPDPSocketCount(void)
 {
-	// Socket List Iterator Variable
-	SceNetAdhocPdpStat * list = _pdp;
-	
 	// Socket Counter
 	int counter = 0;
 	
 	// Count Sockets
-	while(list != NULL)
-	{
-		// Increase Counter
-		counter++;
-		
-		// Move Iterator Variable
-		list = list->next;
-	}
+	int i = 0; for(; i < 255; i++) if(_pdp[i] != NULL) counter++;
 	
 	// Return Socket Count
 	return counter;

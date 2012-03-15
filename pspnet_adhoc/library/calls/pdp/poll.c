@@ -16,34 +16,12 @@ int proNetAdhocPollSocket(SceNetAdhocPollSd * sds, int nsds, uint32_t timeout, i
 		// Valid Arguments
 		if(sds != NULL && nsds > 0)
 		{
-			// Alert Trigger
-			int triggeralert = 0;
-			
 			// Socket Check
 			int i = 0; for(; i < nsds; i++)
 			{
-				// Cast Socket
-				SceNetAdhocPdpStat * socket = (SceNetAdhocPdpStat *)sds[i].id;
-				
 				// Invalid Socket
-				if(socket == NULL || !_pdpSocketInList(socket)) return ADHOC_INVALID_SOCKET_ID;
-				
-				// Alerted Socket
-				if((socket->rcv_sb_cc & ADHOC_F_ALERTPOLL) != 0)
-				{
-					// Erase Alert
-					socket->rcv_sb_cc = 0;
-					
-					// Set Received Event
-					sds[i].revents = ADHOC_EV_ALERT;
-					
-					// Trigger Alert
-					triggeralert = 1;
-				}
+				if(sds[i].id < 1 || sds[i].id > 255 || _pdp[sds[i].id - 1] == NULL) return ADHOC_INVALID_SOCKET_ID;
 			}
-			
-			// Alert Exit
-			if(triggeralert) return ADHOC_EXCEPTION_EVENT;
 			
 			// Allocate Infrastructure Memory
 			SceNetInetPollfd * isds = (SceNetInetPollfd *)malloc(sizeof(SceNetInetPollfd) * nsds);
@@ -57,11 +35,8 @@ int proNetAdhocPollSocket(SceNetAdhocPollSd * sds, int nsds, uint32_t timeout, i
 				// Translate Polling Flags to Infrastructure
 				for(i = 0; i < nsds; i++)
 				{
-					// Cast Socket
-					SceNetAdhocPdpStat * socket = (SceNetAdhocPdpStat *)sds[i].id;
-					
 					// Fill in Infrastructure Socket ID
-					isds[i].fd = socket->id;
+					isds[i].fd = _pdp[sds[i].id - 1]->id;
 					
 					// Send Event
 					if(sds[i].events & ADHOC_EV_SEND) isds[i].events |= INET_POLLWRNORM;

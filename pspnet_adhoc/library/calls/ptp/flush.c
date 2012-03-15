@@ -9,27 +9,14 @@
  */
 int proNetAdhocPtpFlush(int id, uint32_t timeout, int flag)
 {
-	// Cast Socket
-	SceNetAdhocPtpStat * socket = (SceNetAdhocPtpStat *)id;
-	
 	// Library initialized
 	if(_init)
 	{
 		// Valid Socket
-		if(socket != NULL && _ptpSocketInList(socket))
+		if(id > 0 && id <= 255 && _ptp[id - 1] != NULL)
 		{
-			// Not alert
-			if((socket->rcv_sb_cc & ADHOC_F_ALERTFLUSH) == 0)
-			{
-				// Dummy Result
-				return 0;
-			}
-			
-			// Clear Alert
-			socket->rcv_sb_cc = 0;
-			
-			// Return Alerted Result
-			return ADHOC_SOCKET_ALERTED;
+			// Dummy Result
+			return 0;
 		}
 		
 		// Invalid Socket

@@ -65,27 +65,37 @@ int proNetAdhocPtpListen(const SceNetEtherAddr * saddr, uint16_t sport, uint32_t
 								// Allocated Memory
 								if(internal != NULL)
 								{
-									// Clear Memory
-									memset(internal, 0, sizeof(SceNetAdhocPtpStat));
+									// Find Free Translator ID
+									int i = 0; for(; i < 255; i++) if(_ptp[i] == NULL) break;
 									
-									// Copy Infrastructure Socket ID
-									internal->id = socket;
+									// Found Free Translator ID
+									if(i < 255)
+									{
+										// Clear Memory
+										memset(internal, 0, sizeof(SceNetAdhocPtpStat));
+										
+										// Copy Infrastructure Socket ID
+										internal->id = socket;
+										
+										// Copy Address Information
+										internal->laddr = *saddr;
+										internal->lport = sport;
+										
+										// Flag Socket as Listener
+										internal->state = PTP_STATE_LISTEN;
+										
+										// Set Buffer Size
+										internal->rcv_sb_cc = bufsize;
+										
+										// Link PTP Socket
+										_ptp[i] = internal;
+										
+										// Return PTP Socket Pointer
+										return i + 1;
+									}
 									
-									// Copy Address Information
-									internal->laddr = *saddr;
-									internal->lport = sport;
-									
-									// Flag Socket as Listener
-									internal->state = PTP_STATE_LISTEN;
-									
-									// Set Buffer Size
-									internal->rcv_sb_cc = bufsize;
-									
-									// Append to internal PTP Socket List
-									_ptpAppendInternal(internal);
-									
-									// Return PTP Socket Pointer
-									return (int)internal;
+									// Free Memory
+									free(internal);
 								}
 							}
 						}

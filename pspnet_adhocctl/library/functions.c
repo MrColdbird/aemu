@@ -8,6 +8,23 @@
  */
 int _resolveIP(uint32_t ip, SceNetEtherAddr * mac)
 {
+	// Get Local IP Address
+	union SceNetApctlInfo info; if(sceNetApctlGetInfo(PSP_NET_APCTL_INFO_IP, &info) == 0)
+	{
+		// Convert IP Address to Numerical Display
+		uint32_t _ip = 0; sceNetInetInetAton(info.ip, &_ip);
+		
+		// Local IP Address Requested
+		if(ip == _ip)
+		{
+			// Return MAC Address
+			*mac = _parameter.bssid.mac_addr;
+			
+			// Return Success
+			return 0;
+		}
+	}
+	
 	// Multithreading Lock
 	_acquirePeerLock();
 	
@@ -46,6 +63,20 @@ int _resolveIP(uint32_t ip, SceNetEtherAddr * mac)
  */
 int _resolveMAC(SceNetEtherAddr * mac, uint32_t * ip)
 {
+	// Local MAC Requested
+	if(memcmp(&_parameter.bssid.mac_addr, mac, sizeof(SceNetEtherAddr)) == 0)
+	{
+		// Get Local IP Address
+		union SceNetApctlInfo info; if(sceNetApctlGetInfo(PSP_NET_APCTL_INFO_IP, &info) == 0)
+		{
+			// Return IP Address
+			sceNetInetInetAton(info.ip, ip);
+			
+			// Return Success
+			return 0;
+		}
+	}
+	
 	// Multithreading Lock
 	_acquirePeerLock();
 	

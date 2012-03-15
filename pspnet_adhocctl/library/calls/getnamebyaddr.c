@@ -14,6 +14,16 @@ int proNetAdhocctlGetNameByAddr(const SceNetEtherAddr * addr, SceNetAdhocctlNick
 		// Valid Arguments
 		if(addr != NULL && nickname != NULL)
 		{
+			// Local MAC Matches
+			if(memcmp(&_parameter.bssid.mac_addr, addr, sizeof(SceNetEtherAddr)) == 0)
+			{
+				// Write Data
+				*nickname = _parameter.nickname;
+				
+				// Return Success
+				return 0;
+			}
+			
 			// Multithreading Lock
 			_acquirePeerLock();
 			

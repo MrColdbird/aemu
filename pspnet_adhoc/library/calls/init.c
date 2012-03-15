@@ -1,10 +1,10 @@
 #include "../common.h"
 
 // PDP Sockets
-SceNetAdhocPdpStat * _pdp = NULL;
+SceNetAdhocPdpStat * _pdp[255];
 
 // PTP Sockets
-SceNetAdhocPtpStat * _ptp = NULL;
+SceNetAdhocPtpStat * _ptp[255];
 
 // Gamemode Buffer
 SceNetAdhocGameModeBufferStat * _gmb = NULL;
@@ -49,6 +49,10 @@ int proNetAdhocInit(void)
 		// Initialized Internet Library
 		if(result == 0)
 		{
+			// Clear Translator Memory
+			memset(&_pdp, 0, sizeof(_pdp));
+			memset(&_ptp, 0, sizeof(_ptp));
+			
 			// Library initialized
 			_init = 1;
 			

@@ -18,6 +18,23 @@ int proNetAdhocctlGetPeerInfo(SceNetEtherAddr * addr, int size, SceNetAdhocctlPe
 			// Clear Memory
 			memset(peer_info, 0, size);
 			
+			// Local Nickname Matches
+			if(memcmp(&_parameter.bssid.mac_addr, addr, sizeof(SceNetEtherAddr)) == 0)
+			{
+				// Get Local IP Address
+				union SceNetApctlInfo info; if(sceNetApctlGetInfo(PSP_NET_APCTL_INFO_IP, &info) == 0)
+				{
+					// Add Local Address
+					peer_info->nickname = _parameter.nickname;
+					peer_info->mac_addr = _parameter.bssid.mac_addr;
+					sceNetInetInetAton(info.ip, &peer_info->ip_addr);
+					peer_info->last_recv = sceKernelGetSystemTimeWide();
+					
+					// Return Success
+					return 0;
+				}
+			}
+			
 			// Multithreading Lock
 			_acquirePeerLock();
 			

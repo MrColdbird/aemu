@@ -11,137 +11,140 @@
  */
 int proNetAdhocPtpAccept(int id, SceNetEtherAddr * addr, uint16_t * port, uint32_t timeout, int flag)
 {
-	// Cast Socket
-	SceNetAdhocPtpStat * socket = (SceNetAdhocPtpStat *)id;
-	
 	// Library is initialized
 	if(_init)
 	{
 		// Valid Socket
-		if(socket != NULL && _ptpSocketInList(socket))
+		if(id > 0 && id <= 255 && _ptp[id - 1] != NULL)
 		{
+			// Cast Socket
+			SceNetAdhocPtpStat * socket = _ptp[id - 1];
+			
 			// Listener Socket
 			if(socket->state == PTP_STATE_LISTEN)
 			{
 				// Valid Arguments
 				if(addr != NULL && port != NULL)
 				{
-					// Not alerted
-					if((socket->rcv_sb_cc & ADHOC_F_ALERTACCEPT) == 0)
+					// Address Information
+					SceNetInetSockaddrIn peeraddr;
+					memset(&addr, 0, sizeof(peeraddr));
+					uint32_t peeraddrlen = sizeof(peeraddr);
+					
+					// Local Address Information
+					SceNetInetSockaddrIn local;
+					memset(&local, 0, sizeof(local));
+					uint32_t locallen = sizeof(local);
+					
+					// Grab Nonblocking Flag
+					uint32_t nbio = 0;
+					uint32_t nbiolen = sizeof(nbio);
+					sceNetInetGetsockopt(socket->id, SOL_SOCKET, SO_NBIO, &nbio, &nbiolen);
+					
+					// Switch to Nonblocking Behaviour
+					if(nbio == 0)
 					{
-						// Address Information
-						SceNetInetSockaddrIn peeraddr;
-						memset(&addr, 0, sizeof(peeraddr));
-						uint32_t peeraddrlen = sizeof(peeraddr);
+						// Overwrite Socket Option
+						sceNetInetSetsockopt(socket->id, SOL_SOCKET, SO_NBIO, &_one, sizeof(_one));
+					}
+					
+					// Accept Connection
+					int newsocket = sceNetInetAccept(socket->id, (SceNetInetSockaddr *)&peeraddr, &peeraddrlen);
+					
+					// Blocking Behaviour
+					if(!flag && newsocket == -1)
+					{
+						// Get Start Time
+						uint32_t starttime = sceKernelGetSystemTimeLow();
 						
-						// Local Address Information
-						SceNetInetSockaddrIn local;
-						memset(&local, 0, sizeof(local));
-						uint32_t locallen = sizeof(local);
-						
-						// Grab Nonblocking Flag
-						uint32_t nbio = 0;
-						uint32_t nbiolen = sizeof(nbio);
-						sceNetInetGetsockopt(socket->id, SOL_SOCKET, SO_NBIO, &nbio, &nbiolen);
-						
-						// Switch to Nonblocking Behaviour
-						if(nbio == 0)
+						// Retry until Timeout hits
+						while((sceKernelGetSystemTimeLow() - starttime) < timeout && newsocket == -1)
 						{
-							// Overwrite Socket Option
-							sceNetInetSetsockopt(socket->id, SOL_SOCKET, SO_NBIO, &_one, sizeof(_one));
-						}
-						
-						// Accept Connection
-						int newsocket = sceNetInetAccept(socket->id, (SceNetInetSockaddr *)&peeraddr, &peeraddrlen);
-						
-						// Blocking Behaviour
-						if(!flag && newsocket == -1)
-						{
-							// Get Start Time
-							uint32_t starttime = sceKernelGetSystemTimeLow();
+							// Accept Connection
+							newsocket = sceNetInetAccept(socket->id, (SceNetInetSockaddr *)&peeraddr, &peeraddrlen);
 							
-							// Retry until Timeout hits
-							while((sceKernelGetSystemTimeLow() - starttime) < timeout && newsocket == -1)
-							{
-								// Accept Connection
-								newsocket = sceNetInetAccept(socket->id, (SceNetInetSockaddr *)&peeraddr, &peeraddrlen);
-								
-								// Wait a bit...
-								sceKernelDelayThread(1000);
-							}
+							// Wait a bit...
+							sceKernelDelayThread(1000);
 						}
+					}
+					
+					// Restore Blocking Behaviour
+					if(nbio == 0)
+					{
+						// Restore Socket Option
+						sceNetInetSetsockopt(socket->id, SOL_SOCKET, SO_NBIO, &nbio, sizeof(nbio));
+					}
+					
+					// Accepted New Connection
+					if(newsocket > 0)
+					{
+						// Enable Port Re-use
+						sceNetInetSetsockopt(newsocket, SOL_SOCKET, SO_REUSEADDR, &_one, sizeof(_one));
+						sceNetInetSetsockopt(newsocket, SOL_SOCKET, SO_REUSEPORT, &_one, sizeof(_one));
 						
-						// Restore Blocking Behaviour
-						if(nbio == 0)
+						// Grab Local Address
+						if(sceNetInetGetsockname(newsocket, (SceNetInetSockaddr *)&local, &locallen) == 0)
 						{
-							// Restore Socket Option
-							sceNetInetSetsockopt(socket->id, SOL_SOCKET, SO_NBIO, &nbio, sizeof(nbio));
-						}
-						
-						// Accepted New Connection
-						if(newsocket > 0)
-						{
-							// Enable Port Re-use
-							sceNetInetSetsockopt(newsocket, SOL_SOCKET, SO_REUSEADDR, &_one, sizeof(_one));
-							sceNetInetSetsockopt(newsocket, SOL_SOCKET, SO_REUSEPORT, &_one, sizeof(_one));
+							// Adhoc Peer List Size
+							int buflen = 0;
 							
-							// Grab Local Address
-							if(sceNetInetGetsockname(newsocket, (SceNetInetSockaddr *)&local, &locallen) == 0)
+							// Peers available
+							if(sceNetAdhocctlGetPeerList(&buflen, NULL) == 0 && buflen > 0)
 							{
-								// Adhoc Peer List Size
-								int buflen = 0;
+								// Allocate Peer List
+								SceNetAdhocctlPeerInfo * buf = (SceNetAdhocctlPeerInfo *)malloc(buflen);
 								
-								// Peers available
-								if(sceNetAdhocctlGetPeerList(&buflen, NULL) == 0 && buflen > 0)
+								// Allocated Peer List
+								if(buf != NULL)
 								{
-									// Allocate Peer List
-									SceNetAdhocctlPeerInfo * buf = (SceNetAdhocctlPeerInfo *)malloc(buflen);
+									// Peer Information
+									SceNetAdhocctlPeerInfo peer;
+									memset(&peer, 0, sizeof(peer));
 									
-									// Allocated Peer List
-									if(buf != NULL)
+									// Get Peerlist
+									if(sceNetAdhocctlGetPeerList(&buflen, buf) == 0)
 									{
-										// Peer Information
-										SceNetAdhocctlPeerInfo peer;
-										memset(&peer, 0, sizeof(peer));
+										// Peer Iterator Variable
+										SceNetAdhocctlPeerInfo * list = buf;
 										
-										// Get Peerlist
-										if(sceNetAdhocctlGetPeerList(&buflen, buf) == 0)
+										// Iterate Peers
+										while(list != NULL)
 										{
-											// Peer Iterator Variable
-											SceNetAdhocctlPeerInfo * list = buf;
-											
-											// Iterate Peers
-											while(list != NULL)
+											// Matching Peer found
+											if(list->ip_addr == peeraddr.sin_addr)
 											{
-												// Matching Peer found
-												if(list->ip_addr == peeraddr.sin_addr)
-												{
-													// Copy Peer Information
-													peer = *list;
-													
-													// Delete References
-													peer.next = NULL;
-													
-													// Stop Search
-													break;
-												}
+												// Copy Peer Information
+												peer = *list;
 												
-												// Move Iterator
-												list = list->next;
+												// Delete References
+												peer.next = NULL;
+												
+												// Stop Search
+												break;
 											}
-										}
-										
-										// Free Peer List
-										free(buf);
-										
-										// Found Peer Information
-										if(peer.ip_addr != 0)
-										{
-											// Allocate Memory
-											SceNetAdhocPtpStat * internal = (SceNetAdhocPtpStat *)malloc(sizeof(SceNetAdhocPtpStat));
 											
-											// Allocated Memory
-											if(internal != NULL)
+											// Move Iterator
+											list = list->next;
+										}
+									}
+									
+									// Free Peer List
+									free(buf);
+									
+									// Found Peer Information
+									if(peer.ip_addr != 0)
+									{
+										// Allocate Memory
+										SceNetAdhocPtpStat * internal = (SceNetAdhocPtpStat *)malloc(sizeof(SceNetAdhocPtpStat));
+										
+										// Allocated Memory
+										if(internal != NULL)
+										{
+											// Find Free Translator ID
+											int i = 0; for(; i < 255; i++) if(_ptp[i] == NULL) break;
+											
+											// Found Free Translator ID
+											if(i < 255)
 											{
 												// Clear Memory
 												memset(internal, 0, sizeof(SceNetAdhocPtpStat));
@@ -164,33 +167,30 @@ int proNetAdhocPtpAccept(int id, SceNetEtherAddr * addr, uint16_t * port, uint32
 												*addr = internal->paddr;
 												*port = internal->pport;
 												
-												// Append PTP Socket to Internal List
-												_ptpAppendInternal(internal);
+												// Link PTP Socket
+												_ptp[i] = internal;
 												
 												// Return Socket
-												return (int)internal;
+												return i + 1;
 											}
+											
+											// Free Memory
+											free(internal);
 										}
 									}
 								}
 							}
-							
-							// Close Socket
-							sceNetInetClose(newsocket);
 						}
 						
-						// Action would block
-						if(flag) return ADHOC_WOULD_BLOCK;
-						
-						// Timeout
-						return ADHOC_TIMEOUT;
+						// Close Socket
+						sceNetInetClose(newsocket);
 					}
 					
-					// Clear Alert
-					socket->rcv_sb_cc = 0;
+					// Action would block
+					if(flag) return ADHOC_WOULD_BLOCK;
 					
-					// Return Alerted Result
-					return ADHOC_SOCKET_ALERTED;
+					// Timeout
+					return ADHOC_TIMEOUT;
 				}
 				
 				// Invalid Arguments

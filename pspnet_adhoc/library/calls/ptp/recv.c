@@ -11,68 +11,58 @@
  */
 int proNetAdhocPtpRecv(int id, void * buf, int * len, uint32_t timeout, int flag)
 {
-	// Cast Socket
-	SceNetAdhocPtpStat * socket = (SceNetAdhocPtpStat *)id;
-	
 	// Library is initialized
 	if(_init)
 	{
 		// Valid Socket
-		if(socket != NULL && _ptpSocketInList(socket) && socket->state == PTP_STATE_ESTABLISHED)
+		if(id > 0 && id <= 255 && _ptp[id - 1] != NULL && _ptp[id - 1]->state == PTP_STATE_ESTABLISHED)
 		{
+			// Cast Socket
+			SceNetAdhocPtpStat * socket = _ptp[id - 1];
+			
 			// Valid Arguments
 			if(buf != NULL && len != NULL && *len > 0)
 			{
-				// Not Alerted
-				if((socket->rcv_sb_cc & ADHOC_F_ALERTRECV) == 0)
+				// Schedule Timeout Removal
+				if(flag) timeout = 0;
+				
+				// Apply Send Timeout Settings to Socket
+				sceNetInetSetsockopt(socket->id, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+				
+				// Acquire Network Lock
+				_acquireNetworkLock();
+				
+				// Receive Data
+				int received = sceNetInetRecv(socket->id, buf, *len, ((flag) ? (INET_MSG_DONTWAIT) : (0)));
+				
+				// Free Network Lock
+				_freeNetworkLock();
+				
+				// Received Data
+				if(received > 0)
 				{
-					// Schedule Timeout Removal
-					if(flag) timeout = 0;
+					// Save Length
+					*len = received;
 					
-					// Apply Send Timeout Settings to Socket
-					sceNetInetSetsockopt(socket->id, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
-					
-					// Acquire Network Lock
-					_acquireNetworkLock();
-					
-					// Receive Data
-					int received = sceNetInetRecv(socket->id, buf, *len, ((flag) ? (INET_MSG_DONTWAIT) : (0)));
-					
-					// Free Network Lock
-					_freeNetworkLock();
-					
-					// Received Data
-					if(received > 0)
-					{
-						// Save Length
-						*len = received;
-						
-						// Return Success
-						return 0;
-					}
-					
-					// Non-Critical Error
-					else if(received == -1 && sceNetInetGetErrno() == EAGAIN)
-					{
-						// Blocking Situation
-						if(flag) return ADHOC_WOULD_BLOCK;
-						
-						// Timeout
-						return ADHOC_TIMEOUT;
-					}
-					
-					// Change Socket State
-					socket->state = PTP_STATE_CLOSED;
-					
-					// Disconnected
-					return ADHOC_DISCONNECTED;
+					// Return Success
+					return 0;
 				}
 				
-				// Clear Alert
-				socket->rcv_sb_cc = 0;
+				// Non-Critical Error
+				else if(received == -1 && sceNetInetGetErrno() == EAGAIN)
+				{
+					// Blocking Situation
+					if(flag) return ADHOC_WOULD_BLOCK;
+					
+					// Timeout
+					return ADHOC_TIMEOUT;
+				}
 				
-				// Return Alerted Result
-				return ADHOC_SOCKET_ALERTED;
+				// Change Socket State
+				socket->state = PTP_STATE_CLOSED;
+				
+				// Disconnected
+				return ADHOC_DISCONNECTED;
 			}
 			
 			// Invalid Arguments

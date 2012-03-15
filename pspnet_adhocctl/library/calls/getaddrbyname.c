@@ -39,6 +39,20 @@ int proNetAdhocctlGetAddrByName(const SceNetAdhocctlNickname * nickname, int * b
 				// Minimum Space available
 				if(requestcount > 0)
 				{
+					// Local Nickname Matches
+					if(strcmp((char *)_parameter.nickname.data, (char *)nickname->data) == 0)
+					{
+						// Get Local IP Address
+						union SceNetApctlInfo info; if(sceNetApctlGetInfo(PSP_NET_APCTL_INFO_IP, &info) == 0)
+						{
+							// Add Local Address
+							buf[discovered].nickname = _parameter.nickname;
+							buf[discovered].mac_addr = _parameter.bssid.mac_addr;
+							sceNetInetInetAton(info.ip, &buf[discovered].ip_addr);
+							buf[discovered++].last_recv = sceKernelGetSystemTimeWide();
+						}
+					}
+					
 					// Peer Reference
 					SceNetAdhocctlPeerInfo * peer = _friends;
 					
@@ -95,6 +109,9 @@ int _getNicknameCount(const SceNetAdhocctlNickname * nickname)
 {
 	// Counter
 	int count = 0;
+	
+	// Local Nickname Matches
+	if(strcmp((char *)_parameter.nickname.data, (char *)nickname->data) == 0) count++;
 	
 	// Peer Reference
 	SceNetAdhocctlPeerInfo * peer = _friends;

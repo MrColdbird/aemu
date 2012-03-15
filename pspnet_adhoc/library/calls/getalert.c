@@ -8,44 +8,9 @@
  */
 int proNetAdhocGetSocketAlert(int id, int * flag)
 {
-	// PDP Socket Cast
-	SceNetAdhocPdpStat * pdp = (SceNetAdhocPdpStat *)id;
+	// Dummy Value
+	*flag = 0;
 	
-	// PTP Socket Cast
-	SceNetAdhocPtpStat * ptp = (SceNetAdhocPtpStat *)id;
-	
-	// PDP Check
-	if(!_pdpSocketInList(pdp)) pdp = NULL;
-	
-	// PTP Check
-	if(!_ptpSocketInList(ptp)) ptp = NULL;
-	
-	// Library is initialized
-	if(_init)
-	{
-		// Valid Socket ID
-		if(pdp || ptp)
-		{
-			// Valid Arguments
-			if(flag != NULL)
-			{
-				// Misuse RX Buffer Field for Socket Alert
-				// if(pdp != NULL) *flag = pdp->rcv_sb_cc;
-				// else if(ptp != NULL) *flag = ptp->rcv_sb_cc;
-				*flag = 0;
-				
-				// Return Success
-				return 0;
-			}
-			
-			// Invalid Arguments
-			return ADHOC_INVALID_ARG;
-		}
-		
-		// Invalid Socket ID
-		return ADHOC_INVALID_SOCKET_ID;
-	}
-	
-	// Library uninitialized
-	return ADHOC_NOT_INITIALIZED;
+	// Dummy Result
+	return 0;
 }

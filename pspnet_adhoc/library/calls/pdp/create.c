@@ -62,35 +62,27 @@ int proNetAdhocPdpCreate(const SceNetEtherAddr * saddr, uint16_t sport, int bufs
 								// Clear Memory
 								memset(internal, 0, sizeof(SceNetAdhocPdpStat));
 								
-								// Fill in Data
-								internal->id = socket;
-								internal->laddr = *saddr;
-								internal->lport = sport;
-								internal->rcv_sb_cc = bufsize;
+								// Find Free Translator Index
+								int i = 0; for(; i < 255; i++) if(_pdp[i] == NULL) break;
 								
-								// Empty Internal PDP Socket List
-								if(_pdp == NULL)
+								// Found Free Translator Index
+								if(i < 255)
 								{
-									// Start new PDP Socket List
-									_pdp = internal;
+									// Fill in Data
+									internal->id = socket;
+									internal->laddr = *saddr;
+									internal->lport = sport;
+									internal->rcv_sb_cc = bufsize;
+									
+									// Link Socket to Translator ID
+									_pdp[i] = internal;
+									
+									// Success
+									return i + 1;
 								}
 								
-								
-								// Append Socket to Internal PDP Socket List
-								else
-								{
-									// List Iterator
-									SceNetAdhocPdpStat * list = _pdp;
-									
-									// Find End of List
-									while(list->next != NULL) list = list->next;
-									
-									// Append Socket
-									list->next = internal;
-								}
-								
-								// Success
-								return (int)internal;
+								// Free Memory for Internal Data
+								free(internal);
 							}
 						}
 						
@@ -143,15 +135,8 @@ int _IsLocalMAC(const SceNetEtherAddr * addr)
  */
 int _IsPDPPortInUse(uint16_t port)
 {
-	// List Iterator
-	SceNetAdhocPdpStat * list = _pdp;
-	
 	// Iterate Elements
-	for(; list != NULL; list = list->next)
-	{
-		// Match found
-		if(list->lport == port) return 1;
-	}
+	int i = 0; for(; i < 255; i++) if(_pdp[i] != NULL && _pdp[i]->lport == port) return 1;
 	
 	// Unused Port
 	return 0;

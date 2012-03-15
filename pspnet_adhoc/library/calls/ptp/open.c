@@ -63,26 +63,36 @@ int proNetAdhocPtpOpen(const SceNetEtherAddr * saddr, uint16_t sport, const SceN
 							// Allocated Memory
 							if(internal != NULL)
 							{
-								// Clear Memory
-								memset(internal, 0, sizeof(SceNetAdhocPtpStat));
+								// Find Free Translator ID
+								int i = 0; for(; i < 255; i++) if(_ptp[i] == NULL) break;
 								
-								// Copy Infrastructure Socket ID
-								internal->id = socket;
+								// Found Free Translator ID
+								if(i < 255)
+								{
+									// Clear Memory
+									memset(internal, 0, sizeof(SceNetAdhocPtpStat));
+									
+									// Copy Infrastructure Socket ID
+									internal->id = socket;
+									
+									// Copy Address Information
+									internal->laddr = *saddr;
+									internal->paddr = *daddr;
+									internal->lport = sport;
+									internal->pport = dport;
+									
+									// Set Buffer Size
+									internal->rcv_sb_cc = bufsize;
+									
+									// Link PTP Socket
+									_ptp[i] = internal;
+									
+									// Return PTP Socket Pointer
+									return i + 1;
+								}
 								
-								// Copy Address Information
-								internal->laddr = *saddr;
-								internal->paddr = *daddr;
-								internal->lport = sport;
-								internal->pport = dport;
-								
-								// Set Buffer Size
-								internal->rcv_sb_cc = bufsize;
-								
-								// Append to internal PTP Socket List
-								_ptpAppendInternal(internal);
-								
-								// Return PTP Socket Pointer
-								return (int)internal;
+								// Free Memory
+								free(internal);
 							}
 						}
 						
@@ -108,47 +118,14 @@ int proNetAdhocPtpOpen(const SceNetEtherAddr * saddr, uint16_t sport, const SceN
 }
 
 /**
- * Append PTP Socket Node to Internal List
- * @param node To-be-appended Socket Node
- */
-void _ptpAppendInternal(SceNetAdhocPtpStat * node)
-{
-	// Add at the beginning of List
-	if(_ptp == NULL) _ptp = node;
-	
-	// Add at the End of the List
-	else
-	{
-		// Iterator Variable
-		SceNetAdhocPtpStat * list = _ptp;
-		
-		// Move to End of List
-		while(list->next != NULL) list = list->next;
-		
-		// Append Socket Node
-		list->next = node;
-	}
-}
-
-/**
  * Check whether PTP Port is in use or not
  * @param port To-be-checked Port Number
  * @return 1 if in use or... 0
  */
 int _IsPTPPortInUse(uint16_t port)
 {
-	// Adhoc Control Metaport
-	if(port == ADHOCCTL_METAPORT) return 1;
-	
-	// Iterator Veriable
-	SceNetAdhocPtpStat * list = _ptp;
-	
-	// Iterate PTP Sockets
-	for(; list != NULL; list = list->next)
-	{
-		// Used Port
-		if(list->lport == port) return 1;
-	}
+	// Iterate Sockets
+	int i = 0; for(; i < 255; i++) if(_ptp[i] != NULL && _ptp[i]->lport == port) return 1;
 	
 	// Unused Port
 	return 0;

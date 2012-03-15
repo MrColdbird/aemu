@@ -44,13 +44,6 @@ int _IsPDPPortInUse(uint16_t port);
 int _getPDPSocketCount(void);
 
 /**
- * Socket Existence Check
- * @param socket To-be-checked Socket
- * @return 1 if found or... 0
- */
-int _pdpSocketInList(SceNetAdhocPdpStat * socket);
-
-/**
  * Broadcast MAC Check
  * @param addr To-be-checked MAC Address
  * @return 1 if Broadcast MAC or... 0
@@ -58,23 +51,10 @@ int _pdpSocketInList(SceNetAdhocPdpStat * socket);
 int _isBroadcastMAC(const SceNetEtherAddr * addr);
 
 /**
- * Socket Existence Check
- * @param socket To-be-checked Socket
- * @return 1 if found or... 0
- */
-int _ptpSocketInList(SceNetAdhocPtpStat * socket);
-
-/**
  * PTP Socket Counter
  * @return Number of internal PTP Sockets
  */
 int _getPTPSocketCount(void);
-
-/**
- * Append PTP Socket Node to Internal List
- * @param node To-be-appended Socket Node
- */
-void _ptpAppendInternal(SceNetAdhocPtpStat * node);
 
 /**
  * Check whether PTP Port is in use or not

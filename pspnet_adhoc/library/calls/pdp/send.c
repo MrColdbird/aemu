@@ -13,9 +13,6 @@
  */
 int proNetAdhocPdpSend(int id, const SceNetEtherAddr * daddr, uint16_t dport, const void * data, int len, uint32_t timeout, int flag)
 {
-	// Cast Socket
-	SceNetAdhocPdpStat * socket = (SceNetAdhocPdpStat *)id;
-	
 	// Library is initialized
 	if(_init)
 	{
@@ -26,8 +23,11 @@ int proNetAdhocPdpSend(int id, const SceNetEtherAddr * daddr, uint16_t dport, co
 			if(len > 0)
 			{
 				// Valid Socket ID
-				if(socket != NULL && _pdpSocketInList(socket))
+				if(id > 0 && id <= 255 && _pdp[id - 1] != NULL)
 				{
+					// Cast Socket
+					SceNetAdhocPdpStat * socket = _pdp[id - 1];
+					
 					// Valid Data Buffer
 					if(data != NULL)
 					{
@@ -146,25 +146,6 @@ int proNetAdhocPdpSend(int id, const SceNetEtherAddr * daddr, uint16_t dport, co
 	
 	// Library is uninitialized
 	return ADHOC_NOT_INITIALIZED;
-}
-
-/**
- * Socket Existence Check
- * @param socket To-be-checked Socket
- * @return 1 if found or... 0
- */
-int _pdpSocketInList(SceNetAdhocPdpStat * socket)
-{
-	// Iterate PDP Socket List
-	SceNetAdhocPdpStat * list = _pdp;
-	for(; list != NULL; list = list->next)
-	{
-		// Socket found
-		if(list == socket) return 1;
-	}
-	
-	// Socket not found
-	return 0;
 }
 
 /**
