@@ -22,10 +22,10 @@ int proNetAdhocTerm(void)
 		_deleteAllGMB();
 		
 		// Terminate Internet Library
-		sceNetInetTerm();		
+		sceNetInetTerm();
 		
-		// Unload Internet Modules
-		if(_manage_modules != 0) sceUtilityUnloadModule(PSP_MODULE_NET_INET);
+		// Unload Internet Modules (Just keep it in memory... unloading crashes?!)
+		// if(_manage_modules != 0) sceUtilityUnloadModule(PSP_MODULE_NET_INET);
 		
 		// Drop Module Management
 		_manage_modules = 0;

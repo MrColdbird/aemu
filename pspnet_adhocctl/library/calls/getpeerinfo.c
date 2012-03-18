@@ -18,7 +18,7 @@ int proNetAdhocctlGetPeerInfo(SceNetEtherAddr * addr, int size, SceNetAdhocctlPe
 			// Clear Memory
 			memset(peer_info, 0, size);
 			
-			// Local Nickname Matches
+			// Local MAC Matches
 			if(memcmp(&_parameter.bssid.mac_addr, addr, sizeof(SceNetEtherAddr)) == 0)
 			{
 				// Get Local IP Address

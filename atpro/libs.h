@@ -13,6 +13,12 @@
 		_sw(NOP, ((u32)original)+4); \
 	} while ( 0 )
 
+// ASM Dummy Function Patch
+#define MAKE_DUMMY_FUNCTION_RETURN_0(a) do {\
+	_sw(0x03E00008, a);\
+	_sw(0x00001021, a + 4);\
+} while (0)
+
 typedef struct
 {
 	const char *name;

@@ -38,6 +38,7 @@ int proNetAdhocctlGetPeerList(int * buflen, SceNetAdhocctlPeerInfo * buf)
 				// Minimum Arguments
 				if(requestcount > 0)
 				{
+					#ifdef LOCALHOST_AS_PEER
 					// Get Local IP Address
 					union SceNetApctlInfo info; if(sceNetApctlGetInfo(PSP_NET_APCTL_INFO_IP, &info) == 0)
 					{
@@ -47,6 +48,7 @@ int proNetAdhocctlGetPeerList(int * buflen, SceNetAdhocctlPeerInfo * buf)
 						sceNetInetInetAton(info.ip, &buf[discovered].ip_addr);
 						buf[discovered++].last_recv = sceKernelGetSystemTimeWide();
 					}
+					#endif
 					
 					// Peer Reference
 					SceNetAdhocctlPeerInfo * peer = _friends;
@@ -97,8 +99,13 @@ int proNetAdhocctlGetPeerList(int * buflen, SceNetAdhocctlPeerInfo * buf)
  */
 int _getActivePeerCount(void)
 {
-	// Counter (1 to include localhost)
-	int count = 1;
+	// Counter
+	int count = 0;
+	
+	#ifdef LOCALHOST_AS_PEER
+	// Increase for Localhost
+	count++;
+	#endif
 	
 	// Peer Reference
 	SceNetAdhocctlPeerInfo * peer = _friends;

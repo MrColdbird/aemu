@@ -45,7 +45,16 @@ int proNetAdhocctlGetScanInfo(int * buflen, SceNetAdhocctlScanInfo * buf)
 					for(; group != NULL && discovered < requestcount; group = group->next)
 					{
 						// Copy Group Information
-						buf[discovered++] = *group;
+						buf[discovered] = *group;
+						
+						// Exchange Adhoc Channel
+						sceUtilityGetSystemParamInt(PSP_SYSTEMPARAM_ID_INT_ADHOC_CHANNEL, &buf[discovered].channel);
+						
+						// Fake Channel Number 1 on Automatic Channel
+						if(buf[discovered].channel == 0) buf[discovered].channel = 1;
+						
+						// Increase Discovery Counter
+						discovered++;
 					}
 					
 					// Link List

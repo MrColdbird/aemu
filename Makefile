@@ -37,6 +37,14 @@ ifeq ($(PDP_DIRTY_MAGIC), 1)
 FLAGS += PDP_DIRTY_MAGIC=1
 endif
 
+ifeq ($(BROADCAST_TO_LOCALHOST), 1)
+FLAGS += BROADCAST_TO_LOCALHOST=1
+endif
+
+ifeq ($(LOCALHOST_AS_PEER), 1)
+FLAGS += LOCALHOST_AS_PEER=1
+endif
+
 all:
 	@mkdir $(DISTRIBUTE) || true
 	@mkdir $(DISTRIBUTE)/seplugins || true
@@ -51,9 +59,9 @@ all:
 	@cd $(PSPNET_ADHOC_AUTH); make $(FLAGS)
 	@cd $(PSPNET_ADHOC); make $(FLAGS)
 	@cd $(PSPNET_ADHOCCTL); make $(FLAGS)
-	@cd $(PSPNET_ADHOC_MATCHING); make $(FLAGS)
-	@cd $(PSPNET_ADHOC_DOWNLOAD); make $(FLAGS)
-	@cd $(PSPNET_ADHOC_DISCOVER); make $(FLAGS)
+#	@cd $(PSPNET_ADHOC_MATCHING); make $(FLAGS)
+#	@cd $(PSPNET_ADHOC_DOWNLOAD); make $(FLAGS)
+#	@cd $(PSPNET_ADHOC_DISCOVER); make $(FLAGS)
 	@cd $(PSPNET_ADHOCCTL_SERVER); make $(FLAGS)
 
 clean:
@@ -62,8 +70,8 @@ clean:
 	@cd $(PSPNET_ADHOC_AUTH); make clean $(FLAGS)
 	@cd $(PSPNET_ADHOC); make clean $(FLAGS)
 	@cd $(PSPNET_ADHOCCTL); make clean $(FLAGS)
-	@cd $(PSPNET_ADHOC_MATCHING); make clean $(FLAGS)
-	@cd $(PSPNET_ADHOC_DOWNLOAD); make clean $(FLAGS)
-	@cd $(PSPNET_ADHOC_DISCOVER); make clean $(FLAGS)
+#	@cd $(PSPNET_ADHOC_MATCHING); make clean $(FLAGS)
+#	@cd $(PSPNET_ADHOC_DOWNLOAD); make clean $(FLAGS)
+#	@cd $(PSPNET_ADHOC_DISCOVER); make clean $(FLAGS)
 	@cd $(PSPNET_ADHOCCTL_SERVER); make clean $(FLAGS)
 	@rm -rf $(DISTRIBUTE) || true

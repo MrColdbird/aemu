@@ -65,6 +65,14 @@ ifeq ($(ENABLE_NETLOCK), 1)
 CFLAGS += -DENABLE_NETLOCK=1
 endif
 
+ifeq ($(BROADCAST_TO_LOCALHOST), 1)
+CFLAGS += -DBROADCAST_TO_LOCALHOST=1
+endif
+
+ifeq ($(LOCALHOST_AS_PEER), 1)
+CFLAGS += -DLOCALHOST_AS_PEER=1
+endif
+
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
 

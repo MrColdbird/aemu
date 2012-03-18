@@ -14,6 +14,11 @@ int proNetAdhocPdpDelete(int id, int flag)
 		// Valid Arguments
 		if(id > 0 && id <= 255)
 		{
+			// Log Delete Attempt
+			#ifdef DEBUG
+			printk("Attempting to Delete Socket %d\n", id);
+			#endif
+			
 			// Cast Socket
 			SceNetAdhocPdpStat * socket = _pdp[id - 1];
 			

@@ -86,11 +86,26 @@ int proNetAdhocPdpSend(int id, const SceNetEtherAddr * daddr, uint16_t dport, co
 								// Broadcast Target
 								else
 								{
-									// Acquire Peer Lock
-									_acquirePeerLock();
-									
 									// Acquire Network Lock
 									_acquireNetworkLock();
+									
+									#ifdef BROADCAST_TO_LOCALHOST
+									// Get Local IP Address
+									union SceNetApctlInfo info; if(sceNetApctlGetInfo(PSP_NET_APCTL_INFO_IP, &info) == 0)
+									{
+										// Fill in Target Structure
+										SceNetInetSockaddrIn target;
+										target.sin_family = AF_INET;
+										sceNetInetInetAton(info.ip, &target.sin_addr);
+										target.sin_port = sceNetHtons(dport);
+										
+										// Send Data
+										sceNetInetSendto(socket->id, data, len, ((flag != 0) ? (INET_MSG_DONTWAIT) : (0)), (SceNetInetSockaddr *)&target, sizeof(target));
+									}
+									#endif
+									
+									// Acquire Peer Lock
+									_acquirePeerLock();
 									
 									// Iterate Peers
 									SceNetAdhocctlPeerInfo * peer = _getInternalPeerList();
@@ -106,11 +121,11 @@ int proNetAdhocPdpSend(int id, const SceNetEtherAddr * daddr, uint16_t dport, co
 										sceNetInetSendto(socket->id, data, len, ((flag != 0) ? (INET_MSG_DONTWAIT) : (0)), (SceNetInetSockaddr *)&target, sizeof(target));
 									}
 									
-									// Free Network Lock
-									_freeNetworkLock();
-									
 									// Free Peer Lock
 									_freePeerLock();
+									
+									// Free Network Lock
+									_freeNetworkLock();
 									
 									// Broadcast never fails!
 									return 0;

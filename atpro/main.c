@@ -16,15 +16,15 @@ PSP_MODULE_INFO("ATPRO", PSP_MODULE_KERNEL, 1, 0);
 STMOD_HANDLER sysctrl_patcher = NULL;
 
 // Adhoc Module Names
-#define MODULE_LIST_SIZE 7
+#define MODULE_LIST_SIZE 4
 char * module_names[MODULE_LIST_SIZE] = {
 	"memab.prx",
 	"pspnet_adhoc_auth.prx",
 	"pspnet_adhoc.prx",
 	"pspnet_adhocctl.prx",
-	"pspnet_adhoc_matching.prx",
-	"pspnet_adhoc_download.prx",
-	"pspnet_adhoc_discover.prx",
+//	"pspnet_adhoc_matching.prx",
+//	"pspnet_adhoc_download.prx",
+//	"pspnet_adhoc_discover.prx",
 };
 
 // Kernel Module Loader
@@ -106,6 +106,7 @@ void patch_netconf_utility(void * init, void * getstatus, void * update, void * 
 				// This in turn happens because we use adhoc and infrastructure at the same time.
 				if(strcmp(module->modname, "sceNet_Library") == 0)
 				{
+					/*
 					// Patch Address
 					uint32_t addr[2] = { 0x249C, 0x258C };
 					
@@ -122,6 +123,17 @@ void patch_netconf_utility(void * init, void * getstatus, void * update, void * 
 						sceKernelDcacheWritebackInvalidateRange((void *)realaddr, 4);
 						sceKernelIcacheInvalidateRange((void *)realaddr, 4);
 					}
+					
+					// Patch Address (sceNetTerm)
+					uint32_t addr = module->text_addr + 0x245C;
+					
+					// Instant-Return
+					MAKE_DUMMY_FUNCTION_RETURN_0(addr);
+					
+					// Flush Cache
+					sceKernelDcacheWritebackInvalidateRange((void *)addr, 8);
+					sceKernelIcacheInvalidateRange((void *)addr, 8);
+					*/
 				}
 			}
 		}

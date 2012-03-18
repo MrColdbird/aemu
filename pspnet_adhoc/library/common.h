@@ -21,6 +21,9 @@
 // PSP Module Loader
 #include <psputility_modules.h>
 
+// PSP Access Point Control (for IP)
+#include <pspnet_apctl.h>
+
 // --- Kernel Debugger ---
 
 // Kernel Debug Printer
