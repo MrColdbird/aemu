@@ -63,7 +63,7 @@ typedef struct SceNetAdhocctlUserNode {
 } SceNetAdhocctlUserNode;
 
 // Double-Linked Game List
-typedef struct SceNetAdhocctlGameNode {
+struct SceNetAdhocctlGameNode {
 	// Next Element
 	struct SceNetAdhocctlGameNode * next;
 	
@@ -81,10 +81,10 @@ typedef struct SceNetAdhocctlGameNode {
 	
 	// Double-Linked Group List
 	SceNetAdhocctlGroupNode * group;
-} SceNetAdhocctlGameNode;
+};
 
 // Double-Linked Group List
-typedef struct SceNetAdhocctlGroupNode {
+struct SceNetAdhocctlGroupNode {
 	// Next Element
 	struct SceNetAdhocctlGroupNode * next;
 	
@@ -102,7 +102,7 @@ typedef struct SceNetAdhocctlGroupNode {
 	
 	// Double-Linked Player List
 	SceNetAdhocctlUserNode * player;
-} SceNetAdhocctlGroupNode;
+};
 
 // User Count
 extern uint32_t _db_user_count;
