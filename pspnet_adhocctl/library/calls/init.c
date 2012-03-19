@@ -43,10 +43,10 @@ int _one = 1;
 int _zero = 0;
 
 // Function Prototypes
-int _initNetwork(const SceNetAdhocctlAdhocId * adhoc_id, uint32_t server_ip);
+int _initNetwork(const SceNetAdhocctlAdhocId * adhoc_id, const char * server_ip);
 int _readHotspotConfig(void);
 int _findHotspotConfigId(char * ssid);
-int _readServerConfig(void);
+const char * _readServerConfig(void);
 int _friendFinder(SceSize args, void * argp);
 void _addFriend(SceNetAdhocctlConnectPacketS2C * packet);
 void _deleteFriendByIP(uint32_t ip);
@@ -69,11 +69,11 @@ int proNetAdhocctlInit(int stacksize, int prio, const SceNetAdhocctlAdhocId * ad
 			// Read Hotspot Configuration
 			if(_readHotspotConfig() == 0)
 			{
-				// Get Server IP
-				uint32_t ip = _readServerConfig();
+				// Get Server IP (String)
+				const char * ip = _readServerConfig();
 				
 				// Read Server Configuration
-				if(ip != 0)
+				if(ip != NULL)
 				{
 					// Initialize Networking
 					if(_initNetwork(adhoc_id, ip) == 0)
@@ -115,7 +115,7 @@ int proNetAdhocctlInit(int stacksize, int prio, const SceNetAdhocctlAdhocId * ad
  * @param server_ip Server IP
  * @return 0 on success or... -1
  */
-int _initNetwork(const SceNetAdhocctlAdhocId * adhoc_id, uint32_t server_ip)
+int _initNetwork(const SceNetAdhocctlAdhocId * adhoc_id, const char * server_ip)
 {
 	// WLAN Switch Check
 	if(sceWlanGetSwitchState() == 1)
@@ -167,11 +167,36 @@ int _initNetwork(const SceNetAdhocctlAdhocId * adhoc_id, uint32_t server_ip)
 						// uint32_t timeout = ADHOCCTL_RECV_TIMEOUT;
 						// sceNetInetSetsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 						
+						// Server IP
+						uint32_t ip = 0;
+						
+						// Initialize DNS Resolver
+						if(sceNetResolverInit() == 0)
+						{
+							// Create DNS Resolver
+							unsigned char rbuf[512]; int rid = 0;
+							if(sceNetResolverCreate(&rid, rbuf, sizeof(rbuf)) == 0)
+							{
+								// Resolve Domain
+								if(sceNetResolverStartNtoA(rid, server_ip, &ip, 500000, 2) != 0)
+								{
+									// Attempt IP Conversion
+									sceNetInetInetAton(server_ip, &ip);
+								}
+								
+								// Delete DNS Resolver
+								sceNetResolverDelete(rid);
+							}
+							
+							// Shutdown DNS Resolver
+							sceNetResolverTerm();
+						}
+						
 						// Prepare Server Address
 						SceNetInetSockaddrIn addr;
 						addr.sin_len = sizeof(addr);
 						addr.sin_family = AF_INET;
-						addr.sin_addr = server_ip;
+						addr.sin_addr = ip;
 						addr.sin_port = sceNetHtons(ADHOCCTL_METAPORT);
 						
 						// Connect to Server
@@ -315,35 +340,29 @@ int _findHotspotConfigId(char * ssid)
  * Read Server IP
  * @return IP != 0 on success or... 0
  */
-int _readServerConfig(void)
+const char * _readServerConfig(void)
 {
+	// Line Buffer
+	static char line[128];
+
 	// Open Configuration File
 	int fd = sceIoOpen("ms0:/seplugins/server.txt", PSP_O_RDONLY, 0777);
 	
 	// Opened Configuration File
 	if(fd >= 0)
 	{
-		// Line Buffer
-		char line[128];
-		
 		// Read Line
 		_readLine(fd, line, sizeof(line));
-		
-		// Server IP
-		uint32_t ip = 0;	
-		
-		// Create IP Address from Line
-		sceNetInetInetAton(line, &ip);
 		
 		// Close Configuration File
 		sceIoClose(fd);
 		
-		// Return IP
-		return ip;
+		// Return IP (String)
+		return line;
 	}
 	
 	// Generic Error
-	return 0;
+	return NULL;
 }
 
 /**

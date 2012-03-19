@@ -48,6 +48,9 @@
 // Networking Library
 #include "../../pspnet_adhoc/library/pspsdk/pspnet.h"
 
+// DNS Resolver
+#include "pspsdk/pspnet_resolver.h"
+
 // --- Global Library Calls ---
 
 // sceNetAdhocctlInit
