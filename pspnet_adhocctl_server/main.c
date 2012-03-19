@@ -89,8 +89,18 @@ void enable_address_reuse(int fd)
  */
 void change_blocking_mode(int fd, int nonblocking)
 {
-	// Change Blocking Mode
-	fcntl(fd, F_SETFL, O_NONBLOCK);
+	// Change to Non-Blocking Mode
+	if(nonblocking) fcntl(fd, F_SETFL, O_NONBLOCK);
+
+	// Change to Blocking Mode
+	else
+	{
+		// Get Flags
+		int flags = fcntl(fd, F_GETFL);
+
+		// Remove Non-Blocking Flag
+		fcntl(fd, F_SETFL, flags & ~O_NONBLOCK);
+	}
 }
 
 /**
@@ -173,7 +183,15 @@ int server_loop(int server)
 				memset(&addr, 0, sizeof(addr));
 				
 				// Accept Login Requests
-				loginresult = accept4(server, (struct sockaddr *)&addr, &addrlen, SOCK_NONBLOCK);
+				// loginresult = accept4(server, (struct sockaddr *)&addr, &addrlen, SOCK_NONBLOCK);
+				
+				// Alternative Accept Approach (some Linux Kernel don't support the accept4 Syscall... wtf?)
+				loginresult = accept(server, (struct sockaddr *)&addr, &addrlen);
+				if(loginresult != -1)
+				{
+					// Switch Socket into Non-Blocking Mode
+					change_blocking_mode(loginresult, 1);
+				}
 				
 				// Login User (Stream)
 				if(loginresult != -1) login_user_stream(loginresult, addr.sin_addr.s_addr);
