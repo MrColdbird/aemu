@@ -7,6 +7,7 @@
 #define OPCODE_DISCONNECT 3
 #define OPCODE_SCAN 4
 #define OPCODE_SCAN_COMPLETE 5
+#define OPCODE_CONNECT_BSSID 6
 
 // PSP Product Code
 #define PRODUCT_CODE_LENGTH 9
@@ -56,5 +57,12 @@ typedef struct
 
 // S2C Scan Packet
 typedef SceNetAdhocctlConnectPacketC2S SceNetAdhocctlScanPacketS2C;
+
+// S2C Connect BSSID Packet
+typedef struct
+{
+	SceNetAdhocctlPacketBase base;
+	SceNetEtherAddr mac;
+} __attribute__((packed)) SceNetAdhocctlConnectBSSIDPacketS2C;
 
 #endif

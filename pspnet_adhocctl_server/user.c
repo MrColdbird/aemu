@@ -287,6 +287,15 @@ void connect_user(SceNetAdhocctlUserNode * user, SceNetAdhocctlGroupName * group
 			SceNetAdhocctlGroupNode * g = user->game->group;
 			while(g != NULL && strncmp((char *)g->group.data, (char *)group->data, ADHOCCTL_GROUPNAME_LEN) != 0) g = g->next;
 			
+			// BSSID Packet
+			SceNetAdhocctlConnectBSSIDPacketS2C bssid;
+			
+			// Set BSSID Opcode
+			bssid.base.opcode = OPCODE_CONNECT_BSSID;
+			
+			// Set Default BSSID
+			bssid.mac = user->resolver.mac;
+			
 			// No Group found
 			if(g == NULL)
 			{
@@ -355,6 +364,9 @@ void connect_user(SceNetAdhocctlUserNode * user, SceNetAdhocctlGroupName * group
 					// Send Data
 					send(user->stream, &packet, sizeof(packet), 0);
 					
+					// Set BSSID
+					if(peer->group_next == NULL) bssid.mac = peer->resolver.mac;
+					
 					// Move Pointer
 					peer = peer->group_next;
 				}
@@ -369,6 +381,9 @@ void connect_user(SceNetAdhocctlUserNode * user, SceNetAdhocctlGroupName * group
 				
 				// Increase Player Count
 				g->playercount++;
+				
+				// Send Network BSSID to User
+				send(user->stream, &bssid, sizeof(bssid), 0);
 				
 				// Notify User
 				uint8_t * ip = (uint8_t *)&user->resolver.ip;

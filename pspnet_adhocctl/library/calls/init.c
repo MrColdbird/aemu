@@ -218,6 +218,12 @@ int _initNetwork(const SceNetAdhocctlAdhocId * adhoc_id, const char * server_ip)
 							// Read PSP Player Name
 							sceUtilityGetSystemParamString(PSP_SYSTEMPARAM_ID_STRING_NICKNAME, (char *)_parameter.nickname.data, ADHOCCTL_NICKNAME_LEN);
 							
+							// Read Adhoc Channel
+							sceUtilityGetSystemParamInt(PSP_SYSTEMPARAM_ID_INT_ADHOC_CHANNEL, &_parameter.channel);
+							
+							// Fake Channel Number 1 on Automatic Channel
+							if(_parameter.channel == 0) _parameter.channel = 1;
+							
 							// Read PSP MAC Address
 							sceWlanGetEtherAddr((void *)&_parameter.bssid.mac_addr.data);
 							
@@ -458,8 +464,38 @@ int _friendFinder(SceSize args, void * argp)
 		// Handle Packets
 		if(rxpos > 0)
 		{
+			// BSSID Packet
+			if(rx[0] == OPCODE_CONNECT_BSSID)
+			{
+				// Enough Data available
+				if(rxpos >= sizeof(SceNetAdhocctlConnectBSSIDPacketS2C))
+				{
+					// Cast Packet
+					SceNetAdhocctlConnectBSSIDPacketS2C * packet = (SceNetAdhocctlConnectBSSIDPacketS2C *)rx;
+					
+					// Update BSSID
+					_parameter.bssid.mac_addr = packet->mac;
+					
+					// Change State
+					_thread_status = ADHOCCTL_STATE_CONNECTED;
+					
+					// Notify Event Handlers
+					int i = 0; for(; i < ADHOCCTL_MAX_HANDLER; i++)
+					{
+						// Active Handler
+						if(_event_handler[i] != NULL) _event_handler[i](ADHOCCTL_EVENT_CONNECT, 0, _event_args[i]);
+					}
+					
+					// Move RX Buffer
+					memmove(rx, rx + sizeof(SceNetAdhocctlConnectBSSIDPacketS2C), sizeof(rx) - sizeof(SceNetAdhocctlConnectBSSIDPacketS2C));
+					
+					// Fix RX Buffer Length
+					rxpos -= sizeof(SceNetAdhocctlConnectBSSIDPacketS2C);
+				}
+			}
+			
 			// Connect Packet
-			if(rx[0] == OPCODE_CONNECT)
+			else if(rx[0] == OPCODE_CONNECT)
 			{
 				// Enough Data available
 				if(rxpos >= sizeof(SceNetAdhocctlConnectPacketS2C))

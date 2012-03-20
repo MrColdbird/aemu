@@ -31,116 +31,106 @@ int proNetAdhocPdpSend(int id, const SceNetEtherAddr * daddr, uint16_t dport, co
 					// Valid Data Buffer
 					if(data != NULL)
 					{
-						// Not alerted
-						if((socket->rcv_sb_cc & ADHOC_F_ALERTSEND) == 0)
+						// Valid Destination Address
+						if(daddr != NULL)
 						{
-							// Valid Destination Address
-							if(daddr != NULL)
+							// Log Destination
+							#ifdef DEBUG
+							printk("Attempting PDP Send to %02X:%02X:%02X:%02X:%02X:%02X on Port %u\n", daddr->data[0], daddr->data[1], daddr->data[2], daddr->data[3], daddr->data[4], daddr->data[5], dport);
+							#endif
+							
+							// Schedule Timeout Removal
+							if(flag) timeout = 0;
+							
+							// Apply Send Timeout Settings to Socket
+							sceNetInetSetsockopt(socket->id, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
+							
+							// Single Target
+							if(!_isBroadcastMAC(daddr))
 							{
-								// Log Destination
-								#ifdef DEBUG
-								printk("Attempting PDP Send to %02X:%02X:%02X:%02X:%02X:%02X on Port %u\n", daddr->data[0], daddr->data[1], daddr->data[2], daddr->data[3], daddr->data[4], daddr->data[5], dport);
-								#endif
+								// Fill in Target Structure
+								SceNetInetSockaddrIn target;
+								target.sin_family = AF_INET;
+								target.sin_port = sceNetHtons(dport);
 								
-								// Schedule Timeout Removal
-								if(flag) timeout = 0;
-								
-								// Apply Send Timeout Settings to Socket
-								sceNetInetSetsockopt(socket->id, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
-								
-								// Single Target
-								if(!_isBroadcastMAC(daddr))
-								{
-									// Fill in Target Structure
-									SceNetInetSockaddrIn target;
-									target.sin_family = AF_INET;
-									target.sin_port = sceNetHtons(dport);
-									
-									// Get Peer IP
-									if(_resolveMAC((SceNetEtherAddr *)daddr, &target.sin_addr) == 0)
-									{
-										// Acquire Network Lock
-										_acquireNetworkLock();
-										
-										// Send Data
-										int sent = sceNetInetSendto(socket->id, data, len, ((flag != 0) ? (INET_MSG_DONTWAIT) : (0)), (SceNetInetSockaddr *)&target, sizeof(target));
-										
-										// Free Network Lock
-										_freeNetworkLock();
-										
-										// Sent Data
-										if(sent == len)
-										{
-											// Success
-											return 0;
-										}
-										
-										// Blocking Situation
-										if(flag) return ADHOC_WOULD_BLOCK;
-										
-										// Timeout
-										return ADHOC_TIMEOUT;
-									}
-								}
-								
-								// Broadcast Target
-								else
+								// Get Peer IP
+								if(_resolveMAC((SceNetEtherAddr *)daddr, &target.sin_addr) == 0)
 								{
 									// Acquire Network Lock
 									_acquireNetworkLock();
 									
-									#ifdef BROADCAST_TO_LOCALHOST
-									// Get Local IP Address
-									union SceNetApctlInfo info; if(sceNetApctlGetInfo(PSP_NET_APCTL_INFO_IP, &info) == 0)
-									{
-										// Fill in Target Structure
-										SceNetInetSockaddrIn target;
-										target.sin_family = AF_INET;
-										sceNetInetInetAton(info.ip, &target.sin_addr);
-										target.sin_port = sceNetHtons(dport);
-										
-										// Send Data
-										sceNetInetSendto(socket->id, data, len, ((flag != 0) ? (INET_MSG_DONTWAIT) : (0)), (SceNetInetSockaddr *)&target, sizeof(target));
-									}
-									#endif
-									
-									// Acquire Peer Lock
-									_acquirePeerLock();
-									
-									// Iterate Peers
-									SceNetAdhocctlPeerInfo * peer = _getInternalPeerList();
-									for(; peer != NULL; peer = peer->next)
-									{
-										// Fill in Target Structure
-										SceNetInetSockaddrIn target;
-										target.sin_family = AF_INET;
-										target.sin_addr = peer->ip_addr;
-										target.sin_port = sceNetHtons(dport);
-										
-										// Send Data
-										sceNetInetSendto(socket->id, data, len, ((flag != 0) ? (INET_MSG_DONTWAIT) : (0)), (SceNetInetSockaddr *)&target, sizeof(target));
-									}
-									
-									// Free Peer Lock
-									_freePeerLock();
+									// Send Data
+									int sent = sceNetInetSendto(socket->id, data, len, ((flag != 0) ? (INET_MSG_DONTWAIT) : (0)), (SceNetInetSockaddr *)&target, sizeof(target));
 									
 									// Free Network Lock
 									_freeNetworkLock();
 									
-									// Broadcast never fails!
-									return 0;
+									// Sent Data
+									if(sent == len)
+									{
+										// Success
+										return 0;
+									}
+									
+									// Blocking Situation
+									if(flag) return ADHOC_WOULD_BLOCK;
+									
+									// Timeout
+									return ADHOC_TIMEOUT;
 								}
 							}
 							
-							// Invalid Destination Address
-							return ADHOC_INVALID_ADDR;
+							// Broadcast Target
+							else
+							{
+								// Acquire Network Lock
+								_acquireNetworkLock();
+								
+								#ifdef BROADCAST_TO_LOCALHOST
+								// Get Local IP Address
+								union SceNetApctlInfo info; if(sceNetApctlGetInfo(PSP_NET_APCTL_INFO_IP, &info) == 0)
+								{
+									// Fill in Target Structure
+									SceNetInetSockaddrIn target;
+									target.sin_family = AF_INET;
+									sceNetInetInetAton(info.ip, &target.sin_addr);
+									target.sin_port = sceNetHtons(dport);
+									
+									// Send Data
+									sceNetInetSendto(socket->id, data, len, ((flag != 0) ? (INET_MSG_DONTWAIT) : (0)), (SceNetInetSockaddr *)&target, sizeof(target));
+								}
+								#endif
+								
+								// Acquire Peer Lock
+								_acquirePeerLock();
+								
+								// Iterate Peers
+								SceNetAdhocctlPeerInfo * peer = _getInternalPeerList();
+								for(; peer != NULL; peer = peer->next)
+								{
+									// Fill in Target Structure
+									SceNetInetSockaddrIn target;
+									target.sin_family = AF_INET;
+									target.sin_addr = peer->ip_addr;
+									target.sin_port = sceNetHtons(dport);
+									
+									// Send Data
+									sceNetInetSendto(socket->id, data, len, ((flag != 0) ? (INET_MSG_DONTWAIT) : (0)), (SceNetInetSockaddr *)&target, sizeof(target));
+								}
+								
+								// Free Peer Lock
+								_freePeerLock();
+								
+								// Free Network Lock
+								_freeNetworkLock();
+								
+								// Broadcast never fails!
+								return 0;
+							}
 						}
 						
-						// Clear Alert
-						socket->rcv_sb_cc = 0;
-						
-						// Return Alerted Result
-						return ADHOC_SOCKET_ALERTED;
+						// Invalid Destination Address
+						return ADHOC_INVALID_ADDR;
 					}
 					
 					// Invalid Argument

@@ -22,9 +22,6 @@ int proNetAdhocctlCreate(const SceNetAdhocctlGroupName * group_name)
 				// Set Network Name
 				if(group_name != NULL) _parameter.group_name = *group_name;
 				
-				// Set Connected State
-				_thread_status = ADHOCCTL_STATE_CONNECTED;
-				
 				// Prepare Connect Packet
 				SceNetAdhocctlConnectPacketC2S packet;
 				
@@ -42,13 +39,6 @@ int proNetAdhocctlCreate(const SceNetAdhocctlGroupName * group_name)
 				
 				// Free Network Lock
 				_freeNetworkLock();
-				
-				// Notify Event Handlers
-				int i = 0; for(; i < ADHOCCTL_MAX_HANDLER; i++)
-				{
-					// Active Handler
-					if(_event_handler[i] != NULL) _event_handler[i](ADHOCCTL_EVENT_CONNECT, 0, _event_args[i]);
-				}
 				
 				// Return Success
 				return 0;
