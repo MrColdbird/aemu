@@ -18,8 +18,11 @@ int proNetAdhocctlGetPeerInfo(SceNetEtherAddr * addr, int size, SceNetAdhocctlPe
 			// Clear Memory
 			memset(peer_info, 0, size);
 			
+			// Get Local MAC Address
+			uint8_t localmac[6]; sceWlanGetEtherAddr((void *)localmac);
+			
 			// Local MAC Matches
-			if(memcmp(&_parameter.bssid.mac_addr, addr, sizeof(SceNetEtherAddr)) == 0)
+			if(memcmp(localmac, addr, sizeof(SceNetEtherAddr)) == 0)
 			{
 				// Get Local IP Address
 				union SceNetApctlInfo info; if(sceNetApctlGetInfo(PSP_NET_APCTL_INFO_IP, &info) == 0)

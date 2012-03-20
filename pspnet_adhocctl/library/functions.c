@@ -18,7 +18,7 @@ int _resolveIP(uint32_t ip, SceNetEtherAddr * mac)
 		if(ip == _ip)
 		{
 			// Return MAC Address
-			*mac = _parameter.bssid.mac_addr;
+			sceWlanGetEtherAddr((void *)mac->data);
 			
 			// Return Success
 			return 0;
@@ -63,8 +63,11 @@ int _resolveIP(uint32_t ip, SceNetEtherAddr * mac)
  */
 int _resolveMAC(SceNetEtherAddr * mac, uint32_t * ip)
 {
+	// Get Local MAC Address
+	uint8_t localmac[6]; sceWlanGetEtherAddr((void *)localmac);
+	
 	// Local MAC Requested
-	if(memcmp(&_parameter.bssid.mac_addr, mac, sizeof(SceNetEtherAddr)) == 0)
+	if(memcmp(localmac, mac, sizeof(SceNetEtherAddr)) == 0)
 	{
 		// Get Local IP Address
 		union SceNetApctlInfo info; if(sceNetApctlGetInfo(PSP_NET_APCTL_INFO_IP, &info) == 0)

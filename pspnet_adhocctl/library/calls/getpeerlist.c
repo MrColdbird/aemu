@@ -44,7 +44,7 @@ int proNetAdhocctlGetPeerList(int * buflen, SceNetAdhocctlPeerInfo * buf)
 					{
 						// Add Local Address
 						buf[discovered].nickname = _parameter.nickname;
-						buf[discovered].mac_addr = _parameter.bssid.mac_addr;
+						sceWlanGetEtherAddr((void *)buf[discovered].mac_addr.data);
 						sceNetInetInetAton(info.ip, &buf[discovered].ip_addr);
 						buf[discovered++].last_recv = sceKernelGetSystemTimeWide();
 					}

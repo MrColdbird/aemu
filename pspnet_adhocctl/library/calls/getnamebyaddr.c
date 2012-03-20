@@ -14,8 +14,11 @@ int proNetAdhocctlGetNameByAddr(const SceNetEtherAddr * addr, SceNetAdhocctlNick
 		// Valid Arguments
 		if(addr != NULL && nickname != NULL)
 		{
+			// Get Local MAC Address
+			uint8_t localmac[6]; sceWlanGetEtherAddr((void *)localmac);
+			
 			// Local MAC Matches
-			if(memcmp(&_parameter.bssid.mac_addr, addr, sizeof(SceNetEtherAddr)) == 0)
+			if(memcmp(localmac, addr, sizeof(SceNetEtherAddr)) == 0)
 			{
 				// Write Data
 				*nickname = _parameter.nickname;
