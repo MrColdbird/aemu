@@ -100,41 +100,6 @@ void patch_netconf_utility(void * init, void * getstatus, void * update, void * 
 				hook_import_bynid((SceModule *)module, "sceUtility", 0x6332AA39, getstatus);
 				hook_import_bynid((SceModule *)module, "sceUtility", 0x91E70E35, update);
 				hook_import_bynid((SceModule *)module, "sceUtility", 0xF88155F6, shutdown);
-				
-				// Fix PSPNET Termination Bug
-				// This bug is caused because of utility.prx screwing around where it shouldn't.
-				// This in turn happens because we use adhoc and infrastructure at the same time.
-				if(strcmp(module->modname, "sceNet_Library") == 0)
-				{
-					/*
-					// Patch Address
-					uint32_t addr[2] = { 0x249C, 0x258C };
-					
-					// Iterate Addresses
-					int j = 0; for(; j < 2; j++)
-					{
-						// Calculate Real Address
-						uint32_t realaddr = module->text_addr + addr[j];
-						
-						// Dummy Instruction
-						_sw(NOP, realaddr);
-						
-						// Flush Cache
-						sceKernelDcacheWritebackInvalidateRange((void *)realaddr, 4);
-						sceKernelIcacheInvalidateRange((void *)realaddr, 4);
-					}
-					
-					// Patch Address (sceNetTerm)
-					uint32_t addr = module->text_addr + 0x245C;
-					
-					// Instant-Return
-					MAKE_DUMMY_FUNCTION_RETURN_0(addr);
-					
-					// Flush Cache
-					sceKernelDcacheWritebackInvalidateRange((void *)addr, 8);
-					sceKernelIcacheInvalidateRange((void *)addr, 8);
-					*/
-				}
 			}
 		}
 	}
