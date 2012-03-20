@@ -573,8 +573,8 @@ int _friendFinder(SceSize args, void * argp)
 						// Copy Group Name
 						group->group_name = packet->group;
 						
-						// Set Localhost as Group Host
-						group->bssid = _parameter.bssid;
+						// Set Group Host
+						group->bssid.mac_addr = packet->mac;
 						
 						// Link into Group List
 						_networks = group;

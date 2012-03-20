@@ -56,7 +56,12 @@ typedef struct
 } __attribute__((packed)) SceNetAdhocctlDisconnectPacketS2C;
 
 // S2C Scan Packet
-typedef SceNetAdhocctlConnectPacketC2S SceNetAdhocctlScanPacketS2C;
+typedef struct
+{
+	SceNetAdhocctlPacketBase base;
+	SceNetAdhocctlGroupName group;
+	SceNetEtherAddr mac;
+} __attribute__((packed)) SceNetAdhocctlScanPacketS2C;
 
 // S2C Connect BSSID Packet
 typedef struct

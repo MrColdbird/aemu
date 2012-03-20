@@ -558,6 +558,18 @@ void send_scan_results(SceNetAdhocctlUserNode * user)
 			// Set Group Name
 			packet.group = group->group;
 			
+			// Iterate Players in Network Group
+			SceNetAdhocctlUserNode * peer = group->player;
+			for(; peer != NULL; peer = peer->group_next)
+			{
+				// Found Network Founder
+				if(peer->group_next == NULL)
+				{
+					// Set Group Host MAC
+					packet.mac = peer->resolver.mac;
+				}
+			}
+			
 			// Send Group Packet
 			send(user->stream, &packet, sizeof(packet), 0);
 		}
