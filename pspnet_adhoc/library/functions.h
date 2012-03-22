@@ -63,4 +63,18 @@ int _getPTPSocketCount(void);
  */
 int _IsPTPPortInUse(uint16_t port);
 
+/**
+ * Add Port Forward to Router
+ * @param protocol "TCP" or "UDP"
+ * @param port To-be-forwarded Port Number
+ */
+void sceNetPortOpen(const char * protocol, uint16_t port);
+
+/**
+ * Remove Port Forward from Router
+ * @param protocol "TCP" or "UDP"
+ * @param port To-be-removed Port Number
+ */
+void sceNetPortClose(const char * protocol, uint16_t port);
+
 #endif

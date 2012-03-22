@@ -33,6 +33,7 @@ int proNetAdhocPtpConnect(int id, uint32_t timeout, int flag)
 					memset(&sin, 0, sizeof(sin));
 					
 					// Setup Target Address
+					sin.sin_len = sizeof(sin);
 					sin.sin_family = AF_INET;
 					sin.sin_addr = peer_info.ip_addr;
 					sin.sin_port = sceNetHtons(socket->pport);

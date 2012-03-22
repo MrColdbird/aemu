@@ -42,6 +42,12 @@ int proNetAdhocctlTerm(void)
 		// Delete Socket Reference
 		_metasocket = -1;
 		
+		// Stop UPNP Library
+		int status = 0; sceKernelStopModule(_upnp_uid, 0, NULL, &status, NULL);
+		
+		// Unload UPNP Library
+		sceKernelUnloadModule(_upnp_uid);
+		
 		// Close Hotspot Connection
 		sceNetApctlDisconnect();
 		

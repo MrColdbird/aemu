@@ -6,6 +6,9 @@ int _init = 0;
 // Thread Status
 int _thread_status = ADHOCCTL_STATE_DISCONNECTED;
 
+// UPNP Library Handle
+int _upnp_uid = -1;
+
 // Game Product Code
 SceNetAdhocctlAdhocId _product_code;
 
@@ -250,6 +253,12 @@ int _initNetwork(const SceNetAdhocctlAdhocId * adhoc_id, const char * server_ip)
 							
 							// Free Network Layer Lock
 							_freeNetworkLock();
+							
+							// Load UPNP Library
+							_upnp_uid = sceKernelLoadModule("ms0:/kd/pspnet_miniupnc.prx", 0, NULL);
+							
+							// Start UPNP Library
+							int status = 0; sceKernelStartModule(_upnp_uid, 0, NULL, &status, NULL);
 							
 							// Return Success
 							return 0;

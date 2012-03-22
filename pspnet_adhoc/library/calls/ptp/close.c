@@ -20,6 +20,9 @@ int proNetAdhocPtpClose(int id, int flag)
 			// Close Connection
 			sceNetInetClose(socket->id);
 			
+			// Remove Port Forward from Router
+			sceNetPortClose("TCP", socket->lport);
+			
 			// Free Memory
 			free(socket);
 			

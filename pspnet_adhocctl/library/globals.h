@@ -24,6 +24,9 @@ extern int _init;
 // Thread Status
 extern int _thread_status;
 
+// UPNP Library Handle
+extern int _upnp_uid;
+
 // Game Product Code
 extern SceNetAdhocctlAdhocId _product_code;
 

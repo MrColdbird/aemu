@@ -77,6 +77,9 @@ int proNetAdhocPdpCreate(const SceNetEtherAddr * saddr, uint16_t sport, int bufs
 									// Link Socket to Translator ID
 									_pdp[i] = internal;
 									
+									// Forward Port on Router
+									sceNetPortOpen("UDP", sport);
+									
 									// Success
 									return i + 1;
 								}

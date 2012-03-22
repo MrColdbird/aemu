@@ -7,6 +7,7 @@ PSPNET_ADHOC_MATCHING = pspnet_adhoc_matching
 PSPNET_ADHOC_DOWNLOAD = pspnet_adhoc_download
 PSPNET_ADHOC_DISCOVER = pspnet_adhoc_discover
 PSPNET_ADHOCCTL_SERVER = pspnet_adhocctl_server
+PSPNET_MINIUPNC = pspnet_miniupnc
 DISTRIBUTE = dist
 
 FLAGS = CONFIG_620=1
@@ -47,6 +48,7 @@ endif
 
 all:
 	@mkdir $(DISTRIBUTE) || true
+	@mkdir $(DISTRIBUTE)/docs || true
 	@mkdir $(DISTRIBUTE)/seplugins || true
 	@mkdir $(DISTRIBUTE)/kd || true
 	@mkdir $(DISTRIBUTE)/server || true
@@ -63,6 +65,7 @@ all:
 #	@cd $(PSPNET_ADHOC_DOWNLOAD); make $(FLAGS)
 #	@cd $(PSPNET_ADHOC_DISCOVER); make $(FLAGS)
 	@cd $(PSPNET_ADHOCCTL_SERVER); make $(FLAGS)
+	@cd $(PSPNET_MINIUPNC); make $(FLAGS)
 
 clean:
 	@cd $(ATPRO); make clean $(FLAGS)
@@ -74,4 +77,5 @@ clean:
 #	@cd $(PSPNET_ADHOC_DOWNLOAD); make clean $(FLAGS)
 #	@cd $(PSPNET_ADHOC_DISCOVER); make clean $(FLAGS)
 	@cd $(PSPNET_ADHOCCTL_SERVER); make clean $(FLAGS)
+	@cd $(PSPNET_MINIUPNC); make clean $(FLAGS)
 	@rm -rf $(DISTRIBUTE) || true
