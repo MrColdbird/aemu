@@ -82,7 +82,7 @@ int proNetAdhocctlInit(int stacksize, int prio, const SceNetAdhocctlAdhocId * ad
 					if(_initNetwork(adhoc_id, ip) == 0)
 					{
 						// Create Main Thread
-						int update = sceKernelCreateThread("friend_finder", _friendFinder, 0x18, 32768, 0, NULL);
+						int update = sceKernelCreateThread("friend_finder", _friendFinder, 0x30, 32768, 0, NULL);
 						
 						// Created Main Thread
 						if(update >= 0)
