@@ -13,14 +13,17 @@ LIBS = -lpspsystemctrl_kernel
 
 ifeq ($(CONFIG_620), 1)
 CFLAGS += -DCONFIG_620=1
+OBJS += imports/SysMemForKernel620.o
 endif
 
 ifeq ($(CONFIG_63X), 1)
 CFLAGS += -DCONFIG_63X=1
+OBJS += imports/SysMemForKernel63X.o
 endif
 
 ifeq ($(CONFIG_660), 1)
 CFLAGS += -DCONFIG_660=1
+OBJS += imports/SysMemForKernel660.o
 endif
 
 ifeq ($(RELEASE), 1)

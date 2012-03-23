@@ -4,6 +4,7 @@
 // ASM Patch
 #define MAKE_CALL(f) (0x0C000000 | (((u32)(f) >> 2) & 0x03ffffff))
 #define MAKE_JUMP(f) (0x08000000 | (((u32)(f) >> 2) & 0x03ffffff))
+#define MAKE_SYSCALL(n) ((n<<6)|12)
 #define NOP 0
 
 // ASM Redirect Patch

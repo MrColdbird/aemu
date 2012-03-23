@@ -12,6 +12,9 @@
 
 PSP_MODULE_INFO("ATPRO", PSP_MODULE_KERNEL, 1, 0);
 
+// Game Code Getter (discovered in utility.prx)
+const char * SysMemGameCodeGetter(void);
+
 // System Control Module Patcher
 STMOD_HANDLER sysctrl_patcher = NULL;
 
@@ -24,7 +27,7 @@ char * module_names[MODULE_LIST_SIZE] = {
 	"pspnet_adhocctl.prx",
 //	"pspnet_adhoc_matching.prx",
 //	"pspnet_adhoc_download.prx",
-//	"pspnet_adhoc_discover.prx",
+//	"pspnet_adhoc_discover.prx"
 };
 
 // Kernel Module Loader
@@ -48,7 +51,7 @@ SceUID load_plugin(const char * path, int flags, SceKernelLMOption * option)
 			return result;
 		}
 	}
-
+	
 	// Default Action - Load Module
 	return sceKernelLoadModule(path, flags, option);
 }
@@ -59,6 +62,15 @@ SceUID load_plugin_alt(const char * path, int unk1, int unk2, int flags, SceKern
 	// Thanks to CFW we can load whatever we want...
 	// No need to have different loader for user & kernel modules.
 	return load_plugin(path, flags, option);
+}
+
+// Game Code Getter
+const char * getGameCode(void)
+{
+	// 620 SysMemForKernel_AB5E85E5
+	// 63X SysMemForKernel_3C4C5630
+	// 660 SysMemForKernel_EF29061C
+	return SysMemGameCodeGetter() + 0x44;
 }
 
 // Callback Deny Function
@@ -111,7 +123,74 @@ int online_patcher(SceModule2 * module)
 	// Userspace Module
 	if((module->text_addr & 0x80000000) == 0)
 	{
-		// TODO Future Game Specific Compatiblity Patches
+		// Might be Untold Legends - Brotherhood of the Blade...
+		if(strcmp(module->modname, "etest") == 0)
+		{
+			// Offsets
+			uint32_t loader = 0;
+			uint32_t unloader = 0;
+			
+			// European Version
+			if(strcmp(getGameCode(), "ULES00046") == 0)
+			{
+				// Fill in Offsets
+				loader = 0x73F40;
+				unloader = 0x74334;
+			}
+			
+			// US Version
+			else if(strcmp(getGameCode(), "ULUS10003") == 0)
+			{
+				// Fill in Offsets
+				loader = 0x6EB24;
+				unloader = 0x6EF18;
+			}
+			
+			// Valid Game Version
+			if(loader != 0 && unloader != 0)
+			{
+				// Calculate Offsets
+				loader += module->text_addr;
+				unloader += module->text_addr;
+				
+				// Syscall Numbers
+				uint32_t loadutility = sctrlKernelQuerySystemCall((void *)sctrlHENFindFunction("sceUtility_Driver", "sceUtility", 0x2A2B3DE0));
+				uint32_t unloadutility = sctrlKernelQuerySystemCall((void *)sctrlHENFindFunction("sceUtility_Driver", "sceUtility", 0xE49BFE92));
+				
+				// Fix Module Loader
+				// C-Summary:
+				// sceUtilityLoadModule(PSP_MODULE_NET_COMMON);
+				// sceUtilityLoadModule(PSP_MODULE_NET_ADHOC);
+				// return;
+				
+				_sw(0x24040100, loader); // li $a0, 0x100 (arg1 = PSP_MODULE_NET_COMMON)
+				_sw(MAKE_SYSCALL(loadutility), loader + 4); // sceUtilityLoadModule(PSP_MODULE_NET_COMMON);
+				_sw(0x24040101, loader + 8); // li $a0, 0x101 (arg1 = PSP_MODULE_NET_ADHOC)
+				_sw(0x03E00008, loader + 12); // jr $ra
+				_sw(MAKE_SYSCALL(loadutility), loader + 16); // sceUtilityLoadModule(PSP_MODULE_NET_ADHOC);
+				
+				// Fix Module Unloader
+				// C-Summary:
+				// sceUtilityUnloadModule(PSP_MODULE_NET_COMMON);
+				// sceUtilityUnloadModule(PSP_MODULE_NET_ADHOC);
+				// return;
+				
+				_sw(0x24040101, unloader); // li $a0, 0x101 (arg1 = PSP_MODULE_NET_ADHOC)
+				_sw(MAKE_SYSCALL(unloadutility), unloader + 4); // sceUtilityUnloadModule(PSP_MODULE_NET_ADHOC);
+				_sw(0x24040100, unloader + 8); // li $a0, 0x100 (arg1 = PSP_MODULE_NET_COMMON)
+				_sw(0x03E00008, unloader + 12); // jr $ra
+				_sw(MAKE_SYSCALL(unloadutility), unloader + 16); // sceUtilityUnloadModule(PSP_MODULE_NET_COMMON);
+				
+				// Invalidate Caches
+				sceKernelDcacheWritebackInvalidateRange((void *)loader, 20);
+				sceKernelIcacheInvalidateRange((void *)loader, 20);
+				sceKernelDcacheWritebackInvalidateRange((void *)unloader, 20);
+				sceKernelIcacheInvalidateRange((void *)unloader, 20);
+				
+				// Log Game-Specific Patch
+				printk("Patched %s with updated Module Loader\n", getGameCode());
+			}
+		}
 	}
 	
 	// Enable System Control Patching
@@ -159,8 +238,8 @@ int module_start(SceSize args, void * argp)
 				printk("User Loader Hook: %d\n", result);
 				if(result == 0) {
 					// Disable Home Menu
-					sctrlHENPatchSyscall((void*)sctrlHENFindFunction("sceLoadExec", "LoadExecForUser", 0x4AC57943), cbdeny);
-					printk("Disabled Home Menu!\n");
+					// sctrlHENPatchSyscall((void*)sctrlHENFindFunction("sceLoadExec", "LoadExecForUser", 0x4AC57943), cbdeny);
+					// printk("Disabled Home Menu!\n");
 					
 					// Enable Module Start Patching
 					sysctrl_patcher = sctrlHENSetStartModuleHandler(online_patcher);

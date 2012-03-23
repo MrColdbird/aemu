@@ -422,7 +422,6 @@ upnpDiscover(int delay, const char * multicastif,
 		}
 	}
 	}
-	printk("We are cleaning the sockets up!\n");
 	sceNetInetClose(sudp);
 	return devlist;
 }

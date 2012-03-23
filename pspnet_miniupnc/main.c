@@ -45,9 +45,6 @@ int module_start(SceSize args, void * argp)
 	// Create Main Thread
 	int update = sceKernelCreateThread("upnp_thread", _mainThread, 0x30, 16384, 0, NULL);
 
-	// Set Library Status
-	_status = 1;
-
 	// Start Main Thread
 	if(update >= 0) sceKernelStartThread(update, 0, NULL);
 
@@ -59,8 +56,15 @@ int module_stop(SceSize args, void * argp)
 {
 	printk(MODULENAME " stop!\n");
 	
-	// Trigger Library Shutdown
-	_status = 0;
+	// Library is running
+	if(_status == 1)
+	{
+		// Trigger Library Shutdown
+		_status = -1;
+		
+		// Wait for Shutdown
+		while(_status != 0) sceKernelDelayThread(1000);
+	}
 	
 	return 0;
 }
@@ -92,6 +96,9 @@ int _mainThread(SceSize args, void * argp)
 					// Grab Local IP Address
 					if(sceNetApctlGetInfo(PSP_NET_APCTL_INFO_IP, &_info) == 0)
 					{
+						// Set Library Status
+						_status = 1;
+						
 						// Main Loop
 						while(_status == 1)
 						{
@@ -223,35 +230,33 @@ void RemoveRedirect(struct UPNPUrls * urls, struct IGDdatas * data, const char *
 // Create Port Forward
 void sceNetPortOpen(const char * protocol, uint16_t port)
 {
-	// Library initialized
-	if(_status == 1)
+	// Wait for Initialization
+	while(_status != 1) sceKernelDelayThread(10000);
+	
+	// Argument Check
+	if(protofix(protocol) != NULL && port != 0)
 	{
-		// Argument Check
-		if(protofix(protocol) != NULL && port != 0)
-		{
-			// Port Buffer
-			char sport[6]; sprintf(sport, "%u", port);
-			
-			// Forward Port to Localhost
-			SetRedirectAndTest(&_urls, &_data, _info.ip, sport, sport, protocol, "0", "PRO Online Game Client");
-		}
+		// Port Buffer
+		char sport[6]; sprintf(sport, "%u", port);
+		
+		// Forward Port to Localhost
+		SetRedirectAndTest(&_urls, &_data, _info.ip, sport, sport, protocol, "0", "PRO Online Game Client");
 	}
 }
 
 // Delete Port Forward
 void sceNetPortClose(const char * protocol, uint16_t port)
 {
-	// Library initialized
-	if(_status == 1)
+	// Wait for Initialization
+	while(_status != 1) sceKernelDelayThread(10000);
+	
+	// Argument Check
+	if(protofix(protocol) != NULL && port != 0)
 	{
-		// Argument Check
-		if(protofix(protocol) != NULL && port != 0)
-		{
-			// Port Buffer
-			char sport[6]; sprintf(sport, "%u", port);
-			
-			// Remove Port Forward
-			RemoveRedirect(&_urls, &_data, sport, protocol);
-		}
+		// Port Buffer
+		char sport[6]; sprintf(sport, "%u", port);
+		
+		// Remove Port Forward
+		RemoveRedirect(&_urls, &_data, sport, protocol);
 	}
 }
