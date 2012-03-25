@@ -5,6 +5,7 @@
 #include <psploadcore.h>
 #include <psputilsforkernel.h>
 #include <pspsysmem_kernel.h>
+#include <pspctrl.h>
 #include <string.h>
 #include "libs.h"
 #include "logs.h"
@@ -17,6 +18,28 @@ const char * SysMemGameCodeGetter(void);
 
 // System Control Module Patcher
 STMOD_HANDLER sysctrl_patcher = NULL;
+
+// Running Flag
+int running = 0;
+
+// Framebuffer Structure
+typedef struct Framebuffer
+{
+	void * buffer;
+	int pixeltype;
+	int width;
+} Framebuffer;
+
+// Homescreen Status
+int hud_on = 0;
+
+// Framebuffer Collection
+static Framebuffer fb[2];
+
+// Screen Information
+int screenmode = 0;
+int screenwidth = 0;
+int screenheight = 0;
 
 // Adhoc Module Names
 #define MODULE_LIST_SIZE 4
@@ -79,6 +102,20 @@ int cbdeny(int cbid)
 	// By doing nothing, we prevent exit callback registration, thus block the home menu.
 	// As our code requires high memory to work, exiting the game would crash anyway...
 	return 0;
+}
+
+// Killzone Fixed Pool Size Limiter
+int killzone_createfpl(char * name, int pid, uint32_t attr, uint32_t size, int blocks, void * param)
+{
+	// Killzone DummyHeap (Allocates memory and frees again to test how much it can allocate without error...)
+	if(strcmp(name, "DummyHeap") == 0)
+	{
+		// Limit Maximum Size
+		if(size > 0x1800000) return 0x80020190; // Insufficient Memory
+	}
+	
+	// Allocate Memory
+	return sceKernelCreateFpl(name, pid, attr, size, blocks, param);
 }
 
 // Patcher to allow Utility-Made Connections
@@ -146,6 +183,8 @@ int online_patcher(SceModule2 * module)
 				unloader = 0x6EF18;
 			}
 			
+			// JPN Version doesn't need this fix. Sony fixed it themselves.
+			
 			// Valid Game Version
 			if(loader != 0 && unloader != 0)
 			{
@@ -191,10 +230,122 @@ int online_patcher(SceModule2 * module)
 				printk("Patched %s with updated Module Loader\n", getGameCode());
 			}
 		}
+		
+		// Might be Killzone - Liberation...
+		else if(strcmp(module->modname, "Guerrilla") == 0)
+		{
+			// US / EU / KR Version
+			if(strcmp(getGameCode(), "UCUS98646") == 0 || strcmp(getGameCode(), "UCES00279") == 0 || strcmp(getGameCode(), "UCKS45041") == 0)
+			{
+				// Install Memory Allocation Limiter
+				hook_import_bynid((SceModule *)module, "ThreadManForUser", 0xC07BB470, killzone_createfpl);
+				
+				// Log Game-Specific Patch
+				printk("Patched %s with Fixed Pool Size Limiter\n", getGameCode());
+			}
+		}
 	}
 	
 	// Enable System Control Patching
 	return sysctrl_patcher(module);
+}
+
+// Draw Homescreen
+void draw_home(void)
+{
+	// Iterate Framebuffers
+	int i = 0; for(; i < 2; i++)
+	{
+		// Buffer available
+		if(fb[i].buffer != NULL)
+		{
+			// Pixel Size
+			uint32_t pixelsize = ((fb[i].pixeltype == PSP_DISPLAY_PIXEL_FORMAT_8888) ? (4) : (2));
+			
+			// Buffer Memory Size
+			uint32_t bufblocksize = fb[i].width * fb[i].width * pixelsize;
+			
+			// Clear Buffer (How are we ment to kill the flickering...?)
+			memset(fb[i].buffer, 0, bufblocksize);
+			
+			// TODO: Real Rendering
+		}
+	}
+}
+
+// GUI Thread
+int gui_thread(SceSize args, void * argp)
+{
+	// Previous Buttons
+	uint32_t prev_buttons = 0;
+
+	// Current Buttons
+	uint32_t curr_buttons = 0;
+	
+	// Endless Loop
+	while(running == 1)
+	{
+		// Move Buttons
+		prev_buttons = curr_buttons;
+		
+		// Button Data Holder
+		SceCtrlData ctrl;
+		
+		// Read Buttons
+		sceCtrlPeekBufferPositive(&ctrl, 1);
+		
+		// Register Button
+		curr_buttons = ctrl.Buttons;
+		
+		// Home Button pressed
+		if((prev_buttons & PSP_CTRL_HOME) == 0 && (curr_buttons & PSP_CTRL_HOME) != 0)
+		{
+			// Flip HUD Switch
+			hud_on = !hud_on;
+		}
+		
+		// Draw Homescreen
+		if(hud_on) draw_home();
+		
+		// Pause Thread
+		sceKernelDelayThread(1);
+	}
+	
+	// Disable Flag
+	if(hud_on) hud_on = 0;
+	
+	// Clear Running Status
+	running = 0;
+	
+	// Kill Thread
+	sceKernelExitDeleteThread(0);
+	
+	// Return to Caller
+	return 0;
+}
+
+// Set Display Mode Hook
+int display_setmode(int mode, int width, int height)
+{
+	// Save Data
+	screenmode = mode;
+	screenwidth = width;
+	screenheight = height;
+	
+	// Passthrough
+	return sceDisplaySetMode(mode, width, height);
+}
+
+// Set Framebuffer Hook
+int display_setframebuf(void * topaddr, int bufferwidth, int pixelformat, int sync)
+{
+	// Save Data
+	fb[sync].buffer = (uint8_t *)topaddr;
+	fb[sync].width = bufferwidth;
+	fb[sync].pixeltype = pixelformat;
+	
+	// Passthrough
+	return sceDisplaySetFrameBuf(topaddr, bufferwidth, pixelformat, sync);
 }
 
 // Module Start Event
@@ -238,12 +389,31 @@ int module_start(SceSize args, void * argp)
 				printk("User Loader Hook: %d\n", result);
 				if(result == 0) {
 					// Disable Home Menu
-					// sctrlHENPatchSyscall((void*)sctrlHENFindFunction("sceLoadExec", "LoadExecForUser", 0x4AC57943), cbdeny);
-					// printk("Disabled Home Menu!\n");
+					sctrlHENPatchSyscall((void*)sctrlHENFindFunction("sceLoadExec", "LoadExecForUser", 0x4AC57943), cbdeny);
+					printk("Disabled Home Menu!\n");
 					
 					// Enable Module Start Patching
 					sysctrl_patcher = sctrlHENSetStartModuleHandler(online_patcher);
 					printk("Enabled Game-Specific Fixes!\n");
+					
+					/*
+					// Create GUI Thread
+					int gui = sceKernelCreateThread("atpro_gui", gui_thread, 0x30, 32768, 0, NULL);
+					
+					// Created GUI Thread
+					if(gui >= 0)
+					{
+						// Hook Screen Framebuffer
+						sctrlHENPatchSyscall((void*)sctrlHENFindFunction("sceDisplay_Service", "sceDisplay", 0x0E20F177), display_setmode);
+						sctrlHENPatchSyscall((void*)sctrlHENFindFunction("sceDisplay_Service", "sceDisplay", 0x289D82FE), display_setframebuf);
+						
+						// Set Running Flag for GUI Thread
+						running = 1;
+						
+						// Start GUI Thread
+						sceKernelStartThread(gui, 0, NULL);
+					}
+					*/
 					
 					// Setup Success
 					return 0;
@@ -259,6 +429,12 @@ int module_start(SceSize args, void * argp)
 // Module Stop Event
 int module_stop(SceSize args, void * argp)
 {
+	// Shutdown GUI
+	running = -1;
+	
+	// Wait for GUI Shutdown
+	while(running != 0) sceKernelDelayThread(10000);
+	
 	// Return Success
 	return 0;
 }

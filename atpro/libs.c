@@ -9,6 +9,7 @@
 #include <string.h>
 
 #include "libs.h"
+#include "systemctrl.h"
 
 PspModuleImport * find_import_lib(SceModule *pMod, char *library)
 {
@@ -74,8 +75,20 @@ int hook_import_bynid(SceModule *pMod, char *library, unsigned int nid, void *fu
 			for(j=0; j<pImp->funcCount; j++) {
 				if(pImp->fnids[j] == nid) {
 					void *addr = (void*)(&pImp->funcs[j*2]);
-
-					REDIRECT_FUNCTION(func, addr);
+					if(func == NULL) {
+						_sw(0x03E00008, (u32)addr);
+						_sw(NOP, (u32)(addr + 4));
+					} else {
+						// Partition Check
+						SceModule2 * mod = (SceModule2 *)pMod;
+						if(mod->text_addr & 0x80000000)
+						{
+							REDIRECT_FUNCTION(func, addr);
+						} else {
+							_sw(0x03E00008, (u32)addr);
+							_sw(MAKE_SYSCALL(sctrlKernelQuerySystemCall(func)), (u32)(addr + 4));
+						}
+					}
 
 					sceKernelDcacheWritebackInvalidateRange(addr, 8);
 					sceKernelIcacheInvalidateRange(addr, 8);

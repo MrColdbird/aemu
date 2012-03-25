@@ -53,7 +53,8 @@ all:
 	@mkdir $(DISTRIBUTE)/kd || true
 	@mkdir $(DISTRIBUTE)/server || true
 	@touch $(DISTRIBUTE)/seplugins/hotspot.txt || true
-	echo 81.217.28.171 > $(DISTRIBUTE)/seplugins/server.txt
+	echo coldbird.uk.to > $(DISTRIBUTE)/seplugins/server.txt
+#	echo home.coldbird.uk.to > $(DISTRIBUTE)/seplugins/server.txt
 #	@touch $(DISTRIBUTE)/seplugins/server.txt || true
 
 	@cd $(ATPRO); make $(FLAGS)

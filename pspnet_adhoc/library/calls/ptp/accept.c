@@ -50,6 +50,7 @@ int proNetAdhocPtpAccept(int id, SceNetEtherAddr * addr, uint16_t * port, uint32
 					
 					// Accept Connection
 					int newsocket = sceNetInetAccept(socket->id, (SceNetInetSockaddr *)&peeraddr, &peeraddrlen);
+					printk("Accept Result: %d - %08X\n", newsocket, sceNetInetGetErrno());
 					
 					// Blocking Behaviour
 					if(!flag && newsocket == -1)
@@ -58,15 +59,19 @@ int proNetAdhocPtpAccept(int id, SceNetEtherAddr * addr, uint16_t * port, uint32
 						uint32_t starttime = sceKernelGetSystemTimeLow();
 						
 						// Retry until Timeout hits
-						while((sceKernelGetSystemTimeLow() - starttime) < timeout && newsocket == -1)
+						while((timeout == 0 || (sceKernelGetSystemTimeLow() - starttime) < timeout) && newsocket == -1)
 						{
 							// Accept Connection
 							newsocket = sceNetInetAccept(socket->id, (SceNetInetSockaddr *)&peeraddr, &peeraddrlen);
+							printk("Accept Result: %d - %08X\n", newsocket, sceNetInetGetErrno());
 							
 							// Wait a bit...
 							sceKernelDelayThread(1000);
 						}
 					}
+					
+					// Log Infrastructure Socket
+					printk("Infrastructure TCP Socket: %d\n", newsocket);
 					
 					// Restore Blocking Behaviour
 					if(nbio == 0)
@@ -85,6 +90,9 @@ int proNetAdhocPtpAccept(int id, SceNetEtherAddr * addr, uint16_t * port, uint32
 						// Grab Local Address
 						if(sceNetInetGetsockname(newsocket, (SceNetInetSockaddr *)&local, &locallen) == 0)
 						{
+							// Acquired Local Socket Address
+							printk("Acquired Local Address of Accepted Socket\n");
+							
 							// Adhoc Peer List Size
 							int buflen = 0;
 							
@@ -134,6 +142,9 @@ int proNetAdhocPtpAccept(int id, SceNetEtherAddr * addr, uint16_t * port, uint32
 									// Found Peer Information
 									if(peer.ip_addr != 0)
 									{
+										// Found Accepted
+										printk("Found Matching IP in Libraries Peer Table for Accepted Socket\n");
+										
 										// Allocate Memory
 										SceNetAdhocPtpStat * internal = (SceNetAdhocPtpStat *)malloc(sizeof(SceNetAdhocPtpStat));
 										

@@ -126,6 +126,13 @@ int _mainThread(SceSize args, void * argp)
 		sceNetResolverTerm();
 	}
 	
+	// Initialization Error
+	if(_status != -1)
+	{
+		// Unload Module because Router doesn't support UPNP
+		int status = 0; sceKernelStopUnloadSelfModule(0, NULL, &status, NULL);
+	}
+	
 	// Reset Library Status
 	_status = 0;
 	
