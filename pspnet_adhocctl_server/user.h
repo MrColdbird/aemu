@@ -170,4 +170,10 @@ int get_user_state(SceNetAdhocctlUserNode * user);
  */
 void clear_user_rxbuf(SceNetAdhocctlUserNode * user, int clear);
 
+/**
+ * Game Product Override (used for mixing multi-region games)
+ * @param product IN: Source Product OUT: Override Product
+ */
+void game_product_override(SceNetAdhocctlProductCode * product);
+
 #endif

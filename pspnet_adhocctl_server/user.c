@@ -90,6 +90,9 @@ void login_user_data(SceNetAdhocctlUserNode * user, SceNetAdhocctlLoginPacketC2S
 		}
 	}
 	
+	// Game Product Override
+	game_product_override(&data->game);
+	
 	// Valid Packet Data
 	if(valid_product_code == 1 && memcmp(&data->mac, "\xFF\xFF\xFF\xFF\xFF\xFF", sizeof(data->mac)) != 0 && memcmp(&data->mac, "\x00\x00\x00\x00\x00\x00", sizeof(data->mac)) != 0 && data->name.data[0] != 0)
 	{
@@ -639,3 +642,17 @@ void clear_user_rxbuf(SceNetAdhocctlUserNode * user, int clear)
 	// Fix RX Buffer Pointer
 	user->rxpos -= clear;
 }
+
+/**
+ * Game Product Override (used for mixing multi-region games)
+ * @param product IN: Source Product OUT: Override Product
+ */
+void game_product_override(SceNetAdhocctlProductCode * product)
+{
+	// God Eater Burst EU -> US
+	if(strncmp(product->data, "ULES01519", PRODUCT_CODE_LENGTH) == 0) strncpy(product->data, "ULUS10563", PRODUCT_CODE_LENGTH);
+	
+	// God Eater Burst JPN -> US
+	else if(strncmp(product->data, "NPJH50352", PRODUCT_CODE_LENGTH) == 0) strncpy(product->data, "ULUS10563", PRODUCT_CODE_LENGTH);
+}
+
