@@ -81,7 +81,7 @@ int hook_import_bynid(SceModule *pMod, char *library, unsigned int nid, void *fu
 					} else {
 						// Partition Check
 						SceModule2 * mod = (SceModule2 *)pMod;
-						if(mod->text_addr & 0x80000000)
+						if(((mod->text_addr & 0x80000000) && (((uint32_t)func) & 0x80000000)) || ((mod->text_addr & 0x80000000) == 0 && (((uint32_t)func) & 0x80000000) == 0))
 						{
 							REDIRECT_FUNCTION(func, addr);
 						} else {

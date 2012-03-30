@@ -171,6 +171,14 @@ int get_user_state(SceNetAdhocctlUserNode * user);
 void clear_user_rxbuf(SceNetAdhocctlUserNode * user, int clear);
 
 /**
+ * Patch Game Product Code
+ * @param product To-be-patched Product Code
+ * @param from If the Product Code matches this...
+ * @param to ... then change it to this one.
+ */
+void game_product_relink(SceNetAdhocctlProductCode * product, char * from, char * to);
+
+/**
  * Game Product Override (used for mixing multi-region games)
  * @param product IN: Source Product OUT: Override Product
  */

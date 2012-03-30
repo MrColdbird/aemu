@@ -644,15 +644,33 @@ void clear_user_rxbuf(SceNetAdhocctlUserNode * user, int clear)
 }
 
 /**
+ * Patch Game Product Code
+ * @param product To-be-patched Product Code
+ * @param from If the Product Code matches this...
+ * @param to ... then change it to this one.
+ */
+void game_product_relink(SceNetAdhocctlProductCode * product, char * from, char * to)
+{
+	// Relink Region Code
+	if(strncmp(product->data, from, PRODUCT_CODE_LENGTH) == 0) strncpy(product->data, to, PRODUCT_CODE_LENGTH);
+}
+
+/**
  * Game Product Override (used for mixing multi-region games)
  * @param product IN: Source Product OUT: Override Product
  */
 void game_product_override(SceNetAdhocctlProductCode * product)
 {
 	// God Eater Burst EU -> US
-	if(strncmp(product->data, "ULES01519", PRODUCT_CODE_LENGTH) == 0) strncpy(product->data, "ULUS10563", PRODUCT_CODE_LENGTH);
+	game_product_relink(product, "ULES01519", "ULUS10563");
 	
 	// God Eater Burst JPN -> US
-	else if(strncmp(product->data, "NPJH50352", PRODUCT_CODE_LENGTH) == 0) strncpy(product->data, "ULUS10563", PRODUCT_CODE_LENGTH);
+	game_product_relink(product, "NPJH50352", "ULUS10563");
+	
+	// Split Second EU -> US
+	game_product_relink(product, "ULES01402", "ULUS10513");
+	
+	// Split Second JPN -> US
+	game_product_relink(product, "ULJM05812", "ULUS10513");
 }
 
