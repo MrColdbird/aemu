@@ -14,7 +14,10 @@ int proNetAdhocctlGetState(int * state)
 		if(state != NULL)
 		{
 			// Return Thread Status
-			return _thread_status;
+			*state = _thread_status;
+			
+			// Return Success
+			return 0;
 		}
 		
 		// Invalid Arguments
