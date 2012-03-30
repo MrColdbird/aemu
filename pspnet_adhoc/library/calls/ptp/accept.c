@@ -28,7 +28,7 @@ int proNetAdhocPtpAccept(int id, SceNetEtherAddr * addr, uint16_t * port, uint32
 				{
 					// Address Information
 					SceNetInetSockaddrIn peeraddr;
-					memset(&addr, 0, sizeof(peeraddr));
+					memset(&peeraddr, 0, sizeof(peeraddr));
 					uint32_t peeraddrlen = sizeof(peeraddr);
 					
 					// Local Address Information
@@ -50,7 +50,6 @@ int proNetAdhocPtpAccept(int id, SceNetEtherAddr * addr, uint16_t * port, uint32
 					
 					// Accept Connection
 					int newsocket = sceNetInetAccept(socket->id, (SceNetInetSockaddr *)&peeraddr, &peeraddrlen);
-					printk("Accept Result: %d - %08X\n", newsocket, sceNetInetGetErrno());
 					
 					// Blocking Behaviour
 					if(!flag && newsocket == -1)
@@ -63,15 +62,11 @@ int proNetAdhocPtpAccept(int id, SceNetEtherAddr * addr, uint16_t * port, uint32
 						{
 							// Accept Connection
 							newsocket = sceNetInetAccept(socket->id, (SceNetInetSockaddr *)&peeraddr, &peeraddrlen);
-							printk("Accept Result: %d - %08X\n", newsocket, sceNetInetGetErrno());
 							
 							// Wait a bit...
 							sceKernelDelayThread(1000);
 						}
 					}
-					
-					// Log Infrastructure Socket
-					printk("Infrastructure TCP Socket: %d\n", newsocket);
 					
 					// Restore Blocking Behaviour
 					if(nbio == 0)
@@ -90,105 +85,57 @@ int proNetAdhocPtpAccept(int id, SceNetEtherAddr * addr, uint16_t * port, uint32
 						// Grab Local Address
 						if(sceNetInetGetsockname(newsocket, (SceNetInetSockaddr *)&local, &locallen) == 0)
 						{
-							// Acquired Local Socket Address
-							printk("Acquired Local Address of Accepted Socket\n");
+							// Peer MAC
+							SceNetEtherAddr mac;
 							
-							// Adhoc Peer List Size
-							int buflen = 0;
-							
-							// Peers available
-							if(sceNetAdhocctlGetPeerList(&buflen, NULL) == 0 && buflen > 0)
+							// Find Peer MAC
+							if(_resolveIP(peeraddr.sin_addr, &mac) == 0)
 							{
-								// Allocate Peer List
-								SceNetAdhocctlPeerInfo * buf = (SceNetAdhocctlPeerInfo *)malloc(buflen);
+								// Allocate Memory
+								SceNetAdhocPtpStat * internal = (SceNetAdhocPtpStat *)malloc(sizeof(SceNetAdhocPtpStat));
 								
-								// Allocated Peer List
-								if(buf != NULL)
+								// Allocated Memory
+								if(internal != NULL)
 								{
-									// Peer Information
-									SceNetAdhocctlPeerInfo peer;
-									memset(&peer, 0, sizeof(peer));
+									// Find Free Translator ID
+									int i = 0; for(; i < 255; i++) if(_ptp[i] == NULL) break;
 									
-									// Get Peerlist
-									if(sceNetAdhocctlGetPeerList(&buflen, buf) == 0)
+									// Found Free Translator ID
+									if(i < 255)
 									{
-										// Peer Iterator Variable
-										SceNetAdhocctlPeerInfo * list = buf;
+										// Clear Memory
+										memset(internal, 0, sizeof(SceNetAdhocPtpStat));
 										
-										// Iterate Peers
-										while(list != NULL)
-										{
-											// Matching Peer found
-											if(list->ip_addr == peeraddr.sin_addr)
-											{
-												// Copy Peer Information
-												peer = *list;
-												
-												// Delete References
-												peer.next = NULL;
-												
-												// Stop Search
-												break;
-											}
-											
-											// Move Iterator
-											list = list->next;
-										}
+										// Copy Socket Descriptor to Structure
+										internal->id = newsocket;
+										
+										// Copy Local Address Data to Structure
+										sceNetGetLocalEtherAddr(&internal->laddr);
+										internal->lport = sceNetNtohs(local.sin_port);
+										
+										// Copy Peer Address Data to Structure
+										internal->paddr = mac;
+										internal->pport = sceNetNtohs(peeraddr.sin_port);
+										
+										// Set Connected State
+										internal->state = PTP_STATE_ESTABLISHED;
+										
+										// Return Peer Address Information
+										*addr = internal->paddr;
+										*port = internal->pport;
+										
+										// Link PTP Socket
+										_ptp[i] = internal;
+										
+										// Add Port Forward to Router
+										sceNetPortOpen("TCP", internal->lport);
+										
+										// Return Socket
+										return i + 1;
 									}
 									
-									// Free Peer List
-									free(buf);
-									
-									// Found Peer Information
-									if(peer.ip_addr != 0)
-									{
-										// Found Accepted
-										printk("Found Matching IP in Libraries Peer Table for Accepted Socket\n");
-										
-										// Allocate Memory
-										SceNetAdhocPtpStat * internal = (SceNetAdhocPtpStat *)malloc(sizeof(SceNetAdhocPtpStat));
-										
-										// Allocated Memory
-										if(internal != NULL)
-										{
-											// Find Free Translator ID
-											int i = 0; for(; i < 255; i++) if(_ptp[i] == NULL) break;
-											
-											// Found Free Translator ID
-											if(i < 255)
-											{
-												// Clear Memory
-												memset(internal, 0, sizeof(SceNetAdhocPtpStat));
-												
-												// Copy Socket Descriptor to Structure
-												internal->id = newsocket;
-												
-												// Copy Local Address Data to Structure
-												sceNetGetLocalEtherAddr(&internal->laddr);
-												internal->lport = sceNetNtohs(local.sin_port);
-												
-												// Copy Peer Address Data to Structure
-												internal->paddr = peer.mac_addr;
-												internal->pport = sceNetNtohs(peeraddr.sin_port);
-												
-												// Set Connected State
-												internal->state = PTP_STATE_ESTABLISHED;
-												
-												// Return Peer Address Information
-												*addr = internal->paddr;
-												*port = internal->pport;
-												
-												// Link PTP Socket
-												_ptp[i] = internal;
-												
-												// Return Socket
-												return i + 1;
-											}
-											
-											// Free Memory
-											free(internal);
-										}
-									}
+									// Free Memory
+									free(internal);
 								}
 							}
 						}

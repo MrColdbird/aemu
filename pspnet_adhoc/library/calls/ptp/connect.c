@@ -21,23 +21,18 @@ int proNetAdhocPtpConnect(int id, uint32_t timeout, int flag)
 			// Valid Client Socket
 			if(socket->state == 0)
 			{
-				// Peer Information
-				SceNetAdhocctlPeerInfo peer_info;
-				memset(&peer_info, 0, sizeof(peer_info));
+				// Target Address
+				SceNetInetSockaddrIn sin;
+				memset(&sin, 0, sizeof(sin));
 				
-				// Grab Peer Information
-				if(sceNetAdhocctlGetPeerInfo(&socket->paddr, sizeof(peer_info), &peer_info) == 0)
+				// Setup Target Address
+				sin.sin_len = sizeof(sin);
+				sin.sin_family = AF_INET;
+				sin.sin_port = sceNetHtons(socket->pport);
+				
+				// Grab Peer IP
+				if(_resolveMAC(&socket->paddr, &sin.sin_addr) == 0)
 				{
-					// Target Address
-					SceNetInetSockaddrIn sin;
-					memset(&sin, 0, sizeof(sin));
-					
-					// Setup Target Address
-					sin.sin_len = sizeof(sin);
-					sin.sin_family = AF_INET;
-					sin.sin_addr = peer_info.ip_addr;
-					sin.sin_port = sceNetHtons(socket->pport);
-					
 					// Grab Nonblocking Flag
 					uint32_t nbio = 0;
 					uint32_t nbiolen = sizeof(nbio);
@@ -51,7 +46,7 @@ int proNetAdhocPtpConnect(int id, uint32_t timeout, int flag)
 					}
 					
 					// Connect Socket to Peer (Nonblocking)
-					sceNetInetConnect(socket->id, (SceNetInetSockaddr *)&sin, sizeof(sin));
+					int connectresult = sceNetInetConnect(socket->id, (SceNetInetSockaddr *)&sin, sizeof(sin));
 					
 					// Grab Error Code
 					int errorcode = sceNetInetGetErrno();
@@ -64,7 +59,7 @@ int proNetAdhocPtpConnect(int id, uint32_t timeout, int flag)
 					}
 					
 					// Instant Connection (Lucky!)
-					if(errorcode == EISCONN)
+					if(connectresult == 0 || (connectresult == -1 && errorcode == EISCONN))
 					{
 						// Set Connected State
 						socket->state = PTP_STATE_ESTABLISHED;
@@ -74,7 +69,7 @@ int proNetAdhocPtpConnect(int id, uint32_t timeout, int flag)
 					}
 					
 					// Connection in Progress
-					else if(errorcode == EINPROGRESS)
+					else if(connectresult == -1 && errorcode == EINPROGRESS)
 					{
 						// Nonblocking Mode
 						if(flag) return ADHOC_WOULD_BLOCK;
@@ -98,7 +93,7 @@ int proNetAdhocPtpConnect(int id, uint32_t timeout, int flag)
 							}
 							
 							// Connected in Time
-							if(sin.sin_addr == peer.sin_addr && sin.sin_port == peer.sin_port)
+							if(sin.sin_addr == peer.sin_addr/* && sin.sin_port == peer.sin_port*/)
 							{
 								// Set Connected State
 								socket->state = PTP_STATE_ESTABLISHED;

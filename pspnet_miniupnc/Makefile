@@ -18,7 +18,7 @@ library/upnpcommands.o \
 library/upnperrors.o \
 library/upnpreplyparse.o
 
-LIBS = -lc
+LIBS = 
 
 OBJS = main.o ../memab/ATPRO.o $(LIBRARYOBJS)
 

@@ -43,7 +43,7 @@ int module_start(SceSize args, void * argp)
 	printk(MODULENAME " start!\n");
 
 	// Create Main Thread
-	int update = sceKernelCreateThread("upnp_thread", _mainThread, 0x30, 16384, 0, NULL);
+	int update = sceKernelCreateThread("upnp_thread", _mainThread, 0x40, 16384, 0, NULL);
 
 	// Start Main Thread
 	if(update >= 0) sceKernelStartThread(update, 0, NULL);
@@ -103,7 +103,7 @@ int _mainThread(SceSize args, void * argp)
 						while(_status == 1)
 						{
 							// Delay Thread
-							sceKernelDelayThread(1000000);
+							sceKernelDelayThread(10000);
 						}
 					}
 					

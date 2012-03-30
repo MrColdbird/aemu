@@ -161,7 +161,8 @@ UPNP_GetStatusInfo(const char * controlURL,
 
 	if(uptime) {
 		if(up)
-			sscanf(up,"%u",uptime);
+			*uptime = strtoul(up, NULL, 0);
+			//sscanf(up,"%u",uptime);
 		else
 			uptime = 0;
 	}
@@ -176,8 +177,9 @@ UPNP_GetStatusInfo(const char * controlURL,
 
 	p = GetValueFromNameValueList(&pdata, "errorCode");
 	if(p) {
-		ret = UPNPCOMMAND_UNKNOWN_ERROR;
-		sscanf(p, "%d", &ret);
+		//ret = UPNPCOMMAND_UNKNOWN_ERROR;
+		ret = atoi(p);
+		//sscanf(p, "%d", &ret);
 	}
 	ClearNameValueList(&pdata);
 	return ret;
@@ -216,8 +218,9 @@ UPNP_GetConnectionTypeInfo(const char * controlURL,
 		connectionType[0] = '\0';
 	p = GetValueFromNameValueList(&pdata, "errorCode");
 	if(p) {
-		ret = UPNPCOMMAND_UNKNOWN_ERROR;
-		sscanf(p, "%d", &ret);
+		//ret = UPNPCOMMAND_UNKNOWN_ERROR;
+		ret = atoi(p);
+		//sscanf(p, "%d", &ret);
 	}
 	ClearNameValueList(&pdata);
 	return ret;
@@ -265,21 +268,24 @@ UPNP_GetLinkLayerMaxBitRates(const char * controlURL,
 
 	if(bitrateDown) {
 		if(down)
-			sscanf(down,"%u",bitrateDown);
+			*bitrateDown = strtoul(down, NULL, 0);
+			//sscanf(down,"%u",bitrateDown);
 		else
 			*bitrateDown = 0;
 	}
 
 	if(bitrateUp) {
 		if(up)
-			sscanf(up,"%u",bitrateUp);
+			*bitrateUp = strtoul(up, NULL, 0);
+			//sscanf(up,"%u",bitrateUp);
 		else
 			*bitrateUp = 0;
 	}
 	p = GetValueFromNameValueList(&pdata, "errorCode");
 	if(p) {
-		ret = UPNPCOMMAND_UNKNOWN_ERROR;
-		sscanf(p, "%d", &ret);
+		//ret = UPNPCOMMAND_UNKNOWN_ERROR;
+		ret = atoi(p);
+		//sscanf(p, "%d", &ret);
 	}
 	ClearNameValueList(&pdata);
 	return ret;
@@ -329,8 +335,9 @@ UPNP_GetExternalIPAddress(const char * controlURL,
 
 	p = GetValueFromNameValueList(&pdata, "errorCode");
 	if(p) {
-		ret = UPNPCOMMAND_UNKNOWN_ERROR;
-		sscanf(p, "%d", &ret);
+		//ret = UPNPCOMMAND_UNKNOWN_ERROR;
+		ret = atoi(p);
+		//sscanf(p, "%d", &ret);
 	}
 
 	ClearNameValueList(&pdata);
@@ -388,8 +395,9 @@ UPNP_AddPortMapping(const char * controlURL, const char * servicetype,
 	resVal = GetValueFromNameValueList(&pdata, "errorCode");
 	if(resVal) {
 		/*printf("AddPortMapping errorCode = '%s'\n", resVal); */
-		ret = UPNPCOMMAND_UNKNOWN_ERROR;
-		sscanf(resVal, "%d", &ret);
+		//ret = UPNPCOMMAND_UNKNOWN_ERROR;
+		ret = atoi(resVal);
+		//sscanf(resVal, "%d", &ret);
 	} else {
 		ret = UPNPCOMMAND_SUCCESS;
 	}
@@ -432,8 +440,9 @@ UPNP_DeletePortMapping(const char * controlURL, const char * servicetype,
 	free(buffer); buffer = NULL;
 	resVal = GetValueFromNameValueList(&pdata, "errorCode");
 	if(resVal) {
-		ret = UPNPCOMMAND_UNKNOWN_ERROR;
-		sscanf(resVal, "%d", &ret);
+		//ret = UPNPCOMMAND_UNKNOWN_ERROR;
+		ret = atoi(resVal);
+		//sscanf(resVal, "%d", &ret);
 	} else {
 		ret = UPNPCOMMAND_SUCCESS;
 	}
@@ -529,8 +538,9 @@ UPNP_GetGenericPortMappingEntry(const char * controlURL,
 	}
 	p = GetValueFromNameValueList(&pdata, "errorCode");
 	if(p) {
-		r = UPNPCOMMAND_UNKNOWN_ERROR;
-		sscanf(p, "%d", &r);
+		//r = UPNPCOMMAND_UNKNOWN_ERROR;
+		r = atoi(p);
+		//sscanf(p, "%d", &r);
 	}
 	ClearNameValueList(&pdata);
 	free(GetPortMappingArgs);
@@ -560,15 +570,17 @@ UPNP_GetPortMappingNumberOfEntries(const char * controlURL,
 
  	p = GetValueFromNameValueList(&pdata, "NewPortMappingNumberOfEntries");
  	if(numEntries && p) {
-		*numEntries = 0;
- 		sscanf(p, "%u", numEntries);
+		//*numEntries = 0;
+		*numEntries = strtoul(p, NULL, 0);
+ 		//sscanf(p, "%u", numEntries);
 		ret = UPNPCOMMAND_SUCCESS;
  	}
 
 	p = GetValueFromNameValueList(&pdata, "errorCode");
 	if(p) {
-		ret = UPNPCOMMAND_UNKNOWN_ERROR;
-		sscanf(p, "%d", &ret);
+		//ret = UPNPCOMMAND_UNKNOWN_ERROR;
+		ret = atoi(p);
+		//sscanf(p, "%d", &ret);
 	}
 
  	ClearNameValueList(&pdata);
@@ -652,8 +664,9 @@ UPNP_GetSpecificPortMappingEntry(const char * controlURL,
 
 	p = GetValueFromNameValueList(&pdata, "errorCode");
 	if(p) {
-		ret = UPNPCOMMAND_UNKNOWN_ERROR;
-		sscanf(p, "%d", &ret);
+		//ret = UPNPCOMMAND_UNKNOWN_ERROR;
+		ret = atoi(p);
+		//sscanf(p, "%d", &ret);
 	}
 
 	ClearNameValueList(&pdata);
@@ -740,8 +753,9 @@ UPNP_GetListOfPortMappings(const char * controlURL,
 
 	p = GetValueFromNameValueList(&pdata, "errorCode");
 	if(p) {
-		ret = UPNPCOMMAND_UNKNOWN_ERROR;
-		sscanf(p, "%d", &ret);
+		//ret = UPNPCOMMAND_UNKNOWN_ERROR;
+		ret = atoi(p);
+		//sscanf(p, "%d", &ret);
 	}
 	ClearNameValueList(&pdata);
 
@@ -788,8 +802,9 @@ UPNP_GetFirewallStatus(const char * controlURL,
 	p = GetValueFromNameValueList(&pdata, "errorCode");
 	if(p)
 	{
-		ret = UPNPCOMMAND_UNKNOWN_ERROR;
-		sscanf(p, "%d", &ret);
+		//ret = UPNPCOMMAND_UNKNOWN_ERROR;
+		ret = atoi(p);
+		//sscanf(p, "%d", &ret);
 	}
 	ClearNameValueList(&pdata);
 	return ret;
@@ -835,8 +850,9 @@ UPNP_GetOutboundPinholeTimeout(const char * controlURL, const char * servicetype
 	resVal = GetValueFromNameValueList(&pdata, "errorCode");
 	if(resVal)
 	{
-		ret = UPNPCOMMAND_UNKNOWN_ERROR;
-		sscanf(resVal, "%d", &ret);
+		//ret = UPNPCOMMAND_UNKNOWN_ERROR;
+		ret = atoi(resVal);
+		//sscanf(resVal, "%d", &ret);
 	}
 	else
 	{
@@ -917,8 +933,9 @@ UPNP_AddPinhole(const char * controlURL, const char * servicetype,
 	if(resVal)
 	{
 		//printf("AddPortMapping errorCode = '%s'\n", resVal); 
-		ret = UPNPCOMMAND_UNKNOWN_ERROR;
-		sscanf(resVal, "%d", &ret);
+		//ret = UPNPCOMMAND_UNKNOWN_ERROR;
+		ret = atoi(resVal);
+		//sscanf(resVal, "%d", &ret);
 	}
 	else
 	{
@@ -959,8 +976,9 @@ UPNP_UpdatePinhole(const char * controlURL, const char * servicetype,
 	if(resVal)
 	{
 		/*printf("AddPortMapping errorCode = '%s'\n", resVal); */
-		ret = UPNPCOMMAND_UNKNOWN_ERROR;
-		sscanf(resVal, "%d", &ret);
+		//ret = UPNPCOMMAND_UNKNOWN_ERROR;
+		ret = atoi(resVal);
+		//sscanf(resVal, "%d", &ret);
 	}
 	else
 	{
@@ -998,8 +1016,9 @@ UPNP_DeletePinhole(const char * controlURL, const char * servicetype, const char
 	resVal = GetValueFromNameValueList(&pdata, "errorCode");
 	if(resVal)
 	{
-		ret = UPNPCOMMAND_UNKNOWN_ERROR;
-		sscanf(resVal, "%d", &ret);
+		//ret = UPNPCOMMAND_UNKNOWN_ERROR;
+		ret = atoi(resVal);
+		//sscanf(resVal, "%d", &ret);
 	}
 	else
 	{
@@ -1046,8 +1065,9 @@ UPNP_CheckPinholeWorking(const char * controlURL, const char * servicetype,
 	p = GetValueFromNameValueList(&pdata, "errorCode");
 	if(p)
 	{
-		ret = UPNPCOMMAND_UNKNOWN_ERROR;
-		sscanf(p, "%d", &ret);
+		//ret = UPNPCOMMAND_UNKNOWN_ERROR;
+		ret = atoi(p);
+		//sscanf(p, "%d", &ret);
 	}
 
 	ClearNameValueList(&pdata);
@@ -1089,8 +1109,9 @@ UPNP_GetPinholePackets(const char * controlURL, const char * servicetype,
 	p = GetValueFromNameValueList(&pdata, "errorCode");
 	if(p)
 	{
-		ret = UPNPCOMMAND_UNKNOWN_ERROR;
-		sscanf(p, "%d", &ret);
+		//ret = UPNPCOMMAND_UNKNOWN_ERROR;
+		ret = atoi(p);
+		//sscanf(p, "%d", &ret);
 	}
 
 	ClearNameValueList(&pdata);
