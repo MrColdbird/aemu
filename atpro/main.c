@@ -6,6 +6,7 @@
 #include <psputilsforkernel.h>
 #include <pspsysmem_kernel.h>
 #include <pspctrl.h>
+#include <psppower.h>
 #include <string.h>
 #include "libs.h"
 #include "logs.h"
@@ -19,27 +20,11 @@ const char * SysMemGameCodeGetter(void);
 // System Control Module Patcher
 STMOD_HANDLER sysctrl_patcher = NULL;
 
-// Running Flag
+// Input Thread Running Flag
 int running = 0;
 
-// Framebuffer Structure
-typedef struct Framebuffer
-{
-	void * buffer;
-	int pixeltype;
-	int width;
-} Framebuffer;
-
-// Homescreen Status
-int hud_on = 0;
-
-// Framebuffer Collection
-static Framebuffer fb[2];
-
-// Screen Information
-int screenmode = 0;
-int screenwidth = 0;
-int screenheight = 0;
+// Online Mode Switch
+int onlinemode = 0;
 
 // Adhoc Module Names
 #define MODULE_LIST_SIZE 4
@@ -56,22 +41,26 @@ char * module_names[MODULE_LIST_SIZE] = {
 // Kernel Module Loader
 SceUID load_plugin(const char * path, int flags, SceKernelLMOption * option)
 {
-	// Replace Adhoc Modules
-	int i = 0; for(; i < MODULE_LIST_SIZE; i++) {
-		// Matching Modulename
-		if(strstr(path, module_names[i]) != NULL) {
-			// Replace Modulename
-			strcpy((char*)path, "ms0:/kd/");
-			strcpy((char*)path + strlen(path), module_names[i]);
-			
-			// Load Module
-			SceUID result = sceKernelLoadModule(path, flags, option);
-			
-			// Log Hotswapping
-			printk("Swapping %s, UID=0x%08X\n", module_names[i], result);
-			
-			// Return Module UID
-			return result;
+	// Online Mode Enabled
+	if(onlinemode)
+	{
+		// Replace Adhoc Modules
+		int i = 0; for(; i < MODULE_LIST_SIZE; i++) {
+			// Matching Modulename
+			if(strstr(path, module_names[i]) != NULL) {
+				// Replace Modulename
+				strcpy((char*)path, "ms0:/kd/");
+				strcpy((char*)path + strlen(path), module_names[i]);
+				
+				// Load Module
+				SceUID result = sceKernelLoadModule(path, flags, option);
+				
+				// Log Hotswapping
+				printk("Swapping %s, UID=0x%08X\n", module_names[i], result);
+				
+				// Return Module UID
+				return result;
+			}
 		}
 	}
 	
@@ -250,31 +239,42 @@ int online_patcher(SceModule2 * module)
 	return sysctrl_patcher(module);
 }
 
-// Draw Homescreen
-void draw_home(void)
+// Safe Exit Function for High Memory Usage
+void safe_exit(void)
 {
-	// Iterate Framebuffers
-	int i = 0; for(; i < 2; i++)
+	// Get Current API Type
+	int api = sceKernelInitApitype();
+	
+	// Set Reboot API Type
+	int apitype = 0x141;
+	
+	// Rebooter Path
+	char * path = "ms0:/kd/HOME.PBP";
+	
+	// Prepare Reboot Structure
+	struct SceKernelLoadExecVSHParam param;
+	memset(&param, 0, sizeof(param));
+	param.size = sizeof(param);
+	param.args = strlen(path)+1;
+	param.argp = path;
+	param.key = "game";
+	
+	// Fix for PSP Go
+	if(api == 0x152 || api == 0x125)
 	{
-		// Buffer available
-		if(fb[i].buffer != NULL)
-		{
-			// Pixel Size
-			uint32_t pixelsize = ((fb[i].pixeltype == PSP_DISPLAY_PIXEL_FORMAT_8888) ? (4) : (2));
-			
-			// Buffer Memory Size
-			uint32_t bufblocksize = fb[i].width * fb[i].width * pixelsize;
-			
-			// Clear Buffer (How are we ment to kill the flickering...?)
-			memset(fb[i].buffer, 0, bufblocksize);
-			
-			// TODO: Real Rendering
-		}
+		// Fix Path
+		strncpy(path, "ef", 2);
+		
+		// Fix API Type
+		apitype = 0x152;
 	}
+	
+	// Trigger Reboot
+	sctrlKernelLoadExecVSHWithApitype(apitype, path, &param);
 }
 
-// GUI Thread
-int gui_thread(SceSize args, void * argp)
+// Input Thread
+int input_thread(SceSize args, void * argp)
 {
 	// Previous Buttons
 	uint32_t prev_buttons = 0;
@@ -300,19 +300,13 @@ int gui_thread(SceSize args, void * argp)
 		// Home Button pressed
 		if((prev_buttons & PSP_CTRL_HOME) == 0 && (curr_buttons & PSP_CTRL_HOME) != 0)
 		{
-			// Flip HUD Switch
-			hud_on = !hud_on;
+			// Reboot into VSH Rebooter Homebrew (and reset memory layout at that)
+			safe_exit();
 		}
-		
-		// Draw Homescreen
-		if(hud_on) draw_home();
 		
 		// Pause Thread
 		sceKernelDelayThread(1);
 	}
-	
-	// Disable Flag
-	if(hud_on) hud_on = 0;
 	
 	// Clear Running Status
 	running = 0;
@@ -322,30 +316,6 @@ int gui_thread(SceSize args, void * argp)
 	
 	// Return to Caller
 	return 0;
-}
-
-// Set Display Mode Hook
-int display_setmode(int mode, int width, int height)
-{
-	// Save Data
-	screenmode = mode;
-	screenwidth = width;
-	screenheight = height;
-	
-	// Passthrough
-	return sceDisplaySetMode(mode, width, height);
-}
-
-// Set Framebuffer Hook
-int display_setframebuf(void * topaddr, int bufferwidth, int pixelformat, int sync)
-{
-	// Save Data
-	fb[sync].buffer = (uint8_t *)topaddr;
-	fb[sync].width = bufferwidth;
-	fb[sync].pixeltype = pixelformat;
-	
-	// Passthrough
-	return sceDisplaySetFrameBuf(topaddr, bufferwidth, pixelformat, sync);
 }
 
 // Module Start Event
@@ -359,9 +329,16 @@ int module_start(SceSize args, void * argp)
 
 	// Alive Message
 	printk("ATPRO - ALPHA VERSION %s %s\n", __DATE__, __TIME__);
-
-	// Game Mode
+	
+	// Enable Online Mode
+	onlinemode = sceWlanGetSwitchState();
+	
+	// Grab API Type
+	int api = sceKernelInitApitype();
+	
+	// Game Mode & WLAN Switch On
 	if(sceKernelInitKeyConfig() == PSP_INIT_KEYCONFIG_GAME) {
+	// if(api == 0x120 || api == 0x123 || api == 0x125) {
 		// Find Utility Manager
 		SceModule * utility = sceKernelFindModuleByName("sceUtility_Driver");
 		printk("sceUtility_Driver Scan: %08X\n", (u32)utility);
@@ -396,24 +373,22 @@ int module_start(SceSize args, void * argp)
 					sysctrl_patcher = sctrlHENSetStartModuleHandler(online_patcher);
 					printk("Enabled Game-Specific Fixes!\n");
 					
-					/*
-					// Create GUI Thread
-					int gui = sceKernelCreateThread("atpro_gui", gui_thread, 0x30, 32768, 0, NULL);
+					// Disable Power Switch
+					scePowerLock(0);
+					printk("Disabled Power Button!\n");
 					
-					// Created GUI Thread
-					if(gui >= 0)
+					// Create Input Thread
+					int ctrl = sceKernelCreateThread("atpro_input", input_thread, 0x30, 32768, 0, NULL);
+					
+					// Created Input Thread
+					if(ctrl >= 0)
 					{
-						// Hook Screen Framebuffer
-						sctrlHENPatchSyscall((void*)sctrlHENFindFunction("sceDisplay_Service", "sceDisplay", 0x0E20F177), display_setmode);
-						sctrlHENPatchSyscall((void*)sctrlHENFindFunction("sceDisplay_Service", "sceDisplay", 0x289D82FE), display_setframebuf);
-						
-						// Set Running Flag for GUI Thread
+						// Set Running Flag for Input Thread
 						running = 1;
 						
-						// Start GUI Thread
-						sceKernelStartThread(gui, 0, NULL);
+						// Start Input Thread
+						sceKernelStartThread(ctrl, 0, NULL);
 					}
-					*/
 					
 					// Setup Success
 					return 0;

@@ -8,6 +8,7 @@ PSPNET_ADHOC_DOWNLOAD = pspnet_adhoc_download
 PSPNET_ADHOC_DISCOVER = pspnet_adhoc_discover
 PSPNET_ADHOCCTL_SERVER = pspnet_adhocctl_server
 PSPNET_MINIUPNC = pspnet_miniupnc
+PROCFW = ../procfw
 DISTRIBUTE = dist
 
 FLAGS = CONFIG_620=1
@@ -57,6 +58,8 @@ all:
 #	echo home.coldbird.uk.to > $(DISTRIBUTE)/seplugins/server.txt
 #	@touch $(DISTRIBUTE)/seplugins/server.txt || true
 
+	@cd $(PROCFW); make deps
+	@cd $(PROCFW); make $(FLAGS)
 	@cd $(ATPRO); make $(FLAGS)
 	@cd $(MEMAB); make $(FLAGS)
 	@cd $(PSPNET_ADHOC_AUTH); make $(FLAGS)
@@ -68,7 +71,10 @@ all:
 	@cd $(PSPNET_ADHOCCTL_SERVER); make $(FLAGS)
 	@cd $(PSPNET_MINIUPNC); make $(FLAGS)
 
+	@cp $(PROCFW)/dist/PSP/GAME/FastRecovery/EBOOT.PBP $(DISTRIBUTE)/kd/HOME.PBP
+
 clean:
+	@cd $(PROCFW); make clean $(FLAGS)
 	@cd $(ATPRO); make clean $(FLAGS)
 	@cd $(MEMAB); make clean $(FLAGS)
 	@cd $(PSPNET_ADHOC_AUTH); make clean $(FLAGS)

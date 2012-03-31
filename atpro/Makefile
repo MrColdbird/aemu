@@ -9,7 +9,7 @@ CFLAGS = -Os -G0 -Wall -fno-pic
 INCDIR = ../../procfw/include
 LIBDIR = ../../procfw/libs
 
-LIBS = -lpspsystemctrl_kernel
+LIBS = -lpspsystemctrl_kernel -lpsppower -lpspwlan
 
 ifeq ($(CONFIG_620), 1)
 CFLAGS += -DCONFIG_620=1
