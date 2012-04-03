@@ -15,6 +15,9 @@ int proNetAdhocctlTerm(void)
 		// Send shutdown request
 		_init = 0;
 		
+		// Set HUD Connection Status
+		setConnectionStatus(0);
+		
 		// Wait for internal thread cooldown
 		while(_init != -1) sceKernelDelayThread(10000);
 		

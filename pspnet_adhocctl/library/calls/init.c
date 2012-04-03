@@ -50,6 +50,7 @@ int _initNetwork(const SceNetAdhocctlAdhocId * adhoc_id, const char * server_ip)
 int _readHotspotConfig(void);
 int _findHotspotConfigId(char * ssid);
 const char * _readServerConfig(void);
+void _readChatKeyphrases(const SceNetAdhocctlAdhocId * adhoc_id);
 int _friendFinder(SceSize args, void * argp);
 void _addFriend(SceNetAdhocctlConnectPacketS2C * packet);
 void _deleteFriendByIP(uint32_t ip);
@@ -78,11 +79,14 @@ int proNetAdhocctlInit(int stacksize, int prio, const SceNetAdhocctlAdhocId * ad
 				// Read Server Configuration
 				if(ip != NULL)
 				{
+					// Read Chat Keyphrases
+					_readChatKeyphrases(adhoc_id);
+					
 					// Initialize Networking
 					if(_initNetwork(adhoc_id, ip) == 0)
 					{
 						// Create Main Thread
-						int update = sceKernelCreateThread("friend_finder", _friendFinder, 0x30, 32768, 0, NULL);
+						int update = sceKernelCreateThread("friend_finder", _friendFinder, prio, 32768, 0, NULL);
 						
 						// Created Main Thread
 						if(update >= 0)
@@ -381,6 +385,43 @@ const char * _readServerConfig(void)
 }
 
 /**
+ * Read Chat Keyphrases for the Homescreen Chatroom
+ * @param adhoc_id Game Product Code, used to differ game specific chat configurations
+ */
+void _readChatKeyphrases(const SceNetAdhocctlAdhocId * adhoc_id)
+{
+	// Produce Game Specific Chat Path
+	char path[128];
+	memset(path, 0, sizeof(path));
+	strcpy(path, "ms0:/seplugins/chat/");
+	strncpy(path + strlen(path), (char *)adhoc_id->data, ADHOCCTL_ADHOCID_LEN);
+	strcpy(path + strlen(path), ".txt");
+	
+	// Open Game Specific Configuration File
+	int fd = sceIoOpen(path, PSP_O_RDONLY, 0777);
+	
+	// Open Default Configuration File
+	if(fd < 0) fd = sceIoOpen("ms0:/seplugins/chat/default.txt", PSP_O_RDONLY, 0777);
+	
+	// Opened Configuration File
+	if(fd >= 0)
+	{
+		// Line Buffer
+		char line[128];
+		
+		// Read Lines
+		while(_readLine(fd, line, sizeof(line)) > 0)
+		{
+			// Register Key Phrase
+			if(registerKeyPhrase(line) == 0) break;
+		}
+		
+		// Close Configuration File
+		sceIoClose(fd);
+	}
+}
+
+/**
  * Read Line from File
  * @param fd File Descriptor to read line from
  * @param buffer Buffer to read line into
@@ -430,6 +471,10 @@ int _friendFinder(SceSize args, void * argp)
 	static int rxpos = 0;
 	static uint8_t rx[1024];
 	
+	// Chat Packet
+	SceNetAdhocctlChatPacketC2S chat;
+	chat.base.opcode = OPCODE_CHAT;
+	
 	// Last Ping Time
 	static uint64_t lastping = 0;
 	
@@ -450,6 +495,13 @@ int _friendFinder(SceSize args, void * argp)
 			
 			// Send Ping to Server
 			sceNetInetSend(_metasocket, &opcode, 1, INET_MSG_DONTWAIT);
+		}
+		
+		// Send Chat Messages
+		while(popFromOutbox(chat.message))
+		{
+			// Send Chat to Server
+			sceNetInetSend(_metasocket, &chat, sizeof(chat), INET_MSG_DONTWAIT);
 		}
 		
 		// Wait for Incoming Data
@@ -503,6 +555,29 @@ int _friendFinder(SceSize args, void * argp)
 				}
 			}
 			
+			// Chat Packet
+			else if(rx[0] == OPCODE_CHAT)
+			{
+				// Enough Data available
+				if(rxpos >= sizeof(SceNetAdhocctlChatPacketS2C))
+				{
+					// Cast Packet
+					SceNetAdhocctlChatPacketS2C * packet = (SceNetAdhocctlChatPacketS2C *)rx;
+					
+					// Fix for Idiots that try to troll the "ME" Nametag
+					if(stricmp((char *)packet->name.data, "ME") == 0) strcpy((char *)packet->name.data, "NOT ME");
+					
+					// Add Incoming Chat to HUD
+					addChatLog((char *)packet->name.data, packet->base.message);
+					
+					// Move RX Buffer
+					memmove(rx, rx + sizeof(SceNetAdhocctlChatPacketS2C), sizeof(rx) - sizeof(SceNetAdhocctlChatPacketS2C));
+					
+					// Fix RX Buffer Length
+					rxpos -= sizeof(SceNetAdhocctlChatPacketS2C);
+				}
+			}
+			
 			// Connect Packet
 			else if(rx[0] == OPCODE_CONNECT)
 			{
@@ -519,6 +594,13 @@ int _friendFinder(SceSize args, void * argp)
 					
 					// Add User
 					_addFriend(packet);
+					
+					// Update HUD User Count
+					#ifdef LOCALHOST_AS_PEER
+					setUserCount(_getActivePeerCount());
+					#else
+					setUserCount(_getActivePeerCount()+1);
+					#endif
 					
 					// Move RX Buffer
 					memmove(rx, rx + sizeof(SceNetAdhocctlConnectPacketS2C), sizeof(rx) - sizeof(SceNetAdhocctlConnectPacketS2C));
@@ -544,6 +626,13 @@ int _friendFinder(SceSize args, void * argp)
 					
 					// Delete User by IP
 					_deleteFriendByIP(packet->ip);
+					
+					// Update HUD User Count
+					#ifdef LOCALHOST_AS_PEER
+					setUserCount(_getActivePeerCount());
+					#else
+					setUserCount(_getActivePeerCount()+1);
+					#endif
 					
 					// Move RX Buffer
 					memmove(rx, rx + sizeof(SceNetAdhocctlDisconnectPacketS2C), sizeof(rx) - sizeof(SceNetAdhocctlDisconnectPacketS2C));

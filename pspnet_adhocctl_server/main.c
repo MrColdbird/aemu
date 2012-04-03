@@ -198,9 +198,6 @@ int server_loop(int server)
 			} while(loginresult != -1);
 		}
 		
-		// Delete Necessary Flag
-		int delete = 0;
-		
 		// Receive Data from Users
 		SceNetAdhocctlUserNode * user = _db_user;
 		while(user != NULL)
@@ -311,6 +308,28 @@ int server_loop(int server)
 						
 						// Send Network List
 						send_scan_results(user);
+					}
+					
+					// Chat Text Packet
+					else if(user->rx[0] == OPCODE_CHAT)
+					{
+						// Enough Data available
+						if(user->rxpos >= sizeof(SceNetAdhocctlChatPacketC2S))
+						{
+							// Cast Packet
+							SceNetAdhocctlChatPacketC2S * packet = (SceNetAdhocctlChatPacketC2S *)user->rx;
+							
+							// Clone Buffer for Message
+							char message[64];
+							memset(message, 0, sizeof(message));
+							strncpy(message, packet->message, sizeof(message) - 1);
+							
+							// Remove Packet from RX Buffer
+							clear_user_rxbuf(user, sizeof(SceNetAdhocctlChatPacketC2S));
+							
+							// Spread Chat Message
+							spread_message(user, message);
+						}
 					}
 					
 					// Invalid Opcode

@@ -8,6 +8,7 @@
 #define OPCODE_SCAN 4
 #define OPCODE_SCAN_COMPLETE 5
 #define OPCODE_CONNECT_BSSID 6
+#define OPCODE_CHAT 7
 
 // PSP Product Code
 #define PRODUCT_CODE_LENGTH 9
@@ -39,6 +40,13 @@ typedef struct
 	SceNetAdhocctlGroupName group;
 } __attribute__((packed)) SceNetAdhocctlConnectPacketC2S;
 
+// C2S Chat Packet
+typedef struct
+{
+	SceNetAdhocctlPacketBase base;
+	char message[64];
+} __attribute__((packed)) SceNetAdhocctlChatPacketC2S;
+
 // S2C Connect Packet
 typedef struct
 {
@@ -69,5 +77,12 @@ typedef struct
 	SceNetAdhocctlPacketBase base;
 	SceNetEtherAddr mac;
 } __attribute__((packed)) SceNetAdhocctlConnectBSSIDPacketS2C;
+
+// S2C Chat Packet
+typedef struct
+{
+	SceNetAdhocctlChatPacketC2S base;
+	SceNetAdhocctlNickname name;
+} __attribute__((packed)) SceNetAdhocctlChatPacketS2C;
 
 #endif

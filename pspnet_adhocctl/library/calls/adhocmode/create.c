@@ -40,6 +40,9 @@ int proNetAdhocctlCreate(const SceNetAdhocctlGroupName * group_name)
 				// Free Network Lock
 				_freeNetworkLock();
 				
+				// Set HUD Connection Status
+				setConnectionStatus(1);
+				
 				// Return Success
 				return 0;
 			}

@@ -10,6 +10,13 @@
  */
 uint32_t _readLine(int fd, char * buffer, uint32_t buflen);
 
+
+/**
+ * Return Number of currently connected Peers
+ * @return Number of connected Peers
+ */
+int _getActivePeerCount(void);
+
 /**
  * Patch utility.prx to allow Kernel Control of Adhoc
  * @param init Replacement for NetconfInit
@@ -18,6 +25,39 @@ uint32_t _readLine(int fd, char * buffer, uint32_t buflen);
  * @param shutdown Replacement for NetconfShutdown
  */
 void patch_netconf_utility(void * init, void * getstatus, void * update, void * shutdown);
+
+/**
+ * Register a Key-Phrase with the Homescreen Chatroom HUD
+ * @param phrase To-be-registered Phrase (63 Character Limit)
+ * @return 1 on success or... 0
+ */
+int registerKeyPhrase(char * phrase);
+
+/**
+ * Register Incoming Chat-Messages with the Homescreen Chatroom HUD
+ * @param nickname Sender Nickname (8 Character Limit)
+ * @param text Chat Message (63 Character Limit)
+ */
+void addChatLog(char * nickname, char * text);
+
+/**
+ * Pop to-be-sent Message from Homescreen Chatroom HUD Internal Message Queue
+ * @param buffer OUT: Popped Chat Message
+ * @return 1 on success or... 0
+ */
+int popFromOutbox(char * buffer);
+
+/**
+ * Set Connection Status in Homescreen Chatroom HUD
+ * @param status 1 = Connected, 0 = Disconnected
+ */
+void setConnectionStatus(int status);
+
+/**
+ * Set User Count in Homescreen Chatroom HUD
+ * @param count Number of Users online
+ */
+void setUserCount(int count);
 
 /**
  * Lock Peerlist

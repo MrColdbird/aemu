@@ -158,6 +158,13 @@ void disconnect_user(SceNetAdhocctlUserNode * user);
 void send_scan_results(SceNetAdhocctlUserNode * user);
 
 /**
+ * Spread Chat Message in P2P Network
+ * @param user Sender User Node
+ * @param message Chat Message
+ */
+void spread_message(SceNetAdhocctlUserNode * user, char * message);
+
+/**
  * Get User State
  * @param user User Node
  */

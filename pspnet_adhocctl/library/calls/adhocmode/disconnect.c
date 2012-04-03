@@ -18,6 +18,9 @@ int proNetAdhocctlDisconnect(void)
 			// Set Disconnected State
 			_thread_status = ADHOCCTL_STATE_DISCONNECTED;
 			
+			// Set HUD Connection Status
+			setConnectionStatus(0);
+			
 			// Prepare Packet
 			uint8_t opcode = OPCODE_DISCONNECT;
 			

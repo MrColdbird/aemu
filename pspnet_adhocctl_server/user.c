@@ -611,6 +611,88 @@ void send_scan_results(SceNetAdhocctlUserNode * user)
 }
 
 /**
+ * Spread Chat Message in P2P Network
+ * @param user Sender User Node
+ * @param message Chat Message
+ */
+void spread_message(SceNetAdhocctlUserNode * user, char * message)
+{
+	// User is connected
+	if(user->group != NULL)
+	{
+		// Broadcast Range Counter
+		uint32_t counter = 0;
+		
+		// Iterate Group Players
+		SceNetAdhocctlUserNode * peer = user->group->player;
+		while(peer != NULL)
+		{
+			// Skip Self
+			if(peer == user)
+			{
+				// Move Pointer
+				peer = peer->group_next;
+				
+				// Continue Loop
+				continue;
+			}
+			
+			// Chat Packet
+			SceNetAdhocctlChatPacketS2C packet;
+			
+			// Set Chat Opcode
+			packet.base.base.opcode = OPCODE_CHAT;
+			
+			// Set Chat Message
+			strcpy(packet.base.message, message);
+			
+			// Set Sender Nickname
+			packet.name = user->resolver.name;
+			
+			// Send Data
+			send(peer->stream, &packet, sizeof(packet), 0);
+			
+			// Move Pointer
+			peer = peer->group_next;
+			
+			// Increase Broadcast Range Counter
+			counter++;
+		}
+		
+		// Message Sent
+		if(counter > 0)
+		{
+			// Notify User
+			uint8_t * ip = (uint8_t *)&user->resolver.ip;
+			char safegamestr[10];
+			memset(safegamestr, 0, sizeof(safegamestr));
+			strncpy(safegamestr, user->game->game.data, PRODUCT_CODE_LENGTH);
+			char safegroupstr[9];
+			memset(safegroupstr, 0, sizeof(safegroupstr));
+			strncpy(safegroupstr, (char *)user->group->group.data, ADHOCCTL_GROUPNAME_LEN);
+			printf("%s (MAC: %02X:%02X:%02X:%02X:%02X:%02X - IP: %u.%u.%u.%u) sent \"%s\" to %d players in %s group %s.\n", (char *)user->resolver.name.data, user->resolver.mac.data[0], user->resolver.mac.data[1], user->resolver.mac.data[2], user->resolver.mac.data[3], user->resolver.mac.data[4], user->resolver.mac.data[5], ip[0], ip[1], ip[2], ip[3], message, counter, safegamestr, safegroupstr);
+		}
+		
+		// Exit Function
+		return;
+	}
+	
+	// User not in a game group
+	else
+	{
+		// Notify User
+		uint8_t * ip = (uint8_t *)&user->resolver.ip;
+		char safegamestr[10];
+		memset(safegamestr, 0, sizeof(safegamestr));
+		strncpy(safegamestr, user->game->game.data, PRODUCT_CODE_LENGTH);
+		printf("%s (MAC: %02X:%02X:%02X:%02X:%02X:%02X - IP: %u.%u.%u.%u) attempted to send a text message without joining a %s group first.\n", (char *)user->resolver.name.data, user->resolver.mac.data[0], user->resolver.mac.data[1], user->resolver.mac.data[2], user->resolver.mac.data[3], user->resolver.mac.data[4], user->resolver.mac.data[5], ip[0], ip[1], ip[2], ip[3], safegamestr);
+	}
+	
+	// Delete User
+	logout_user(user);
+}
+
+/**
  * Get User State
  * @param user User Node
  */
@@ -672,5 +754,17 @@ void game_product_override(SceNetAdhocctlProductCode * product)
 	
 	// Split Second JPN -> US
 	game_product_relink(product, "ULJM05812", "ULUS10513");
+	
+	// Fat Princess EU -> US
+	game_product_relink(product, "UCES01312", "UCUS98740");
+	
+	// Fat Princess JPN -> US
+	game_product_relink(product, "NPHG00025", "UCUS98740");
+	
+	// SOCOM Fireteam Bravo 3 EU -> US
+	game_product_relink(product, "UCES01242", "UCUS98716");
+	
+	// SOCOM Fireteam Bravo 3 JPN -> US
+	game_product_relink(product, "NPJG00035", "UCUS98716");
 }
 

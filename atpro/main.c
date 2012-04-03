@@ -7,8 +7,10 @@
 #include <pspsysmem_kernel.h>
 #include <pspctrl.h>
 #include <psppower.h>
+#include <pspwlan.h>
 #include <string.h>
 #include "libs.h"
+#include "hud.h"
 #include "logs.h"
 #include "systemctrl.h"
 
@@ -20,8 +22,20 @@ const char * SysMemGameCodeGetter(void);
 // System Control Module Patcher
 STMOD_HANDLER sysctrl_patcher = NULL;
 
+// Display Canvas
+CANVAS displayCanvas;
+
 // Input Thread Running Flag
 int running = 0;
+
+// HUD Overlay Flag
+int hud_on = 0;
+
+// Render-Wait State Flag
+int wait = 0;
+
+// Frame Counter
+int framecount = 0;
 
 // Online Mode Switch
 int onlinemode = 0;
@@ -143,6 +157,68 @@ void patch_netconf_utility(void * init, void * getstatus, void * update, void * 
 	}
 }
 
+// Framebuffer Setter
+int setframebuf(void *topaddr, int bufferwidth, int pixelformat, int sync)
+{
+	// Increase Frame Counter
+	framecount++;
+	
+	// Ready to Paint State
+	if(wait == 0)
+	{
+		// Lock State
+		wait = 1;
+		
+		// Get Canvas Information
+		int mode = 0; sceDisplayGetMode(&mode, &(displayCanvas.width), &(displayCanvas.height));
+		
+		// Update Canvas Information
+		displayCanvas.buffer = topaddr;
+		displayCanvas.lineWidth = bufferwidth;
+		displayCanvas.pixelFormat = pixelformat;
+		
+		// HUD Painting Required
+		if(hud_on) drawInfo(&displayCanvas);
+		
+		// Notification Painting Required
+		else drawNotification(&displayCanvas);
+		
+		// Unlock State
+		wait = 0;
+	}
+	
+	// Passthrough
+	return sceDisplaySetFrameBuf(topaddr, bufferwidth, pixelformat, sync);
+}
+
+// Read Positive Null & Passthrough Hook
+int read_buffer_positive(SceCtrlData * pad_data, int count)
+{
+	if(hud_on) return 0;
+	return sceCtrlReadBufferPositive(pad_data, count);
+}
+
+// Peek Positive Null & Passthrough Hook
+int peek_buffer_positive(SceCtrlData * pad_data, int count)
+{
+	if(hud_on) return 0;
+	return sceCtrlPeekBufferPositive(pad_data, count);
+}
+
+// Read Negative Null & Passthrough Hook
+int read_buffer_negative(SceCtrlData * pad_data, int count)
+{
+	if(hud_on) return 0;
+	return sceCtrlReadBufferNegative(pad_data, count);
+}
+
+// Peek Negative Null & Passthrough Hook
+int peek_buffer_negative(SceCtrlData * pad_data, int count)
+{
+	if(hud_on) return 0;
+	return sceCtrlPeekBufferNegative(pad_data, count);
+}
+
 // Online Module Start Patcher
 int online_patcher(SceModule2 * module)
 {
@@ -233,6 +309,15 @@ int online_patcher(SceModule2 * module)
 				printk("Patched %s with Fixed Pool Size Limiter\n", getGameCode());
 			}
 		}
+		
+		// Hook Framebuffer Setter
+		hook_import_bynid((SceModule *)module, "sceDisplay", 0x289D82FE, setframebuf);
+		
+		// Hook Controller Input (for Game Isolation)
+		hook_import_bynid((SceModule *)module, "sceCtrl", 0x1F803938, read_buffer_positive);
+		hook_import_bynid((SceModule *)module, "sceCtrl", 0x3A622550, peek_buffer_positive);
+		hook_import_bynid((SceModule *)module, "sceCtrl", 0x60B81F86, read_buffer_negative);
+		hook_import_bynid((SceModule *)module, "sceCtrl", 0xC152080A, peek_buffer_negative);
 	}
 	
 	// Enable System Control Patching
@@ -282,9 +367,15 @@ int input_thread(SceSize args, void * argp)
 	// Current Buttons
 	uint32_t curr_buttons = 0;
 	
+	// Kernel Clock Variables
+	SceKernelSysClock clock_start, clock_end;
+	
 	// Endless Loop
 	while(running == 1)
 	{
+		// Init Logic Timer
+		sceKernelGetSystemTime(&clock_start);
+		
 		// Move Buttons
 		prev_buttons = curr_buttons;
 		
@@ -300,12 +391,83 @@ int input_thread(SceSize args, void * argp)
 		// Home Button pressed
 		if((prev_buttons & PSP_CTRL_HOME) == 0 && (curr_buttons & PSP_CTRL_HOME) != 0)
 		{
-			// Reboot into VSH Rebooter Homebrew (and reset memory layout at that)
-			safe_exit();
+			// Enable or Disable GUI Overlay
+			hud_on = !hud_on;
 		}
 		
-		// Pause Thread
-		sceKernelDelayThread(1);
+		// Home Menu Button Events
+		else if(hud_on)
+		{
+			// Exit to VSH
+			if((curr_buttons & PSP_CTRL_START) != 0)
+			{
+				// Reboot into VSH Rebooter Homebrew (and reset memory layout at that)
+				safe_exit();
+			}
+			
+			// Pass Event to HUD Handler
+			else handleKeyEvent(prev_buttons, curr_buttons);
+		}
+		
+		// No-Wait State
+		if(wait == 0)
+		{
+			// Block Drawing Operation
+			wait = 1;
+			
+			// Update Canvas
+			if(getCanvas(&displayCanvas) == 0)
+			{
+				// Wait for V-Blank
+				sceDisplayWaitVblankStart();
+				
+				// Calculate Vertical Blank Times
+				int vblank = (int)(1000000.0f / sceDisplayGetFramePerSec());
+				int vblank_min = vblank / 10;
+				int vblank_max = vblank - vblank_min;
+				
+				// End Logic Timer
+				sceKernelGetSystemTime(&clock_end);
+				
+				// Calculate Time wasted on Logic
+				int calc_speed = (int)clock_end.low - (int)clock_start.low;
+				
+				// Start Rendering Timer
+				sceKernelGetSystemTime(&clock_start);
+				
+				// Draw HUD
+				if(hud_on) drawInfo(&displayCanvas);
+				
+				// Draw Chat Notification
+				else drawNotification(&displayCanvas);
+				
+				// End Rendering Timer
+				sceKernelGetSystemTime(&clock_end);
+				
+				// Calculate Time wasted on Rendering
+				int draw_speed = (int)clock_end.low - (int)clock_start.low;
+				
+				// Calculate Vertical Blank Delay
+				int delay = vblank - draw_speed*3 - calc_speed;
+				if(delay < vblank_min) delay = vblank_min;
+				if(delay > vblank_max) delay = vblank_max;
+				
+				// Apply Vertical Blank Delay
+				sceKernelDelayThread(delay);
+				
+				// Draw HUD
+				if(hud_on) drawInfo(&displayCanvas);
+				
+				// Draw Chat Notification
+				else drawNotification(&displayCanvas);
+			}
+			
+			// Unblock Drawing Operation
+			wait = 0;
+		}
+		
+		// Standard Thread Delay
+		sceKernelDelayThread(10000);
 	}
 	
 	// Clear Running Status
@@ -334,7 +496,7 @@ int module_start(SceSize args, void * argp)
 	onlinemode = sceWlanGetSwitchState();
 	
 	// Grab API Type
-	int api = sceKernelInitApitype();
+	// int api = sceKernelInitApitype();
 	
 	// Game Mode & WLAN Switch On
 	if(sceKernelInitKeyConfig() == PSP_INIT_KEYCONFIG_GAME) {
@@ -373,12 +535,16 @@ int module_start(SceSize args, void * argp)
 					sysctrl_patcher = sctrlHENSetStartModuleHandler(online_patcher);
 					printk("Enabled Game-Specific Fixes!\n");
 					
-					// Disable Power Switch
-					scePowerLock(0);
-					printk("Disabled Power Button!\n");
+					// Disable Sleep Mode to prevent Infrastructure Death
+					if(onlinemode)
+					{
+						// Disable Sleep Mode
+						scePowerLock(0);
+						printk("Disabled Power Button!\n");
+					}
 					
 					// Create Input Thread
-					int ctrl = sceKernelCreateThread("atpro_input", input_thread, 0x30, 32768, 0, NULL);
+					int ctrl = sceKernelCreateThread("atpro_input", input_thread, 0x10, 32768, 0, NULL);
 					
 					// Created Input Thread
 					if(ctrl >= 0)

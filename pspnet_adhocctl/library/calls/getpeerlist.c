@@ -1,8 +1,5 @@
 #include "../common.h"
 
-// Function Prototypes
-int _getActivePeerCount(void);
-
 /**
  * Acquire Peer Linked List
  * @param buflen IN: Length of Buffer in Bytes OUT: Required Length of Buffer in Bytes
