@@ -32,7 +32,7 @@
 #define ETHER_ADDR_LEN 6
 typedef struct SceNetEtherAddr {
 	uint8_t data[ETHER_ADDR_LEN];
-} SceNetEtherAddr;
+} __attribute__((packed)) SceNetEtherAddr;
 
 // Adhoc ID (Game Product Key)
 #define ADHOCCTL_ADHOCID_LEN 9
@@ -46,13 +46,13 @@ typedef struct SceNetAdhocctlAdhocId {
 #define ADHOCCTL_GROUPNAME_LEN 8
 typedef struct SceNetAdhocctlGroupName {
 	uint8_t data[ADHOCCTL_GROUPNAME_LEN];
-} SceNetAdhocctlGroupName;
+} __attribute__((packed)) SceNetAdhocctlGroupName;
 
 // Virtual Network Host Information
 typedef struct SceNetAdhocctlBSSId {
 	SceNetEtherAddr mac_addr;
 	uint8_t padding[2];
-} SceNetAdhocctlBSSId;
+} __attribute__((packed)) SceNetAdhocctlBSSId;
 
 // Virtual Network Information
 typedef struct SceNetAdhocctlScanInfo {
@@ -61,13 +61,13 @@ typedef struct SceNetAdhocctlScanInfo {
 	SceNetAdhocctlGroupName group_name;
 	SceNetAdhocctlBSSId bssid;
 	int mode;
-} SceNetAdhocctlScanInfo;
+} __attribute__((packed)) SceNetAdhocctlScanInfo;
 
 // Player Nickname
 #define ADHOCCTL_NICKNAME_LEN 128
 typedef struct SceNetAdhocctlNickname {
 	uint8_t data[ADHOCCTL_NICKNAME_LEN];
-} SceNetAdhocctlNickname;
+} __attribute__((packed)) SceNetAdhocctlNickname;
 
 // Active Virtual Network Information
 typedef struct SceNetAdhocctlParameter {
@@ -75,7 +75,7 @@ typedef struct SceNetAdhocctlParameter {
 	SceNetAdhocctlGroupName group_name;
 	SceNetAdhocctlBSSId bssid;
 	SceNetAdhocctlNickname nickname;
-} SceNetAdhocctlParameter;
+} __attribute__((packed)) SceNetAdhocctlParameter;
 
 // Peer Information
 typedef struct SceNetAdhocctlPeerInfo {
@@ -85,14 +85,14 @@ typedef struct SceNetAdhocctlPeerInfo {
 	uint32_t ip_addr;
 	uint8_t padding[2];
 	uint64_t last_recv;
-} SceNetAdhocctlPeerInfo;
+} __attribute__((packed)) SceNetAdhocctlPeerInfo;
 
 // Game Mode Peer List
 #define ADHOCCTL_GAMEMODE_MAX_MEMBERS 16
 typedef struct SceNetAdhocctlGameModeInfo {
 	int num;
 	SceNetEtherAddr member[ADHOCCTL_GAMEMODE_MAX_MEMBERS];
-} SceNetAdhocctlGameModeInfo;
+} __attribute__((packed)) SceNetAdhocctlGameModeInfo;
 
 // Adhoc Network Control Handler
 typedef void(*SceNetAdhocctlHandler)(int event, int error_code, void * arg);
@@ -110,12 +110,12 @@ typedef struct SceUtilityParamBase {
 	int reserved2;
 	int reserved3;
 	int reserved4;
-} SceUtilityParamBase;
+} __attribute__((packed)) SceUtilityParamBase;
 
 typedef struct SceUtilityNetconfAdhocParam {
 	SceNetAdhocctlGroupName group_name;
 	uint32_t timeout;
-} SceUtilityNetconfAdhocParam;
+} __attribute__((packed)) SceUtilityNetconfAdhocParam;
 
 typedef struct SceUtilityNetconfParam {
 	SceUtilityParamBase base;
@@ -124,7 +124,7 @@ typedef struct SceUtilityNetconfParam {
 	uint32_t browser_available;
 	uint32_t browser_flag;
 	uint32_t wifisvc_available;
-} SceUtilityNetconfParam;
+} __attribute__((packed)) SceUtilityNetconfParam;
 
 #include "../../pspnet_adhocctl_server/packets.h"
 

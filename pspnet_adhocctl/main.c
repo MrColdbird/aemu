@@ -9,11 +9,11 @@ PSP_HEAP_SIZE_KB(100);
 // Stubs
 int sceNetAdhocctlInit(int stacksize, int prio, const SceNetAdhocctlAdhocId * adhoc_id)
 {
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Entering %s\n", __func__);
 	#endif
 	int result = proNetAdhocctlInit(stacksize, prio, adhoc_id);
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Leaving %s with %08X\n", __func__, result);
 	#endif
 	return result;
@@ -21,11 +21,11 @@ int sceNetAdhocctlInit(int stacksize, int prio, const SceNetAdhocctlAdhocId * ad
 
 int sceNetAdhocctlJoin(const SceNetAdhocctlScanInfo * scan_info)
 {
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Entering %s\n", __func__);
 	#endif
 	int result = proNetAdhocctlJoin(scan_info);
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Leaving %s with %08X\n", __func__, result);
 	#endif
 	return result;
@@ -33,11 +33,11 @@ int sceNetAdhocctlJoin(const SceNetAdhocctlScanInfo * scan_info)
 
 int sceNetAdhocctlGetPeerList(int * buflen, SceNetAdhocctlPeerInfo * buf)
 {
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Entering %s\n", __func__);
 	#endif
 	int result = proNetAdhocctlGetPeerList(buflen, buf);
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Leaving %s with %08X\n", __func__, result);
 	#endif
 	return result;
@@ -45,11 +45,11 @@ int sceNetAdhocctlGetPeerList(int * buflen, SceNetAdhocctlPeerInfo * buf)
 
 int sceNetAdhocctlGetPeerInfo(SceNetEtherAddr * addr, int size, SceNetAdhocctlPeerInfo * peer_info)
 {
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Entering %s\n", __func__);
 	#endif
 	int result = proNetAdhocctlGetPeerInfo(addr, size, peer_info);
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Leaving %s with %08X\n", __func__, result);
 	#endif
 	return result;
@@ -57,11 +57,11 @@ int sceNetAdhocctlGetPeerInfo(SceNetEtherAddr * addr, int size, SceNetAdhocctlPe
 
 int sceNetAdhocctlGetAddrByName(const SceNetAdhocctlNickname * nickname, int * buflen, SceNetAdhocctlPeerInfo * buf)
 {
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Entering %s\n", __func__);
 	#endif
 	int result = proNetAdhocctlGetAddrByName(nickname, buflen, buf);
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Leaving %s with %08X\n", __func__, result);
 	#endif
 	return result;
@@ -69,11 +69,11 @@ int sceNetAdhocctlGetAddrByName(const SceNetAdhocctlNickname * nickname, int * b
 
 int sceNetAdhocctlTerm(void)
 {
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Entering %s\n", __func__);
 	#endif
 	int result = proNetAdhocctlTerm();
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Leaving %s with %08X\n", __func__, result);
 	#endif
 	return result;
@@ -81,11 +81,11 @@ int sceNetAdhocctlTerm(void)
 
 int sceNetAdhocctlConnect(const SceNetAdhocctlGroupName * group_name)
 {
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Entering %s\n", __func__);
 	#endif
 	int result = proNetAdhocctlConnect(group_name);
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Leaving %s with %08X\n", __func__, result);
 	#endif
 	return result;
@@ -93,11 +93,11 @@ int sceNetAdhocctlConnect(const SceNetAdhocctlGroupName * group_name)
 
 int sceNetAdhocctlCreate(const SceNetAdhocctlGroupName * group_name)
 {
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Entering %s\n", __func__);
 	#endif
 	int result = proNetAdhocctlConnect(group_name);
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Leaving %s with %08X\n", __func__, result);
 	#endif
 	return result;
@@ -105,11 +105,11 @@ int sceNetAdhocctlCreate(const SceNetAdhocctlGroupName * group_name)
 
 int sceNetAdhocctlCreateEnterGameMode(const SceNetAdhocctlGroupName * group_name, int game_type, int num, const SceNetEtherAddr * members, uint32_t timeout, int flag)
 {
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Entering %s\n", __func__);
 	#endif
 	int result = proNetAdhocctlCreateEnterGameMode(group_name, game_type, num, members, timeout, flag);
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Leaving %s with %08X\n", __func__, result);
 	#endif
 	return result;
@@ -117,11 +117,11 @@ int sceNetAdhocctlCreateEnterGameMode(const SceNetAdhocctlGroupName * group_name
 
 int sceNetAdhocctlCreateEnterGameModeMin(const SceNetAdhocctlGroupName * group_name, int game_type, int min_members, int num_members, const struct SceNetEtherAddr * members, uint32_t timeout, int flag) // B0B80E80
 {
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Entering %s\n", __func__);
 	#endif
 	int result = proNetAdhocctlCreateEnterGameModeMin(group_name, game_type, min_members, num_members, members, timeout, flag);
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Leaving %s with %08X\n", __func__, result);
 	#endif
 	return result;
@@ -129,11 +129,11 @@ int sceNetAdhocctlCreateEnterGameModeMin(const SceNetAdhocctlGroupName * group_n
 
 int sceNetAdhocctlJoinEnterGameMode(const SceNetAdhocctlGroupName * group_name, const SceNetEtherAddr * gc, uint32_t timeout, int flag)
 {
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Entering %s\n", __func__);
 	#endif
 	int result = proNetAdhocctlJoinEnterGameMode(group_name, gc, timeout, flag);
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Leaving %s with %08X\n", __func__, result);
 	#endif
 	return result;
@@ -141,11 +141,11 @@ int sceNetAdhocctlJoinEnterGameMode(const SceNetAdhocctlGroupName * group_name, 
 
 int sceNetAdhocctlScan(void)
 {
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Entering %s\n", __func__);
 	#endif
 	int result = proNetAdhocctlScan();
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Leaving %s with %08X\n", __func__, result);
 	#endif
 	return result;
@@ -153,11 +153,11 @@ int sceNetAdhocctlScan(void)
 
 int sceNetAdhocctlDisconnect(void)
 {
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Entering %s\n", __func__);
 	#endif
 	int result = proNetAdhocctlDisconnect();
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Leaving %s with %08X\n", __func__, result);
 	#endif
 	return result;
@@ -165,11 +165,11 @@ int sceNetAdhocctlDisconnect(void)
 
 int sceNetAdhocctlExitGameMode(void)
 {
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Entering %s\n", __func__);
 	#endif
 	int result = proNetAdhocctlExitGameMode();
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Leaving %s with %08X\n", __func__, result);
 	#endif
 	return result;
@@ -177,11 +177,11 @@ int sceNetAdhocctlExitGameMode(void)
 
 int sceNetAdhocctlAddHandler(SceNetAdhocctlHandler handler, void * arg)
 {
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Entering %s\n", __func__);
 	#endif
 	int result = proNetAdhocctlAddHandler(handler, arg);
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Leaving %s with %08X\n", __func__, result);
 	#endif
 	return result;
@@ -189,11 +189,11 @@ int sceNetAdhocctlAddHandler(SceNetAdhocctlHandler handler, void * arg)
 
 int sceNetAdhocctlDelHandler(int id)
 {
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Entering %s\n", __func__);
 	#endif
 	int result = proNetAdhocctlDelHandler(id);
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Leaving %s with %08X\n", __func__, result);
 	#endif
 	return result;
@@ -201,11 +201,11 @@ int sceNetAdhocctlDelHandler(int id)
 
 int sceNetAdhocctlGetState(int * state)
 {
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Entering %s\n", __func__);
 	#endif
 	int result = proNetAdhocctlGetState(state);
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Leaving %s with %08X\n", __func__, result);
 	#endif
 	return result;
@@ -213,11 +213,11 @@ int sceNetAdhocctlGetState(int * state)
 
 int sceNetAdhocctlGetAdhocId(SceNetAdhocctlAdhocId * adhoc_id)
 {
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Entering %s\n", __func__);
 	#endif
 	int result = proNetAdhocctlGetAdhocId(adhoc_id);
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Leaving %s with %08X\n", __func__, result);
 	#endif
 	return result;
@@ -225,11 +225,11 @@ int sceNetAdhocctlGetAdhocId(SceNetAdhocctlAdhocId * adhoc_id)
 
 int sceNetAdhocctlGetNameByAddr(const SceNetEtherAddr * addr, SceNetAdhocctlNickname * nickname)
 {
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Entering %s\n", __func__);
 	#endif
 	int result = proNetAdhocctlGetNameByAddr(addr, nickname);
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Leaving %s with %08X\n", __func__, result);
 	#endif
 	return result;
@@ -237,11 +237,11 @@ int sceNetAdhocctlGetNameByAddr(const SceNetEtherAddr * addr, SceNetAdhocctlNick
 
 int sceNetAdhocctlGetParameter(SceNetAdhocctlParameter * parameter)
 {
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Entering %s\n", __func__);
 	#endif
 	int result = proNetAdhocctlGetParameter(parameter);
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Leaving %s with %08X\n", __func__, result);
 	#endif
 	return result;
@@ -249,11 +249,11 @@ int sceNetAdhocctlGetParameter(SceNetAdhocctlParameter * parameter)
 
 int sceNetAdhocctlGetScanInfo(int * buflen, SceNetAdhocctlScanInfo * buf)
 {
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Entering %s\n", __func__);
 	#endif
 	int result = proNetAdhocctlGetScanInfo(buflen, buf);
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Leaving %s with %08X\n", __func__, result);
 	#endif
 	return result;
@@ -261,11 +261,11 @@ int sceNetAdhocctlGetScanInfo(int * buflen, SceNetAdhocctlScanInfo * buf)
 
 int sceNetAdhocctlGetGameModeInfo(SceNetAdhocctlGameModeInfo * info)
 {
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Entering %s\n", __func__);
 	#endif
 	int result = proNetAdhocctlGetGameModeInfo(info);
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Leaving %s with %08X\n", __func__, result);
 	#endif
 	return result;
@@ -274,11 +274,11 @@ int sceNetAdhocctlGetGameModeInfo(SceNetAdhocctlGameModeInfo * info)
 // Kernel Permission Stubs (Handle with extreme care!)
 int sceUtilityNetconfInitStartKernel(SceUtilityNetconfParam * param)
 {
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Entering %s\n", "sceUtilityNetconfInitStart");
 	#endif
 	int result = proUtilityNetconfInitStart(param);
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Leaving %s with %08X\n", "sceUtilityNetconfInitStart", result);
 	#endif
 	return result;
@@ -286,11 +286,11 @@ int sceUtilityNetconfInitStartKernel(SceUtilityNetconfParam * param)
 
 int sceUtilityNetconfGetStatusKernel(void)
 {
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Entering %s\n", "sceUtilityNetconfGetStatus");
 	#endif
 	int result = proUtilityNetconfGetStatus();
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Leaving %s with %08X\n", "sceUtilityNetconfGetStatus", result);
 	#endif
 	return result;
@@ -298,11 +298,11 @@ int sceUtilityNetconfGetStatusKernel(void)
 
 int sceUtilityNetconfUpdateKernel(int speed)
 {
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Entering %s\n", "sceUtilityNetconfUpdate");
 	#endif
 	int result = proUtilityNetconfUpdate(speed);
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Leaving %s with %08X\n", "sceUtilityNetconfUpdate", result);
 	#endif
 	return result;
@@ -310,11 +310,11 @@ int sceUtilityNetconfUpdateKernel(int speed)
 
 int sceUtilityNetconfShutdownStartKernel(void)
 {
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Entering %s\n", "sceUtilityNetconfShutdownStart");
 	#endif
 	int result = proUtilityNetconfShutdownStart();
-	#ifdef DEBUG
+	#ifdef TRACE
 	printk("Leaving %s with %08X\n", "sceUtilityNetconfShutdownStart", result);
 	#endif
 	return result;

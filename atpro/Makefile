@@ -2,7 +2,7 @@ all:
 	mv atpro.prx ../dist/seplugins
 
 TARGET = atpro
-OBJS = main.o libs.o hud.o draw.o logs.o
+OBJS = main.o libs.o hud.o draw.o logs.o jumper.o
 
 CFLAGS = -Os -G0 -Wall -fno-pic
 
@@ -10,6 +10,18 @@ INCDIR = ../../procfw/include
 LIBDIR = ../../procfw/libs
 
 LIBS = -lpspsystemctrl_kernel -lpsppower -lpspwlan
+
+ifeq ($(RELEASE), 1)
+CFLAGS += -DRELEASE=1
+else
+CFLAGS += -DDEBUG=1
+
+ifeq ($(ENABLE_LOGGER), 1)
+CFLAGS += -DENABLE_LOGGER=1
+OBJS += modulelogger.o
+endif
+
+endif
 
 ifeq ($(CONFIG_620), 1)
 CFLAGS += -DCONFIG_620=1
@@ -24,12 +36,6 @@ endif
 ifeq ($(CONFIG_660), 1)
 CFLAGS += -DCONFIG_660=1
 OBJS += imports/SysMemForKernel660.o
-endif
-
-ifeq ($(RELEASE), 1)
-CFLAGS += -DRELEASE=1
-else
-CFLAGS += -DDEBUG=1
 endif
 
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti

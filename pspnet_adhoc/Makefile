@@ -64,6 +64,10 @@ else
 CFLAGS += -DDEBUG=1
 endif
 
+ifeq ($(TRACE), 1)
+CFLAGS += -DTRACE=1
+endif
+
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
 

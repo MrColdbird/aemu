@@ -57,6 +57,10 @@ else
 CFLAGS += -DDEBUG=1
 endif
 
+ifeq ($(TRACE), 1)
+CFLAGS += -DTRACE=1
+endif
+
 ifeq ($(ENABLE_PEERLOCK), 1)
 CFLAGS += -DENABLE_PEERLOCK=1
 endif

@@ -1,106 +1,202 @@
 #include <pspsdk.h>
 #include <pspkernel.h>
-#include <string.h>
-#include "../atpro/logs.h"
+#include "library/common.h"
 
 #define MODULENAME "sceNetAdhocMatching_Library"
 PSP_MODULE_INFO(MODULENAME, PSP_MODULE_USER + 6, 1, 6);
+PSP_HEAP_SIZE_KB(HEAP_SIZE);
 
 // Stubs
-int sceNetAdhocMatchingInit(void)
+int sceNetAdhocMatchingInit(uint32_t poolsize)
 {
-	THROW_UNIMPLEMENTED(__func__);
-	return 0;
+	#ifdef TRACE
+	printk("Entering %s\n", __func__);
+	#endif
+	int result = proNetAdhocMatchingInit(poolsize);
+	#ifdef TRACE
+	printk("Leaving %s with %08X\n", __func__, result);
+	#endif
+	return result;
 }
 
 int sceNetAdhocMatchingTerm(void)
 {
-	THROW_UNIMPLEMENTED(__func__);
-	return 0;
+	#ifdef TRACE
+	printk("Entering %s\n", __func__);
+	#endif
+	int result = proNetAdhocMatchingTerm();
+	#ifdef TRACE
+	printk("Leaving %s with %08X\n", __func__, result);
+	#endif
+	return result;
 }
 
-int sceNetAdhocMatchingCreate(void)
+int sceNetAdhocMatchingCreate(int mode, int maxnum, uint16_t port, int rxbuflen, uint32_t hello_int, uint32_t keepalive_int, int init_count, uint32_t rexmt_int, SceNetAdhocMatchingHandler handler)
 {
-	THROW_UNIMPLEMENTED(__func__);
-	return 0;
+	#ifdef TRACE
+	printk("Entering %s\n", __func__);
+	#endif
+	int result = proNetAdhocMatchingCreate(mode, maxnum, port, rxbuflen, hello_int, keepalive_int, init_count, rexmt_int, handler);
+	#ifdef TRACE
+	printk("Leaving %s with %08X\n", __func__, result);
+	#endif
+	return result;
 }
 
-int sceNetAdhocMatchingStart(void)
+int sceNetAdhocMatchingStart(int id, int event_th_prio, int event_th_stack, int input_th_prio, int input_th_stack, int hello_optlen, const void * hello_opt)
 {
-	THROW_UNIMPLEMENTED(__func__);
-	return 0;
+	#ifdef TRACE
+	printk("Entering %s\n", __func__);
+	#endif
+	int result = proNetAdhocMatchingStart(id, event_th_prio, event_th_stack, input_th_prio, input_th_stack, hello_optlen, hello_opt);
+	#ifdef TRACE
+	printk("Leaving %s with %08X\n", __func__, result);
+	#endif
+	return result;
 }
 
-int sceNetAdhocMatchingStop(void)
+int sceNetAdhocMatchingStop(int id)
 {
-	THROW_UNIMPLEMENTED(__func__);
-	return 0;
+	#ifdef TRACE
+	printk("Entering %s\n", __func__);
+	#endif
+	int result = proNetAdhocMatchingStop(id);
+	#ifdef TRACE
+	printk("Leaving %s with %08X\n", __func__, result);
+	#endif
+	return result;
 }
 
-int sceNetAdhocMatchingDelete(void)
+int sceNetAdhocMatchingDelete(int id)
 {
-	THROW_UNIMPLEMENTED(__func__);
-	return 0;
+	#ifdef TRACE
+	printk("Entering %s\n", __func__);
+	#endif
+	int result = proNetAdhocMatchingDelete(id);
+	#ifdef TRACE
+	printk("Leaving %s with %08X\n", __func__, result);
+	#endif
+	return result;
 }
 
-int sceNetAdhocMatchingSelectTarget(void)
+int sceNetAdhocMatchingSelectTarget(int id, const SceNetEtherAddr * target, int optlen, const void * opt)
 {
-	THROW_UNIMPLEMENTED(__func__);
-	return 0;
+	#ifdef TRACE
+	printk("Entering %s\n", __func__);
+	#endif
+	int result = proNetAdhocMatchingSelectTarget(id, target, optlen, opt);
+	#ifdef TRACE
+	printk("Leaving %s with %08X\n", __func__, result);
+	#endif
+	return result;
 }
 
-int sceNetAdhocMatchingCancelTarget(void)
+int sceNetAdhocMatchingCancelTarget(int id, const SceNetEtherAddr * target)
 {
-	THROW_UNIMPLEMENTED(__func__);
-	return 0;
+	#ifdef TRACE
+	printk("Entering %s\n", __func__);
+	#endif
+	int result = proNetAdhocMatchingCancelTargetWithOpt(id, target, 0, NULL);
+	#ifdef TRACE
+	printk("Leaving %s with %08X\n", __func__, result);
+	#endif
+	return result;
 }
 
-int sceNetAdhocMatchingCancelTargetWithOpt(void)
+int sceNetAdhocMatchingCancelTargetWithOpt(int id, const SceNetEtherAddr * target, int optlen, const void * opt)
 {
-	THROW_UNIMPLEMENTED(__func__);
-	return 0;
+	#ifdef TRACE
+	printk("Entering %s\n", __func__);
+	#endif
+	int result = proNetAdhocMatchingCancelTargetWithOpt(id, target, optlen, opt);
+	#ifdef TRACE
+	printk("Leaving %s with %08X\n", __func__, result);
+	#endif
+	return result;
 }
 
-int sceNetAdhocMatchingSendData(void)
+int sceNetAdhocMatchingSendData(int id, const SceNetEtherAddr * target, int datalen, const void * data)
 {
-	THROW_UNIMPLEMENTED(__func__);
-	return 0;
+	#ifdef TRACE
+	printk("Entering %s\n", __func__);
+	#endif
+	int result = proNetAdhocMatchingSendData(id, target, datalen, data);
+	#ifdef TRACE
+	printk("Leaving %s with %08X\n", __func__, result);
+	#endif
+	return result;
 }
 
-int sceNetAdhocMatchingAbortSendData(void)
+int sceNetAdhocMatchingAbortSendData(int id, const SceNetEtherAddr * target)
 {
-	THROW_UNIMPLEMENTED(__func__);
-	return 0;
+	#ifdef TRACE
+	printk("Entering %s\n", __func__);
+	#endif
+	int result = proNetAdhocMatchingAbortSendData(id, target);
+	#ifdef TRACE
+	printk("Leaving %s with %08X\n", __func__, result);
+	#endif
+	return result;
 }
 
-int sceNetAdhocMatchingSetHelloOpt(void)
+int sceNetAdhocMatchingSetHelloOpt(int id, int optlen, const void * opt)
 {
-	THROW_UNIMPLEMENTED(__func__);
-	return 0;
+	#ifdef TRACE
+	printk("Entering %s\n", __func__);
+	#endif
+	int result = proNetAdhocMatchingSetHelloOpt(id, optlen, opt);
+	#ifdef TRACE
+	printk("Leaving %s with %08X\n", __func__, result);
+	#endif
+	return result;
 }
 
-int sceNetAdhocMatchingGetHelloOpt(void)
+int sceNetAdhocMatchingGetHelloOpt(int id, int * buflen, void * buf)
 {
-	THROW_UNIMPLEMENTED(__func__);
-	return 0;
+	#ifdef TRACE
+	printk("Entering %s\n", __func__);
+	#endif
+	int result = proNetAdhocMatchingGetHelloOpt(id, buflen, buf);
+	#ifdef TRACE
+	printk("Leaving %s with %08X\n", __func__, result);
+	#endif
+	return result;
 }
 
-int sceNetAdhocMatchingGetMembers(void)
+int sceNetAdhocMatchingGetMembers(int id, int * buflen, SceNetAdhocMatchingMember * buf)
 {
-	THROW_UNIMPLEMENTED(__func__);
-	return 0;
+	#ifdef TRACE
+	printk("Entering %s\n", __func__);
+	#endif
+	int result = proNetAdhocMatchingGetMembers(id, buflen, buf);
+	#ifdef TRACE
+	printk("Leaving %s with %08X\n", __func__, result);
+	#endif
+	return result;
 }
 
 int sceNetAdhocMatchingGetPoolMaxAlloc(void)
 {
-	THROW_UNIMPLEMENTED(__func__);
-	return 0;
+	#ifdef TRACE
+	printk("Entering %s\n", __func__);
+	#endif
+	int result = proNetAdhocMatchingGetPoolMaxAlloc();
+	#ifdef TRACE
+	printk("Leaving %s with %08X\n", __func__, result);
+	#endif
+	return result;
 }
 
-int sceNetAdhocMatchingGetPoolStat(void)
+int sceNetAdhocMatchingGetPoolStat(SceNetMallocStat * poolstat)
 {
-	THROW_UNIMPLEMENTED(__func__);
-	return 0;
+	#ifdef TRACE
+	printk("Entering %s\n", __func__);
+	#endif
+	int result = proNetAdhocMatchingGetPoolStat(poolstat);
+	#ifdef TRACE
+	printk("Leaving %s with %08X\n", __func__, result);
+	#endif
+	return result;
 }
 
 // Module Start Event

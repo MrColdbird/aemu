@@ -468,15 +468,15 @@ uint32_t _readLine(int fd, char * buffer, uint32_t buflen)
 int _friendFinder(SceSize args, void * argp)
 {
 	// Receive Buffer
-	static int rxpos = 0;
-	static uint8_t rx[1024];
+	int rxpos = 0;
+	uint8_t rx[1024];
 	
 	// Chat Packet
 	SceNetAdhocctlChatPacketC2S chat;
 	chat.base.opcode = OPCODE_CHAT;
 	
 	// Last Ping Time
-	static uint64_t lastping = 0;
+	uint64_t lastping = 0;
 	
 	// Finder Loop
 	while(_init == 1)

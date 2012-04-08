@@ -2,7 +2,29 @@ all:
 	mv pspnet_adhoc_matching.prx ../dist/kd/pspnet_adhoc_matching.prx
 
 TARGET = pspnet_adhoc_matching
-OBJS = main.o ../memab/ATPRO.o
+
+LIBRARYOBJS = \
+library/functions.o \
+library/calls/init.o \
+library/calls/term.o \
+library/calls/create.o \
+library/calls/start.o \
+library/calls/stop.o \
+library/calls/delete.o \
+library/calls/select.o \
+library/calls/cancel.o \
+library/calls/send.o \
+library/calls/abortsend.o \
+library/calls/sethello.o \
+library/calls/gethello.o \
+library/calls/getmembers.o \
+library/calls/getpoolmaxalloc.o \
+library/calls/getpoolstat.o
+
+IMPORTS = \
+imports/sceNetAdhoc.o
+
+OBJS = main.o ../memab/ATPRO.o $(LIBRARYOBJS) $(IMPORTS)
 
 CFLAGS = -Os -G0 -Wall -fno-pic
 
@@ -22,6 +44,10 @@ ifeq ($(RELEASE), 1)
 CFLAGS += -DRELEASE=1
 else
 CFLAGS += -DDEBUG=1
+endif
+
+ifeq ($(TRACE), 1)
+CFLAGS += -DTRACE=1
 endif
 
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti

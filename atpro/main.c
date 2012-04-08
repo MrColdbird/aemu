@@ -14,6 +14,11 @@
 #include "logs.h"
 #include "systemctrl.h"
 
+#ifdef ENABLE_LOGGER
+#include "jumper.h"
+#include "modulelogger.h"
+#endif
+
 PSP_MODULE_INFO("ATPRO", PSP_MODULE_KERNEL, 1, 0);
 
 // Game Code Getter (discovered in utility.prx)
@@ -41,13 +46,13 @@ int framecount = 0;
 int onlinemode = 0;
 
 // Adhoc Module Names
-#define MODULE_LIST_SIZE 4
+#define MODULE_LIST_SIZE 5
 char * module_names[MODULE_LIST_SIZE] = {
 	"memab.prx",
 	"pspnet_adhoc_auth.prx",
 	"pspnet_adhoc.prx",
 	"pspnet_adhocctl.prx",
-//	"pspnet_adhoc_matching.prx",
+	"pspnet_adhoc_matching.prx",
 //	"pspnet_adhoc_download.prx",
 //	"pspnet_adhoc_discover.prx"
 };
@@ -495,6 +500,9 @@ int module_start(SceSize args, void * argp)
 	// Enable Online Mode
 	onlinemode = sceWlanGetSwitchState();
 	
+	// Log WLAN Switch State
+	printk("WLAN Switch: %d\n", onlinemode);
+	
 	// Grab API Type
 	// int api = sceKernelInitApitype();
 	
@@ -542,6 +550,11 @@ int module_start(SceSize args, void * argp)
 						scePowerLock(0);
 						printk("Disabled Power Button!\n");
 					}
+					
+					#ifdef ENABLE_LOGGER
+					// Allocate Jumper Log Memory
+					initUserTraceMemory();
+					#endif
 					
 					// Create Input Thread
 					int ctrl = sceKernelCreateThread("atpro_input", input_thread, 0x10, 32768, 0, NULL);

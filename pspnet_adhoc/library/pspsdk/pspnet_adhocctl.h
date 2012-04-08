@@ -8,7 +8,7 @@
 #define ADHOCCTL_NICKNAME_LEN 128
 typedef struct SceNetAdhocctlNickname {
 	uint8_t data[ADHOCCTL_NICKNAME_LEN];
-} SceNetAdhocctlNickname;
+} __attribute__((packed)) SceNetAdhocctlNickname;
 
 // Peer Information
 typedef struct SceNetAdhocctlPeerInfo {
@@ -18,7 +18,7 @@ typedef struct SceNetAdhocctlPeerInfo {
 	uint32_t ip_addr;
 	uint8_t padding[2];
 	uint64_t last_recv;
-} SceNetAdhocctlPeerInfo;
+} __attribute__((packed)) SceNetAdhocctlPeerInfo;
 
 /**
  * Peer Information Getter

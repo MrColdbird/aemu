@@ -26,6 +26,15 @@ ifeq ($(RELEASE), 1)
 FLAGS += RELEASE=1
 else
 FLAGS += DEBUG=1
+
+ifeq ($(ENABLE_LOGGER), 1)
+FLAGS += ENABLE_LOGGER=1
+endif
+
+ifeq ($(TRACE), 1)
+FLAGS += TRACE=1
+endif
+
 endif
 
 ifeq ($(ENABLE_PEERLOCK), 1)
@@ -56,8 +65,9 @@ all:
 	@mkdir $(DISTRIBUTE)/kd || true
 	@mkdir $(DISTRIBUTE)/server || true
 	@touch $(DISTRIBUTE)/seplugins/hotspot.txt || true
-	@echo coldbird.uk.to > $(DISTRIBUTE)/seplugins/server.txt
+#	@echo coldbird.uk.to > $(DISTRIBUTE)/seplugins/server.txt
 #	@echo home.coldbird.uk.to > $(DISTRIBUTE)/seplugins/server.txt
+	@echo 192.168.1.103 > $(DISTRIBUTE)/seplugins/server.txt
 	@cp $(STATIC)/chat.txt $(DISTRIBUTE)/seplugins/chat/default.txt
 	@cp $(STATIC)/chat.txt $(DISTRIBUTE)/seplugins/chat/ULUS12345.txt
 #	@touch $(DISTRIBUTE)/seplugins/server.txt || true
@@ -69,7 +79,7 @@ all:
 	@cd $(PSPNET_ADHOC_AUTH); make $(FLAGS)
 	@cd $(PSPNET_ADHOC); make $(FLAGS)
 	@cd $(PSPNET_ADHOCCTL); make $(FLAGS)
-#	@cd $(PSPNET_ADHOC_MATCHING); make $(FLAGS)
+	@cd $(PSPNET_ADHOC_MATCHING); make $(FLAGS)
 #	@cd $(PSPNET_ADHOC_DOWNLOAD); make $(FLAGS)
 #	@cd $(PSPNET_ADHOC_DISCOVER); make $(FLAGS)
 	@cd $(PSPNET_ADHOCCTL_SERVER); make $(FLAGS)
@@ -84,7 +94,7 @@ clean:
 	@cd $(PSPNET_ADHOC_AUTH); make clean $(FLAGS)
 	@cd $(PSPNET_ADHOC); make clean $(FLAGS)
 	@cd $(PSPNET_ADHOCCTL); make clean $(FLAGS)
-#	@cd $(PSPNET_ADHOC_MATCHING); make clean $(FLAGS)
+	@cd $(PSPNET_ADHOC_MATCHING); make clean $(FLAGS)
 #	@cd $(PSPNET_ADHOC_DOWNLOAD); make clean $(FLAGS)
 #	@cd $(PSPNET_ADHOC_DISCOVER); make clean $(FLAGS)
 	@cd $(PSPNET_ADHOCCTL_SERVER); make clean $(FLAGS)

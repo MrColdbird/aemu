@@ -766,5 +766,17 @@ void game_product_override(SceNetAdhocctlProductCode * product)
 	
 	// SOCOM Fireteam Bravo 3 JPN -> US
 	game_product_relink(product, "NPJG00035", "UCUS98716");
+	
+	// Tekken 6 EU -> US
+	game_product_relink(product, "ULES01376", "ULUS10466");
+	
+	// Tekken 6 JPN -> US
+	game_product_relink(product, "NPJH50184", "ULUS10466");
+	
+	// Soul Calibur EU -> US
+	game_product_relink(product, "ULES01298", "ULUS10457");
+	
+	// Soul Calibur JPN -> US
+	game_product_relink(product, "ULJS00202", "ULUS10457");
 }
 

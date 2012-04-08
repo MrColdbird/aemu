@@ -1,0 +1,140 @@
+#include "../common.h"
+
+/**
+ * Get Member List
+ * @return 0 on success or... ADHOC_MATCHING_NOT_INITIALIZED, ADHOC_MATCHING_INVALID_ARG, ADHOC_MATCHING_INVALID_ID, ADHOC_MATCHING_NOT_RUNNING
+ */
+int proNetAdhocMatchingGetMembers(int id, int * buflen, SceNetAdhocMatchingMember * buf)
+{
+	// Initialized Library
+	if(_init == 1)
+	{
+		// Find Matching Context
+		SceNetAdhocMatchingContext * context = _findMatchingContext(id);
+		
+		// Found Context
+		if(context != NULL)
+		{
+			// Running Context
+			if(context->running)
+			{
+				// Length Buffer available
+				if(buflen != NULL)
+				{
+					// Number of Connected Peers
+					uint32_t peercount = _countConnectedPeers(context);
+					
+					// Calculate Connected Peer Bytesize
+					int available = sizeof(SceNetAdhocMatchingMember) * peercount;
+					
+					// Length Returner Mode
+					if(buf == NULL)
+					{
+						// Get Connected Peer Count
+						*buflen = available;
+					}
+					
+					// Normal Mode
+					else
+					{
+						// Fix Negative Length
+						if((*buflen) < 0) *buflen = 0;
+						
+						// Fix Oversize Request
+						if((*buflen) > available) *buflen = available;
+						
+						// Clear Memory
+						memset(buf, 0, *buflen);
+						
+						// Calculate Requested Peer Count
+						int requestedpeers = (*buflen) / sizeof(SceNetAdhocMatchingMember);
+						
+						// Filled Request Counter
+						int filledpeers = 0;
+						
+						// Add Self-Peer
+						if(requestedpeers > 0)
+						{
+							// Add Local MAC
+							buf[filledpeers++].addr = context->mac;
+							
+							// Room for more than local peer
+							if(requestedpeers > 1)
+							{
+								// P2P Mode
+								if(context->mode == ADHOC_MATCHING_MODE_P2P)
+								{
+									// Find P2P Brother
+									SceNetAdhocMatchingMemberInternal * p2p = _findP2P(context);
+									
+									// P2P Brother found
+									if(p2p != NULL)
+									{
+										// Add P2P Brother MAC
+										buf[filledpeers++].addr = p2p->mac;
+									}
+								}
+								
+								// Parent or Child Mode
+								else
+								{
+									// Iterate Peer List
+									SceNetAdhocMatchingMemberInternal * peer = context->peerlist; for(; peer != NULL && filledpeers < requestedpeers; peer = peer->next)
+									{
+										// Parent Mode
+										if(context->mode == ADHOC_MATCHING_MODE_PARENT)
+										{
+											// Interested in Children (Michael Jackson Style)
+											if(peer->state == ADHOC_MATCHING_PEER_CHILD)
+											{
+												// Add Child MAC
+												buf[filledpeers++].addr = peer->mac;
+											}
+										}
+										
+										// Children Mode
+										else
+										{
+											// Interested in Parent & Siblings
+											if(peer->state == ADHOC_MATCHING_PEER_CHILD || peer->state == ADHOC_MATCHING_PEER_PARENT)
+											{
+												// Add Peer MAC
+												buf[filledpeers++].addr = peer->mac;
+											}
+										}
+									}
+								}
+								
+								// Link Result List
+								int i = 0; for(; i < filledpeers - 1; i++)
+								{
+									// Link Next Element
+									buf[i].next = &buf[i + 1];
+								}
+							}
+						}
+						
+						// Fix Buffer Size
+						*buflen = sizeof(SceNetAdhocMatchingMember) * filledpeers;
+					}
+					
+					// Return Success
+					return 0;
+				}
+				
+				// Invalid Arguments
+				return ADHOC_MATCHING_INVALID_ARG;
+			}
+			
+			// Context not running
+			return ADHOC_MATCHING_NOT_RUNNING;
+		}
+		
+		// Invalid Matching ID
+		return ADHOC_MATCHING_INVALID_ID;
+	}
+	
+	// Uninitialized Library
+	return ADHOC_MATCHING_NOT_INITIALIZED;
+}
+

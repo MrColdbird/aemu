@@ -5,14 +5,14 @@
 #define ETHER_ADDR_LEN 6
 typedef struct SceNetEtherAddr {
 	uint8_t data[ETHER_ADDR_LEN];
-} SceNetEtherAddr;
+} __attribute__((packed)) SceNetEtherAddr;
 
 // Socket Polling Event Listener
 typedef struct SceNetAdhocPollSd {
 	int id;
 	int events;
 	int revents;
-} SceNetAdhocPollSd;
+} __attribute__((packed)) SceNetAdhocPollSd;
 
 // PDP Socket Status
 typedef struct SceNetAdhocPdpStat {
@@ -21,7 +21,7 @@ typedef struct SceNetAdhocPdpStat {
 	SceNetEtherAddr laddr;
 	uint16_t lport;
 	uint32_t rcv_sb_cc;
-} SceNetAdhocPdpStat;
+} __attribute__((packed)) SceNetAdhocPdpStat;
 
 // PTP Socket Status
 typedef struct SceNetAdhocPtpStat {
@@ -34,14 +34,14 @@ typedef struct SceNetAdhocPtpStat {
 	uint32_t snd_sb_cc;
 	uint32_t rcv_sb_cc;
 	int state;
-} SceNetAdhocPtpStat;
+} __attribute__((packed)) SceNetAdhocPtpStat;
 
 // Gamemode Optional Peer Buffer Data
 typedef struct SceNetAdhocGameModeOptData {
 	uint32_t size;
 	uint32_t flag;
 	uint64_t last_recv;
-} SceNetAdhocGameModeOptData;
+} __attribute__((packed)) SceNetAdhocGameModeOptData;
 
 // Gamemode Buffer Status
 typedef struct SceNetAdhocGameModeBufferStat {
@@ -51,6 +51,6 @@ typedef struct SceNetAdhocGameModeBufferStat {
 	uint32_t size;
 	uint32_t master;
 	SceNetAdhocGameModeOptData opt;
-} SceNetAdhocGameModeBufferStat;
+} __attribute__((packed)) SceNetAdhocGameModeBufferStat;
 
 #endif
