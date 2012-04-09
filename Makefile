@@ -60,7 +60,6 @@ all:
 	@mkdir $(DISTRIBUTE) || true
 	@mkdir $(DISTRIBUTE)/docs || true
 	@mkdir $(DISTRIBUTE)/seplugins || true
-	@mkdir $(DISTRIBUTE)/seplugins/chat || true
 	@mkdir $(DISTRIBUTE)/kd || true
 	@mkdir $(DISTRIBUTE)/server || true
 	@touch $(DISTRIBUTE)/seplugins/hotspot.txt || true
