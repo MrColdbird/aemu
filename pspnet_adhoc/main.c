@@ -33,85 +33,85 @@ int sceNetAdhocTerm(void)
 
 int sceNetAdhocPollSocket(SceNetAdhocPollSd * sds, int nsds, uint32_t timeout, int flags)
 {
-	#ifdef TRACE
-	printk("Entering %s\n", __func__);
-	#endif
+	//#ifdef TRACE
+	//printk("Entering %s\n", __func__);
+	//#endif
 	int result = proNetAdhocPollSocket(sds, nsds, timeout, flags);
-	#ifdef TRACE
-	printk("Leaving %s with %08X\n", __func__, result);
-	#endif
+	//#ifdef TRACE
+	//printk("Leaving %s with %08X\n", __func__, result);
+	//#endif
 	return result;
 }
 
 int sceNetAdhocSetSocketAlert(int id, int flag)
 {
-	#ifdef TRACE
-	printk("Entering %s\n", __func__);
-	#endif
+	//#ifdef TRACE
+	//printk("Entering %s\n", __func__);
+	//#endif
 	int result = proNetAdhocSetSocketAlert(id, flag);
-	#ifdef TRACE
-	printk("Leaving %s with %08X\n", __func__, result);
-	#endif
+	//#ifdef TRACE
+	//printk("Leaving %s with %08X\n", __func__, result);
+	//#endif
 	return result;
 }
 
 int sceNetAdhocGetSocketAlert(int id, int * flag)
 {
-	#ifdef TRACE
-	printk("Entering %s\n", __func__);
-	#endif
+	//#ifdef TRACE
+	//printk("Entering %s\n", __func__);
+	//#endif
 	int result = proNetAdhocGetSocketAlert(id, flag);
-	#ifdef TRACE
-	printk("Leaving %s with %08X\n", __func__, result);
-	#endif
+	//#ifdef TRACE
+	//printk("Leaving %s with %08X\n", __func__, result);
+	//#endif
 	return result;
 }
 
 int sceNetAdhocPdpCreate(const SceNetEtherAddr * saddr, uint16_t sport, int bufsize, int flag)
 {
-	#ifdef TRACE
-	printk("Entering %s\n", __func__);
-	#endif
+	//#ifdef TRACE
+	//printk("Entering %s\n", __func__);
+	//#endif
 	int result = proNetAdhocPdpCreate(saddr, sport, bufsize, flag);
-	#ifdef TRACE
-	printk("Leaving %s with %08X\n", __func__, result);
-	#endif
+	//#ifdef TRACE
+	//printk("Leaving %s with %08X\n", __func__, result);
+	//#endif
 	return result;
 }
 
 int sceNetAdhocPdpSend(int id, const SceNetEtherAddr * daddr, uint16_t dport, const void * data, int len, uint32_t timeout, int flag)
 {
-	#ifdef TRACE
-	printk("Entering %s\n", __func__);
-	#endif
+	//#ifdef TRACE
+	//printk("Entering %s\n", __func__);
+	//#endif
 	int result = proNetAdhocPdpSend(id, daddr, dport, data, len, timeout, flag);
-	#ifdef TRACE
-	printk("Leaving %s with %08X\n", __func__, result);
-	#endif
+	//#ifdef TRACE
+	//printk("Leaving %s with %08X\n", __func__, result);
+	//#endif
 	return result;
 }
 
 int sceNetAdhocPdpDelete(int id, int flag)
 {
-	#ifdef TRACE
-	printk("Entering %s\n", __func__);
-	#endif
+	//#ifdef TRACE
+	//printk("Entering %s\n", __func__);
+	//#endif
 	int result = proNetAdhocPdpDelete(id, flag);
-	#ifdef TRACE
-	printk("Leaving %s with %08X\n", __func__, result);
-	#endif
+	//#ifdef TRACE
+	//printk("Leaving %s with %08X\n", __func__, result);
+	//#endif
 	return result;
 }
 
 int sceNetAdhocPdpRecv(int id, SceNetEtherAddr * saddr, uint16_t * sport, void * buf, int * len, uint32_t timeout, int flag)
 {
-	#ifdef TRACE
-	printk("Entering %s\n", __func__);
-	#endif
+	//#ifdef TRACE
+	//printk("Entering %s\n", __func__);
+	//#endif
 	int result = proNetAdhocPdpRecv(id, saddr, sport, buf, len, timeout, flag);
-	#ifdef TRACE
-	printk("Leaving %s with %08X\n", __func__, result);
-	#endif
+	//#ifdef TRACE
+	//printk("Leaving %s with %08X\n", __func__, result);
+	//#endif
 	return result;
 }
 
@@ -124,13 +124,13 @@ int sceNetAdhoc_67346A2A(void)
 
 int sceNetAdhocGetPdpStat(int * buflen, SceNetAdhocPdpStat * buf)
 {
-	#ifdef TRACE
-	printk("Entering %s\n", __func__);
-	#endif
+	//#ifdef TRACE
+	//printk("Entering %s\n", __func__);
+	//#endif
 	int result = proNetAdhocGetPdpStat(buflen, buf);
-	#ifdef TRACE
-	printk("Leaving %s with %08X\n", __func__, result);
-	#endif
+	//#ifdef TRACE
+	//printk("Leaving %s with %08X\n", __func__, result);
+	//#endif
 	return result;
 }
 

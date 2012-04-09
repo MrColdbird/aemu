@@ -75,18 +75,11 @@ void login_user_data(SceNetAdhocctlUserNode * user, SceNetAdhocctlLoginPacketC2S
 	// Product Code Check
 	int valid_product_code = 1;
 	{
-		// Iterate Capital Letter Segment
-		int i = 0; for(; i < 4 && valid_product_code == 1; i++)
+		// Iterate Characters
+		int i = 0; for(; i < PRODUCT_CODE_LENGTH && valid_product_code == 1; i++)
 		{
-			// Invalid Characters
-			if(data->game.data[i] < 'A' || data->game.data[i] > 'Z') valid_product_code = 0;
-		}
-		
-		// Iterate Digit Segment
-		for(i = 4; i < PRODUCT_CODE_LENGTH && valid_product_code == 1; i++)
-		{
-			// Invalid Characters
-			if(data->game.data[i] < '0' || data->game.data[i] > '9') valid_product_code = 0;
+			// Valid Characters
+			if(!((data->game.data[i] >= 'A' && data->game.data[i] <= 'Z') || (data->game.data[i] >= '0' && data->game.data[i] <= '9'))) valid_product_code = 0;
 		}
 	}
 	

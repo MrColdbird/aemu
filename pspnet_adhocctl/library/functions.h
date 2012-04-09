@@ -27,13 +27,6 @@ int _getActivePeerCount(void);
 void patch_netconf_utility(void * init, void * getstatus, void * update, void * shutdown);
 
 /**
- * Register a Key-Phrase with the Homescreen Chatroom HUD
- * @param phrase To-be-registered Phrase (63 Character Limit)
- * @return 1 on success or... 0
- */
-int registerKeyPhrase(char * phrase);
-
-/**
  * Register Incoming Chat-Messages with the Homescreen Chatroom HUD
  * @param nickname Sender Nickname (8 Character Limit)
  * @param text Chat Message (63 Character Limit)

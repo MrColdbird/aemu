@@ -79,9 +79,6 @@ int proNetAdhocctlInit(int stacksize, int prio, const SceNetAdhocctlAdhocId * ad
 				// Read Server Configuration
 				if(ip != NULL)
 				{
-					// Read Chat Keyphrases
-					_readChatKeyphrases(adhoc_id);
-					
 					// Initialize Networking
 					if(_initNetwork(adhoc_id, ip) == 0)
 					{
@@ -382,43 +379,6 @@ const char * _readServerConfig(void)
 	
 	// Generic Error
 	return NULL;
-}
-
-/**
- * Read Chat Keyphrases for the Homescreen Chatroom
- * @param adhoc_id Game Product Code, used to differ game specific chat configurations
- */
-void _readChatKeyphrases(const SceNetAdhocctlAdhocId * adhoc_id)
-{
-	// Produce Game Specific Chat Path
-	char path[128];
-	memset(path, 0, sizeof(path));
-	strcpy(path, "ms0:/seplugins/chat/");
-	strncpy(path + strlen(path), (char *)adhoc_id->data, ADHOCCTL_ADHOCID_LEN);
-	strcpy(path + strlen(path), ".txt");
-	
-	// Open Game Specific Configuration File
-	int fd = sceIoOpen(path, PSP_O_RDONLY, 0777);
-	
-	// Open Default Configuration File
-	if(fd < 0) fd = sceIoOpen("ms0:/seplugins/chat/default.txt", PSP_O_RDONLY, 0777);
-	
-	// Opened Configuration File
-	if(fd >= 0)
-	{
-		// Line Buffer
-		char line[128];
-		
-		// Read Lines
-		while(_readLine(fd, line, sizeof(line)) > 0)
-		{
-			// Register Key Phrase
-			if(registerKeyPhrase(line) == 0) break;
-		}
-		
-		// Close Configuration File
-		sceIoClose(fd);
-	}
 }
 
 /**

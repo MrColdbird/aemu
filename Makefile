@@ -8,7 +8,6 @@ PSPNET_ADHOC_DOWNLOAD = pspnet_adhoc_download
 PSPNET_ADHOC_DISCOVER = pspnet_adhoc_discover
 PSPNET_ADHOCCTL_SERVER = pspnet_adhocctl_server
 PSPNET_MINIUPNC = pspnet_miniupnc
-STATIC = static
 PROCFW = ../procfw
 DISTRIBUTE = dist
 
@@ -65,11 +64,9 @@ all:
 	@mkdir $(DISTRIBUTE)/kd || true
 	@mkdir $(DISTRIBUTE)/server || true
 	@touch $(DISTRIBUTE)/seplugins/hotspot.txt || true
-#	@echo coldbird.uk.to > $(DISTRIBUTE)/seplugins/server.txt
+	@echo coldbird.uk.to > $(DISTRIBUTE)/seplugins/server.txt
 #	@echo home.coldbird.uk.to > $(DISTRIBUTE)/seplugins/server.txt
-	@echo 192.168.1.103 > $(DISTRIBUTE)/seplugins/server.txt
-	@cp $(STATIC)/chat.txt $(DISTRIBUTE)/seplugins/chat/default.txt
-	@cp $(STATIC)/chat.txt $(DISTRIBUTE)/seplugins/chat/ULUS12345.txt
+#	@echo 192.168.1.103 > $(DISTRIBUTE)/seplugins/server.txt
 #	@touch $(DISTRIBUTE)/seplugins/server.txt || true
 
 	@cd $(PROCFW); make deps

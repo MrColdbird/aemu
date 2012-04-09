@@ -22,6 +22,7 @@
 #define MIDDLE_MESSAGE_Y 132
 #define MIDDLE_MESSAGE_X 90
 #define CLEAR_CHAT_X 359
+#define INPUT_LINE_Y 140
 
 // Graphical Macros
 #define GET_MIDDLE_ALIGN_X(t) (240 - strlen(t) * FONT_WIDTH / 2)
@@ -45,7 +46,15 @@ static ChatLog chatlog[CHAT_MAX_LINES];
 static char outbox[OUTBOX_SIZE][CHAT_TRUNCATE + 1];
 
 // Keyphrases
-static char keyphrases[KEYPHRASE_COUNT][CHAT_TRUNCATE + 1];
+static char * keyphrases[KEYPHRASE_COUNT] = {
+	"A", "B", "C", "D", "E", "F", "G", "H",
+	"I", "J", "K", "L", "M", "N", "O", "P",
+	"Q", "R", "S", "T", "U", "V", "W", "X",
+	"Y", "Z", "!", "?", "CLEAR", "SPACE", "ENTER", "DELETE"
+};
+
+// Chat Line Buffer
+static char chatline[CHAT_TRUNCATE + 1];
 
 // Phrase Package Index (0 = Standard, 1 = L Button, 2 = R Button, 3 = L+R Button)
 int phrasepackage = 0;
@@ -92,6 +101,9 @@ void drawInfo(CANVAS * canvas)
 				// Print 63-Character Text Message
 				drawSmallFont(canvas, chatlog[i].message, HORIZONTAL_PADDING + FONT_WIDTH * NICKNAME_TRUNCATE + FONT_WIDTH, VERTICAL_PADDING + FONT_WIDTH * (i+1) + 5, RGB_8888(0xFF, 0xFF, 0xFF));
 			}
+			
+			// Show Chat Line
+			drawSmallFont(canvas, chatline, HORIZONTAL_PADDING, INPUT_LINE_Y, RGB_8888(0x00, 0xFF, 0x00));
 			
 			// Fix Keyphrase Index
 			int phraseindex = BUTTON_MAPPINGS_ON_SCREEN * phrasepackage;
@@ -161,34 +173,6 @@ void drawNotification(CANVAS * canvas)
 		// Draw Text Centered
 		drawSmallFont(canvas, text, GET_MIDDLE_ALIGN_X(text), BOTTOM_LINE, RGB_8888(0x00, 0xFF, 0x00));
 	}
-}
-
-// Register Keyphrase
-int registerKeyPhrase(char * phrase)
-{
-	// Find Free Slot
-	int i = 0; for(; i < KEYPHRASE_COUNT; i++)
-	{
-		// Free Slot found
-		if(keyphrases[i][0] == 0)
-		{
-			// Copy Keyphrase
-			strncpy(keyphrases[i], phrase, CHAT_TRUNCATE);
-			
-			// Fix Characters
-			int j = 0; for(; j < strlen(keyphrases[i]); j++)
-			{
-				// Fix Character
-				keyphrases[i][j] = convertChar((uint8_t)keyphrases[i][j]);
-			}
-			
-			// Return Success
-			return 1;
-		}
-	}
-	
-	// No Space
-	return 0;
 }
 
 // Add Chat Log
@@ -361,14 +345,29 @@ void handleKeyEvent(uint32_t prev, uint32_t curr)
 				// Calculate Absolute Index
 				keyphraseindex += BUTTON_MAPPINGS_ON_SCREEN * phrasepackage;
 				
-				// Filled Keyphrase Slot
-				if(keyphrases[keyphraseindex][0] != 0)
+				// Add Letter to Text
+				if(keyphraseindex < 28 && strlen(chatline) < CHAT_TRUNCATE) strcpy(chatline + strlen(chatline), keyphrases[keyphraseindex]);
+				
+				// Clear Input
+				else if(keyphraseindex == 28 && strlen(chatline) > 0) chatline[0] = 0;
+				
+				// Put Space Symbol
+				else if(keyphraseindex == 29 && strlen(chatline) < CHAT_TRUNCATE) strcpy(chatline + strlen(chatline), " ");
+				
+				// Delete Letter
+				else if(keyphraseindex == 31 && strlen(chatline) > 0) chatline[strlen(chatline) - 1] = 0;
+				
+				// Send Text
+				else if(keyphraseindex == 30 && strlen(chatline) > 0)
 				{
 					// Schedule Chat Message for Sending via Adhoc Control Emulator
-					addToOutbox(keyphrases[keyphraseindex]);
+					addToOutbox(chatline);
 					
 					// Add to own Chat Log
-					addChatLog("ME", keyphrases[keyphraseindex]);
+					addChatLog("ME", chatline);
+					
+					// Clear Chat Line
+					chatline[0] = 0;
 				}
 			}
 		}
