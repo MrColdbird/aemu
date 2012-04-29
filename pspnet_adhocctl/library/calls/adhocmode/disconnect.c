@@ -44,20 +44,17 @@ int proNetAdhocctlDisconnect(void)
 			
 			// Multithreading Unlock
 			_freePeerLock();
-			
-			// Notify Event Handlers
-			int i = 0; for(; i < ADHOCCTL_MAX_HANDLER; i++)
-			{
-				// Active Handler
-				if(_event_handler[i] != NULL) _event_handler[i](ADHOCCTL_EVENT_DISCONNECT, 0, _event_args[i]);
-			}
-			
-			// Return Success
-			return 0;
 		}
 		
-		// Connected State
-		return ADHOCCTL_BUSY;
+		// Notify Event Handlers (even if we weren't connected, not doing this will freeze games like God Eater, which expect this behaviour)
+		int i = 0; for(; i < ADHOCCTL_MAX_HANDLER; i++)
+		{
+			// Active Handler
+			if(_event_handler[i] != NULL) _event_handler[i](ADHOCCTL_EVENT_DISCONNECT, 0, _event_args[i]);
+		}
+		
+		// Return Success
+		return 0;
 	}
 	
 	// Library uninitialized
