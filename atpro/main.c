@@ -375,6 +375,12 @@ int input_thread(SceSize args, void * argp)
 	// Kernel Clock Variables
 	SceKernelSysClock clock_start, clock_end;
 	
+	// Exit Button pressed
+	int is_exit_button_pressed = 0;
+	
+	// Exit Button Clock Variables
+	SceKernelSysClock exit_press_start, exit_press_end;
+	
 	// Endless Loop
 	while(running == 1)
 	{
@@ -393,8 +399,8 @@ int input_thread(SceSize args, void * argp)
 		// Register Button
 		curr_buttons = ctrl.Buttons;
 		
-		// Home Button pressed
-		if((prev_buttons & PSP_CTRL_HOME) == 0 && (curr_buttons & PSP_CTRL_HOME) != 0)
+		// Home Button pressed (and not pressing exit button)
+		if(!is_exit_button_pressed && (prev_buttons & PSP_CTRL_HOME) == 0 && (curr_buttons & PSP_CTRL_HOME) != 0)
 		{
 			// Enable or Disable GUI Overlay
 			hud_on = !hud_on;
@@ -403,11 +409,41 @@ int input_thread(SceSize args, void * argp)
 		// Home Menu Button Events
 		else if(hud_on)
 		{
-			// Exit to VSH
-			if((curr_buttons & PSP_CTRL_START) != 0)
+			// First Exit Button Press
+			if(!is_exit_button_pressed && (prev_buttons & PSP_CTRL_START) == 0 && (curr_buttons & PSP_CTRL_START) != 0)
+			{
+				// Activate Exit Button Press Flag
+				is_exit_button_pressed = 1;
+				
+				// Start Press Timer
+				sceKernelGetSystemTime(&exit_press_start);
+				
+				// Clone Data to End Press Timer
+				exit_press_end = exit_press_start;
+			}
+			
+			// Lifted Exit Button
+			else if(is_exit_button_pressed && (prev_buttons & PSP_CTRL_START) != 0 && (curr_buttons & PSP_CTRL_START) == 0)
+			{
+				// Deactivate Exit Button Press Flag
+				is_exit_button_pressed = 0;
+			}
+			
+			// Held Exit Button
+			else if(is_exit_button_pressed && (prev_buttons & PSP_CTRL_START) != 0 && (curr_buttons & PSP_CTRL_START) != 0)
+			{
+				// Update End Press Timer
+				sceKernelGetSystemTime(&exit_press_end);
+			}
+			
+			// Exit to VSH (if button got pressed for 3 seconds)
+			if(is_exit_button_pressed && (exit_press_end.low - exit_press_start.low) >= 3000000)
 			{
 				// Reboot into VSH Rebooter Homebrew (and reset memory layout at that)
 				safe_exit();
+				
+				// Stop Processing
+				break;
 			}
 			
 			// Pass Event to HUD Handler
