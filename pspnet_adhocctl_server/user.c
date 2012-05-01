@@ -1,6 +1,7 @@
 #include <malloc.h>
 #include <string.h>
 #include <user.h>
+#include <status.h>
 #include <config.h>
 
 // User Count
@@ -19,49 +20,56 @@ SceNetAdhocctlGameNode * _db_game = NULL;
  */
 void login_user_stream(int fd, uint32_t ip)
 {
-	// Check IP Duplication
-	SceNetAdhocctlUserNode * u = _db_user;
-	while(u != NULL && u->resolver.ip != ip) u = u->next;
-	
-	// Unique IP Address
-	if(u == NULL)
+	// Enough Space available
+	if(_db_user_count < SERVER_USER_MAXIMUM)
 	{
-		// Allocate User Node Memory
-		SceNetAdhocctlUserNode * user = (SceNetAdhocctlUserNode *)malloc(sizeof(SceNetAdhocctlUserNode));
+		// Check IP Duplication
+		SceNetAdhocctlUserNode * u = _db_user;
+		while(u != NULL && u->resolver.ip != ip) u = u->next;
 		
-		// Allocated User Node Memory
-		if(user != NULL)
+		// Unique IP Address
+		if(u == NULL)
 		{
-			// Clear Memory
-			memset(user, 0, sizeof(SceNetAdhocctlUserNode));
+			// Allocate User Node Memory
+			SceNetAdhocctlUserNode * user = (SceNetAdhocctlUserNode *)malloc(sizeof(SceNetAdhocctlUserNode));
 			
-			// Save Socket
-			user->stream = fd;
-			
-			// Save IP
-			user->resolver.ip = ip;
-			
-			// Link into User List
-			user->next = _db_user;
-			if(_db_user != NULL) _db_user->prev = user;
-			_db_user = user;
-			
-			// Initialize Death Clock
-			user->last_recv = time(NULL);
-			
-			// Notify User
-			uint8_t * ipa = (uint8_t *)&user->resolver.ip;
-			printf("New Connection from %u.%u.%u.%u.\n", ipa[0], ipa[1], ipa[2], ipa[3]);
-			
-			// Fix User Counter
-			_db_user_count++;
-			
-			// Exit Function
-			return;
+			// Allocated User Node Memory
+			if(user != NULL)
+			{
+				// Clear Memory
+				memset(user, 0, sizeof(SceNetAdhocctlUserNode));
+				
+				// Save Socket
+				user->stream = fd;
+				
+				// Save IP
+				user->resolver.ip = ip;
+				
+				// Link into User List
+				user->next = _db_user;
+				if(_db_user != NULL) _db_user->prev = user;
+				_db_user = user;
+				
+				// Initialize Death Clock
+				user->last_recv = time(NULL);
+				
+				// Notify User
+				uint8_t * ipa = (uint8_t *)&user->resolver.ip;
+				printf("New Connection from %u.%u.%u.%u.\n", ipa[0], ipa[1], ipa[2], ipa[3]);
+				
+				// Fix User Counter
+				_db_user_count++;
+				
+				// Update Status Log
+				update_status();
+				
+				// Exit Function
+				return;
+			}
 		}
 	}
 		
-	// Duplicate IP or Allocation Error - Close Stream
+	// Duplicate IP, Allocation Error or not enough space - Close Stream
 	close(fd);
 }
 
@@ -136,6 +144,9 @@ void login_user_data(SceNetAdhocctlUserNode * user, SceNetAdhocctlLoginPacketC2S
 			memset(safegamestr, 0, sizeof(safegamestr));
 			strncpy(safegamestr, game->game.data, PRODUCT_CODE_LENGTH);
 			printf("%s (MAC: %02X:%02X:%02X:%02X:%02X:%02X - IP: %u.%u.%u.%u) started playing %s.\n", (char *)user->resolver.name.data, user->resolver.mac.data[0], user->resolver.mac.data[1], user->resolver.mac.data[2], user->resolver.mac.data[3], user->resolver.mac.data[4], user->resolver.mac.data[5], ip[0], ip[1], ip[2], ip[3], safegamestr);
+			
+			// Update Status Log
+			update_status();
 			
 			// Leave Function
 			return;
@@ -218,6 +229,9 @@ void logout_user(SceNetAdhocctlUserNode * user)
 	
 	// Fix User Counter
 	_db_user_count--;
+	
+	// Update Status Log
+	update_status();
 }
 
 /**
@@ -247,9 +261,6 @@ void free_database(void)
  */
 void connect_user(SceNetAdhocctlUserNode * user, SceNetAdhocctlGroupName * group)
 {
-	// TODO Group Name Checks (Only Digits and Letters)
-	// TODO Make Client use Central Server
-	
 	// Group Name Check
 	int valid_group_name = 1;
 	{
@@ -390,6 +401,9 @@ void connect_user(SceNetAdhocctlUserNode * user, SceNetAdhocctlGroupName * group
 				memset(safegroupstr, 0, sizeof(safegroupstr));
 				strncpy(safegroupstr, (char *)user->group->group.data, ADHOCCTL_GROUPNAME_LEN);
 				printf("%s (MAC: %02X:%02X:%02X:%02X:%02X:%02X - IP: %u.%u.%u.%u) joined %s group %s.\n", (char *)user->resolver.name.data, user->resolver.mac.data[0], user->resolver.mac.data[1], user->resolver.mac.data[2], user->resolver.mac.data[3], user->resolver.mac.data[4], user->resolver.mac.data[5], ip[0], ip[1], ip[2], ip[3], safegamestr, safegroupstr);
+
+				// Update Status Log
+				update_status();
 				
 				// Exit Function
 				return;
@@ -509,6 +523,9 @@ void disconnect_user(SceNetAdhocctlUserNode * user)
 		user->group = NULL;
 		user->group_next = NULL;
 		user->group_prev = NULL;
+		
+		// Update Status Log
+		update_status();
 		
 		// Exit Function
 		return;

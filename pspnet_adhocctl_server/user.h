@@ -74,10 +74,10 @@ struct SceNetAdhocctlGameNode {
 	SceNetAdhocctlProductCode game;
 	
 	// Number of Players
-	int playercount;
+	uint32_t playercount;
 	
 	// Number of Groups
-	int groupcount;
+	uint32_t groupcount;
 	
 	// Double-Linked Group List
 	SceNetAdhocctlGroupNode * group;
@@ -98,7 +98,7 @@ struct SceNetAdhocctlGroupNode {
 	SceNetAdhocctlGroupName group;
 	
 	// Number of Players
-	int playercount;
+	uint32_t playercount;
 	
 	// Double-Linked Player List
 	SceNetAdhocctlUserNode * player;

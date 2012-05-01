@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -fpack-struct -I.
-OBJ = main.o user.o
+OBJ = main.o user.o status.o
 TARGET = pspnet_adhocctl_server
 
 %.o: %.c
@@ -9,6 +9,7 @@ TARGET = pspnet_adhocctl_server
 $(TARGET): $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS)
 	mv $(TARGET) ../dist/server
+	cp index.php ../dist/server
 
 clean:
 #	rm -rf $(TARGET) *.o *~

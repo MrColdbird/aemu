@@ -15,4 +15,7 @@
 // Server User Timeout (in seconds)
 #define SERVER_USER_TIMEOUT 15
 
+// Server Status Logfile
+#define SERVER_STATUS_LOGFILE "status.log"
+
 #endif

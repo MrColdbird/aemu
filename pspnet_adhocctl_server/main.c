@@ -11,6 +11,7 @@
 #include <errno.h>
 #include <config.h>
 #include <user.h>
+#include <status.h>
 
 // Server Status
 int _status = 0;
@@ -165,6 +166,9 @@ int server_loop(int server)
 {
 	// Set Running Status
 	_status = 1;
+	
+	// Create Empty Status Logfile
+	update_status();
 	
 	// Handling Loop
 	while(_status == 1)
