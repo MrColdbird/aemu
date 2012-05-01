@@ -8,8 +8,92 @@
 	// Game Product ID Resolver
 	function gamename($productcode)
 	{
+		// Ace Combat Joint Assault
+		if($productcode == "ULUS10511") return "Ace Combat X2";
+		
+		// Armored Core 3 Portable
+		if($productcode == "NPUH10023") return "Armored Core 3";
+		
+		// Blood Bowl
+		if($productcode == "ULUS10516") return "Blood Bowl";
+		
+		// Dissidia Final Fantasy
+		if($productcode == "ULUS10437") return "Dissidia FF";
+		
+		// Dissidia Duodecim Final Fantasy
+		if($productcode == "ULUS10566") return "Dissidia 012 FF";
+		
+		// Dungeon Siege Throne of Agony
+		if($productcode == "ULUS10177") return "Dungeon Siege TOA";
+		
+		// Fat Princess Fistful of Cake
+		if($productcode == "UCUS98740") return "Fat Princess";
+		
+		// Japanese God Eater
+		if($productcode == "ULJS00237") return "God Eater";
+		
 		// God Eater Burst
 		if($productcode == "ULUS10563") return "God Eater Burst";
+		
+		// Japanese Metal Gear Solid Peace Walker
+		if($productcode == "NPJH50045") return "MGS Peace Walker";
+		
+		// Metal Gear Solid Portable Ops+
+		if($productcode == "ULUS10290") return "MGS Portable Ops+";
+		
+		// Metal Gear Solid Portable Ops
+		if($productcode == "ULUS10202") return "MGS Portable Ops";
+		
+		// Split Second
+		if($productcode == "ULUS10513") return "Split Second";
+		
+		// SOCOM Fireteam Bravo
+		if($productcode == "UCUS98615") return "SOCOM FTB";
+		
+		// SOCOM Fireteam Bravo 2
+		if($productcode == "UCUS98645") return "SOCOM FTB2";
+		
+		// SOCOM Fireteam Bravo 3
+		if($productcode == "UCUS98716") return "SOCOM FTB3";
+		
+		// Mod Nation Racers
+		if($productcode == "UCUS98741") return "Mod Nation Racers";
+		
+		// Monster Hunter Portable 2nd G (MHFU)
+		if($productcode == "ULUS10391") return "Monster Hunter 2nd G";
+		
+		// Japanese Monster Hunter Portable 3rd
+		if($productcode == "ULJM05800") return "Monster Hunter 3";
+		
+		// MLB11 The Show
+		if($productcode == "UCUS98758") return "MLB11 The Show";
+		
+		// Outrun 2006 Coast 2 Coast
+		if($productcode == "ULUS10064") return "Outrun 2006 C2C";
+		
+		// Warship Gunner 2 Portable
+		if($productcode == "ULJM05553") return "Warship Gunner 2";
+		
+		// Untold Legends 2 The Warriors Code
+		if($productcode == "ULUS10086") return "Untold Legends 2";
+		
+		// Untold Legends Brotherhood of the Blade
+		if($productcode == "ULUS10003") return "Untold Legends";
+		
+		// Pangya Fantasy Golf
+		if($productcode == "ULUS10438") return "Pangya";
+		
+		// Virtua Tennis 3
+		if($productcode == "ULUS10246") return "Virtua Tennis 3";
+		
+		// Worms Open Warfare
+		if($productcode == "ULUS10065") return "Worms Open Warfare";
+		
+		// Worm Open Warfare 2
+		if($productcode == "ULUS10260") return "Worms Open Warfare 2";
+		
+		// Worm Battle Islands
+		if($productcode == "NPUH10045") return "Worms Battle Islands";
 		
 		// Unknown Product Code
 		return "Unknown Title";

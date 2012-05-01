@@ -10,6 +10,7 @@ $(TARGET): $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS)
 	mv $(TARGET) ../dist/server
 	cp index.php ../dist/server
+	cp -r icons ../dist/server
 
 clean:
 #	rm -rf $(TARGET) *.o *~

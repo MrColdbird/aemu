@@ -753,6 +753,18 @@ void game_product_relink(SceNetAdhocctlProductCode * product, char * from, char 
  */
 void game_product_override(SceNetAdhocctlProductCode * product)
 {
+	// Ace Combat Joint Assault EU -> US
+	game_product_relink(product, "ULES01408", "ULUS10511");
+	
+	// Ace Combat Joint Assault JPN -> US
+	game_product_relink(product, "NPJH50263", "ULUS10511");
+	
+	// Armored Core 3 Portable JPN -> US
+	game_product_relink(product, "ULJM05492", "NPUH10023");
+	
+	// Dungeon Siege Throne of Agony EU -> US
+	game_product_relink(product, "ULES00569", "ULUS10177");
+	
 	// God Eater Burst EU -> US
 	game_product_relink(product, "ULES01519", "ULUS10563");
 	
@@ -771,11 +783,23 @@ void game_product_override(SceNetAdhocctlProductCode * product)
 	// Fat Princess JPN -> US
 	game_product_relink(product, "NPHG00025", "UCUS98740");
 	
+	// SOCOM Fireteam Bravo EU -> US
+	game_product_relink(product, "UCES00038", "UCUS98615");
+	
+	// SOCOM Fireteam Bravo JPN -> US
+	game_product_relink(product, "UCJS10102", "UCUS98615");
+	
+	// SOCOM Fireteam Bravo 2 EU -> US
+	game_product_relink(product, "UCES00543", "UCUS98645");
+	
 	// SOCOM Fireteam Bravo 3 EU -> US
 	game_product_relink(product, "UCES01242", "UCUS98716");
 	
 	// SOCOM Fireteam Bravo 3 JPN -> US
 	game_product_relink(product, "NPJG00035", "UCUS98716");
+	
+	// Outrun 2006 Coast 2 Coast EU -> US
+	game_product_relink(product, "ULES00262", "ULUS10064");
 	
 	// Tekken 6 EU -> US
 	game_product_relink(product, "ULES01376", "ULUS10466");
@@ -788,5 +812,83 @@ void game_product_override(SceNetAdhocctlProductCode * product)
 	
 	// Soul Calibur JPN -> US
 	game_product_relink(product, "ULJS00202", "ULUS10457");
+	
+	// Dissidia 012 EU -> US
+	game_product_relink(product, "ULES01505", "ULUS10566");
+	
+	// Dissidia 012 JPN -> US
+	game_product_relink(product, "NPJH50377", "ULUS10566");
+	
+	// Dissidia EU -> US
+	game_product_relink(product, "ULES01270", "ULUS10437");
+	
+	// Dissidia JPN -> US
+	game_product_relink(product, "ULJM05262", "ULUS10437");
+	
+	// Metal Gear Solid Portable Ops+ EU -> US
+	game_product_relink(product, "ULES01003", "ULUS10290");
+	
+	// Metal Gear Solid Portable Ops+ JPN -> US
+	game_product_relink(product, "ULJM05261", "ULUS10290");
+	
+	// Metal Gear Solid Portable Ops EU -> US
+	game_product_relink(product, "ULES00645", "ULUS10202");
+	
+	// Metal Gear Solid Portable Ops JPN -> US
+	game_product_relink(product, "ULJM05193", "ULUS10202");
+	
+	// Untold Legends The Warriors Code EU -> US
+	game_product_relink(product, "ULES00301", "ULUS10086");
+	
+	// Untold Legends The Warriors Code JPN -> US
+	game_product_relink(product, "ULJM05179", "ULUS10086");
+	
+	// Untold Legends The Warriors Code KOR -> US
+	game_product_relink(product, "ULKS46069", "ULUS10086");
+	
+	// Untold Legends Brotherhood of the Blade EU -> US
+	game_product_relink(product, "ULES00046", "ULUS10003");
+	
+	// Untold Legends Brotherhood of the Blade JPN -> US
+	game_product_relink(product, "ULJM05087", "ULUS10003");
+	
+	// Untold Legends Brotherhood of the Blade KOR -> US
+	game_product_relink(product, "ULKS46015", "ULUS10003");
+	
+	// Pangya Fantasy Golf JPN -> US
+	game_product_relink(product, "ULJM05440", "ULUS10438");
+	
+	// Pangya Fantasy Golf KOR -> US
+	game_product_relink(product, "ULKS46164", "ULUS10438");
+	
+	// Mod Nation Racers EU -> US
+	game_product_relink(product, "UCES01327", "UCUS98741");
+	
+	// Mod Nation Racers JPN -> US
+	game_product_relink(product, "UCJS10112", "UCUS98741");
+	
+	// Mod Nation Racers ASIA -> US
+	game_product_relink(product, "UCAS40306", "UCUS98741");
+	
+	// Monster Hunter 2nd G (MHFU) EU -> US
+	game_product_relink(product, "ULES01213", "ULUS10391");
+	
+	// Monster Hunter 2nd G (MHFU) JPN -> US
+	game_product_relink(product, "ULJM05500", "ULUS10391");
+	
+	// Virtua Tennis 3 EU -> US
+	game_product_relink(product, "ULES00763", "ULUS10246");
+	
+	// Worms Open Warfare 2 EU -> US
+	game_product_relink(product, "ULES00819", "ULUS10260");
+	
+	// Worms Open Warfare EU -> US
+	game_product_relink(product, "ULES00268", "ULUS10065");
+	
+	// Worms Battle Islands EU -> US
+	game_product_relink(product, "NPEH00019", "NPUH10045");
+	
+	// Blood Bowl EU -> US
+	game_product_relink(product, "ULES01230", "ULUS10516");
 }
 
