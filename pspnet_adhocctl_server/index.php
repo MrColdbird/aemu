@@ -5,6 +5,27 @@
 <body style="background-color:white; color:black; font-family:sans-serif;">
 <div align="center">
 <?php
+	// Unknown Product ID Logger (for easier manual name resolving)
+	function logcode($productcode)
+	{
+		// Log Folder doesn't exist
+		if(!file_exists("log"))
+		{
+			// Create Log Folder
+			mkdir("log");
+		}
+		
+		// Log Folder exists
+		if(is_dir("log"))
+		{
+			// Path Puzzling
+			$path = "log/" . $productcode;
+			
+			// Create Product ID File for "ls"
+			if(!file_exists($path)) touch($path);
+		}
+	}
+	
 	// Game Product ID Resolver
 	function gamename($productcode)
 	{
@@ -98,6 +119,9 @@
 		// Worm Battle Islands
 		if($productcode == "NPUH10045") return "Worms Battle Islands";
 		
+		// Log Unknown Product Code
+		logcode($productcode);
+		
 		// Unknown Product Code
 		return "Unknown Title";
 	}
@@ -115,7 +139,7 @@
 		$serveruc = rtrim(fgets($fd));
 		
 		// Read Success
-		if($serveruc)
+		if($serveruc >= 0)
 		{
 ?>
 <div style="padding:10px; margin:5px;">

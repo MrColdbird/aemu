@@ -864,6 +864,9 @@ void game_product_override(SceNetAdhocctlProductCode * product)
 	// PES 2012 EU -> US
 	game_product_relink(product, "ULES01540", "ULUS10586");
 	
+	// PES 2012 (Winning Eleven) JPN -> US
+	game_product_relink(product, "ULAS42289", "ULUS10586");
+	
 	// Pangya Fantasy Golf KOR -> US
 	game_product_relink(product, "ULKS46164", "ULUS10438");
 	
