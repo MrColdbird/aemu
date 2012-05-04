@@ -804,8 +804,11 @@ void game_product_override(SceNetAdhocctlProductCode * product)
 	// Tekken 6 EU -> US
 	game_product_relink(product, "ULES01376", "ULUS10466");
 	
-	// Tekken 6 JPN -> US
+	// Tekken 6 JPN PSN -> US
 	game_product_relink(product, "NPJH50184", "ULUS10466");
+	
+	// Tekken 6 JPN UMD -> US
+	game_product_relink(product, "ULJS00224", "ULUS10466");
 	
 	// Soul Calibur EU -> US
 	game_product_relink(product, "ULES01298", "ULUS10457");
