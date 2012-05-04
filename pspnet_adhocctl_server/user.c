@@ -858,6 +858,9 @@ void game_product_override(SceNetAdhocctlProductCode * product)
 	// Pangya Fantasy Golf JPN -> US
 	game_product_relink(product, "ULJM05440", "ULUS10438");
 	
+	// PES 2012 EU -> US
+	game_product_relink(product, "ULES01540", "ULUS10586");
+	
 	// Pangya Fantasy Golf KOR -> US
 	game_product_relink(product, "ULKS46164", "ULUS10438");
 	

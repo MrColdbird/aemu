@@ -83,6 +83,9 @@
 		// Pangya Fantasy Golf
 		if($productcode == "ULUS10438") return "Pangya";
 		
+		// PES 2012
+		if($productcode == "ULUS10586") return "PES 2012";
+		
 		// Virtua Tennis 3
 		if($productcode == "ULUS10246") return "Virtua Tennis 3";
 		
