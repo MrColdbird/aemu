@@ -239,7 +239,17 @@ void logout_user(SceNetAdhocctlUserNode * user)
  */
 void free_database(void)
 {
-	// Iterate Users
+	// There are users playing
+	if(_db_user_count > 0)
+	{
+		// Send Shutdown Notice
+		spread_message(NULL, SERVER_SHUTDOWN_MESSAGE);
+		
+		// Give them 1 minute time to flee
+		sleep(60);
+	}
+	
+	// Iterate Users for Deletion
 	SceNetAdhocctlUserNode * user = _db_user;
 	while(user != NULL)
 	{
@@ -627,8 +637,38 @@ void send_scan_results(SceNetAdhocctlUserNode * user)
  */
 void spread_message(SceNetAdhocctlUserNode * user, char * message)
 {
+	// Global Notice
+	if(user == NULL)
+	{
+		// Iterate Players
+		for(user = _db_user; user != NULL; user = user->next)
+		{
+			// Player has access to chat
+			if(user->group != NULL)
+			{
+				// Chat Packet
+				SceNetAdhocctlChatPacketS2C packet;
+				
+				// Clear Memory
+				memset(&packet, 0, sizeof(packet));
+				
+				// Set Chat Opcode
+				packet.base.base.opcode = OPCODE_CHAT;
+				
+				// Set Chat Message
+				strcpy(packet.base.message, message);
+				
+				// Send Data
+				send(user->stream, &packet, sizeof(packet), 0);
+			}
+		}
+		
+		// Prevent NULL Error
+		return;
+	}
+	
 	// User is connected
-	if(user->group != NULL)
+	else if(user->group != NULL)
 	{
 		// Broadcast Range Counter
 		uint32_t counter = 0;
@@ -884,6 +924,9 @@ void game_product_override(SceNetAdhocctlProductCode * product)
 	
 	// Monster Hunter 2nd G (MHFU) JPN -> US
 	game_product_relink(product, "ULJM05500", "ULUS10391");
+	
+	// N+ EU -> US
+	game_product_relink(product, "ULES01026", "ULUS10340");
 	
 	// Virtua Tennis 3 EU -> US
 	game_product_relink(product, "ULES00763", "ULUS10246");

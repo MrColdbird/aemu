@@ -18,4 +18,7 @@
 // Server Status Logfile
 #define SERVER_STATUS_LOGFILE "status.log"
 
+// Server Shutdown Message
+#define SERVER_SHUTDOWN_MESSAGE "PENDING SERVER UPDATES! 1 MINUTE UNTIL REBOOT!"
+
 #endif

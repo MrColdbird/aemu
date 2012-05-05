@@ -34,8 +34,11 @@ int main(int argc, char * argv[])
 	// Result
 	int result = 0;
 	
-	// Create Signal Receiver
+	// Create Signal Receiver for CTRL + C
 	signal(SIGINT, interrupt);
+	
+	// Create Signal Receiver for kill / killall
+	signal(SIGTERM, interrupt);
 	
 	// Create Listening Socket
 	int server = create_listen_socket(SERVER_PORT);
@@ -357,11 +360,11 @@ int server_loop(int server)
 		usleep(1000);
 	}
 	
-	// Close Server Socket
-	close(server);
-	
 	// Free User Database Memory
 	free_database();
+	
+	// Close Server Socket
+	close(server);
 	
 	// Return Success
 	return 0;

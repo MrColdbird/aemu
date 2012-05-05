@@ -37,6 +37,7 @@ typedef struct
 {
 	char sender[NICKNAME_TRUNCATE + 1];
 	char message[CHAT_TRUNCATE + 1];
+	uint32_t color;
 } ChatLog;
 
 // Chat Messages
@@ -71,14 +72,18 @@ int usercount = 1;
 // Show Notification Flag
 int shownotification = 0;
 
+// Show Server Notification Flag
+int showservernotification = 0;
+
 // Paint HUD Overlay
 void drawInfo(CANVAS * canvas)
 {
 	// Online Mode
 	if(onlinemode)
 	{
-		// Erase Notification Flag
+		// Erase Notification Flags
 		shownotification = 0;
+		showservernotification = 0;
 		
 		// Connected to Server
 		if(connected_to_prometheus)
@@ -93,13 +98,13 @@ void drawInfo(CANVAS * canvas)
 				if(chatlog[i].message[0] == 0) break;
 				
 				// Print 8-Character Truncated Nickname
-				drawSmallFont(canvas, chatlog[i].sender, HORIZONTAL_PADDING, VERTICAL_PADDING + FONT_WIDTH * (i+1) + 5, RGB_8888(0xFF, 0xFF, 0xFF));
+				drawSmallFont(canvas, chatlog[i].sender, HORIZONTAL_PADDING, VERTICAL_PADDING + FONT_WIDTH * (i+1) + 5, chatlog[i].color);
 				
 				// Print Delimiter
 				drawSmallFont(canvas, ":", HORIZONTAL_PADDING + FONT_WIDTH * NICKNAME_TRUNCATE, VERTICAL_PADDING + FONT_WIDTH * (i+1) + 5, RGB_8888(0xFF, 0xFF, 0xFF));
 				
 				// Print 63-Character Text Message
-				drawSmallFont(canvas, chatlog[i].message, HORIZONTAL_PADDING + FONT_WIDTH * NICKNAME_TRUNCATE + FONT_WIDTH, VERTICAL_PADDING + FONT_WIDTH * (i+1) + 5, RGB_8888(0xFF, 0xFF, 0xFF));
+				drawSmallFont(canvas, chatlog[i].message, HORIZONTAL_PADDING + FONT_WIDTH * NICKNAME_TRUNCATE + FONT_WIDTH, VERTICAL_PADDING + FONT_WIDTH * (i+1) + 5, chatlog[i].color);
 			}
 			
 			// Show Chat Line
@@ -164,8 +169,18 @@ void drawInfo(CANVAS * canvas)
 // Paint Notification Overlay
 void drawNotification(CANVAS * canvas)
 {
+	// New Incoming Server Notice
+	if(showservernotification)
+	{
+		// Notification Text
+		char * text = "INCOMING SERVER NOTICE";
+		
+		// Draw Text Centered
+		drawSmallFont(canvas, text, GET_MIDDLE_ALIGN_X(text), BOTTOM_LINE, RGB_8888(0xFF, 0xD7, 0x00));
+	}
+	
 	// New Incoming Message
-	if(shownotification)
+	else if(shownotification)
 	{
 		// Notification Text
 		char * text = "INCOMING MESSAGE";
@@ -232,8 +247,28 @@ void addChatLog(char * nickname, char * text)
 		storage->message[i] = convertChar((uint8_t)storage->message[i]);
 	}
 	
-	// Activate Notification
-	if(strcmp(nickname, "ME") != 0) shownotification = 1;
+	// Server Notification
+	if(nickname[0] == 0)
+	{
+		// Fix Sender Name
+		strcpy(storage->sender, "SERVER");
+		
+		// Activate Notification
+		showservernotification = 1;
+		
+		// Set Message Color
+		storage->color = RGB_8888(0xFF, 0xD7, 0x00);
+	}
+	
+	// User Chat Message
+	else if(strcmp(nickname, "ME") != 0)
+	{
+		// Activate Notification
+		shownotification = 1;
+		
+		// Set Message Color
+		storage->color = RGB_8888(0xFF, 0xFF, 0xFF);
+	}
 }
 
 // Add Message to Outbox
