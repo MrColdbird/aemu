@@ -247,6 +247,9 @@ void addChatLog(char * nickname, char * text)
 		storage->message[i] = convertChar((uint8_t)storage->message[i]);
 	}
 	
+	// Set Message Color
+	storage->color = RGB_8888(0xFF, 0xFF, 0xFF);
+	
 	// Server Notification
 	if(nickname[0] == 0)
 	{
@@ -265,9 +268,6 @@ void addChatLog(char * nickname, char * text)
 	{
 		// Activate Notification
 		shownotification = 1;
-		
-		// Set Message Color
-		storage->color = RGB_8888(0xFF, 0xFF, 0xFF);
 	}
 }
 
