@@ -56,6 +56,9 @@
 		// God Eater Burst
 		if($productcode == "ULUS10563") return "God Eater Burst";
 		
+		// K-ON! Houkago Live
+		if($productcode == "ULJM05709") return "K-ON! Houkago Live";
+		
 		// Japanese Metal Gear Solid Peace Walker
 		if($productcode == "NPJH50045") return "MGS Peace Walker";
 		
