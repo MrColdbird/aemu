@@ -77,6 +77,9 @@
 		// SOCOM Fireteam Bravo 3
 		if($productcode == "UCUS98716") return "SOCOM FTB3";
 		
+		// Tekken 6
+		if($productcode == "ULUS10466") return "Tekken 6";
+		
 		// Mod Nation Racers
 		if($productcode == "UCUS98741") return "Mod Nation Racers";
 		
