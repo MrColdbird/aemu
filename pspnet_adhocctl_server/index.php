@@ -90,7 +90,7 @@
 		if($productcode == "ULUS10391") return "Monster Hunter 2nd G";
 		
 		// N+
-		if($productcode == "ULUS10391") return "N+";
+		if($productcode == "ULUS10340") return "N+";
 		
 		// Japanese Monster Hunter Portable 3rd
 		if($productcode == "ULJM05800") return "Monster Hunter 3";
