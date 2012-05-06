@@ -83,6 +83,9 @@
 		// Soul Calibur - Broken Destiny
 		if($productcode == "ULUS10457") return "Soul Calibur";
 		
+		// Street Fighter Alpha 3
+		if($productcode == "ULUS10062") return "SF Alpha 3";
+		
 		// Tekken 6
 		if($productcode == "ULUS10466") return "Tekken 6";
 		
