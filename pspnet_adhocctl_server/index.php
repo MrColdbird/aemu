@@ -80,6 +80,9 @@
 		// SOCOM Fireteam Bravo 3
 		if($productcode == "UCUS98716") return "SOCOM FTB3";
 		
+		// Soul Calibur - Broken Destiny
+		if($productcode == "ULUS10457") return "Soul Calibur";
+		
 		// Tekken 6
 		if($productcode == "ULUS10466") return "Tekken 6";
 		
