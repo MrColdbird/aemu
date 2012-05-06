@@ -89,6 +89,9 @@
 		// Tekken 6
 		if($productcode == "ULUS10466") return "Tekken 6";
 		
+		// Midnight Club LA Remix
+		if($productcode == "ULUS10383") return "Midnight Club LA Remix";
+		
 		// Mod Nation Racers
 		if($productcode == "UCUS98741") return "Mod Nation Racers";
 		

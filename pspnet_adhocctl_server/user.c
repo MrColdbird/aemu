@@ -912,6 +912,12 @@ void game_product_override(SceNetAdhocctlProductCode * product)
 	// Pangya Fantasy Golf KOR -> US
 	game_product_relink(product, "ULKS46164", "ULUS10438");
 	
+	// Midnight Club LA Remix EU -> US
+	game_product_relink(product, "ULES01144", "ULUS10383");
+	
+	// Midnight Club LA Remix JPN -> US
+	game_product_relink(product, "ULJS00180", "ULUS10383");
+	
 	// Mod Nation Racers EU -> US
 	game_product_relink(product, "UCES01327", "UCUS98741");
 	
