@@ -199,29 +199,88 @@ int setframebuf(void *topaddr, int bufferwidth, int pixelformat, int sync)
 // Read Positive Null & Passthrough Hook
 int read_buffer_positive(SceCtrlData * pad_data, int count)
 {
-	if(hud_on) return 0;
-	return sceCtrlReadBufferPositive(pad_data, count);
+	// Passthrough
+	int result = sceCtrlReadBufferPositive(pad_data, count);
+	
+	// PRO HUD on screen
+	if(hud_on)
+	{
+		// Iterate Elements
+		int i = 0; for(; i < count; i++)
+		{
+			// Erase Digital Buttons
+			pad_data[i].Buttons = 0;
+		}
+	}
+	
+	// Return Result
+	return result;
 }
 
 // Peek Positive Null & Passthrough Hook
 int peek_buffer_positive(SceCtrlData * pad_data, int count)
 {
-	if(hud_on) return 0;
-	return sceCtrlPeekBufferPositive(pad_data, count);
+	// Passthrough
+	int result = sceCtrlPeekBufferPositive(pad_data, count);
+	
+	// PRO HUD on screen
+	if(hud_on)
+	{
+		// Iterate Elements
+		int i = 0; for(; i < count; i++)
+		{
+			// Erase Digital Buttons
+			pad_data[i].Buttons = 0;
+		}
+		return 0;
+	}
+	
+	// Return Result
+	return result;
 }
 
 // Read Negative Null & Passthrough Hook
 int read_buffer_negative(SceCtrlData * pad_data, int count)
 {
-	if(hud_on) return 0;
-	return sceCtrlReadBufferNegative(pad_data, count);
+	// Passthrough
+	int result = sceCtrlReadBufferNegative(pad_data, count);
+	
+	// PRO HUD on screen
+	if(hud_on)
+	{
+		// Iterate Elements
+		int i = 0; for(; i < count; i++)
+		{
+			// Erase Digital Buttons
+			pad_data[i].Buttons = 0;
+		}
+		return 0;
+	}
+	
+	// Return Result
+	return result;
 }
 
 // Peek Negative Null & Passthrough Hook
 int peek_buffer_negative(SceCtrlData * pad_data, int count)
 {
-	if(hud_on) return 0;
-	return sceCtrlPeekBufferNegative(pad_data, count);
+	// Passthrough
+	int result = sceCtrlPeekBufferNegative(pad_data, count);
+	
+	// PRO HUD on screen
+	if(hud_on)
+	{
+		// Iterate Elements
+		int i = 0; for(; i < count; i++)
+		{
+			// Erase Digital Buttons
+			pad_data[i].Buttons = 0;
+		}
+		return 0;
+	}
+	
+	// Return Result
+	return result;
 }
 
 // Online Module Start Patcher
