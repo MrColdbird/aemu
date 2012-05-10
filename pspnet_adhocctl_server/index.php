@@ -98,14 +98,20 @@
 		// Mod Nation Racers
 		if($productcode == "UCUS98741") return "Mod Nation Racers";
 		
-		// Monster Hunter Portable 2nd G (MHFU)
-		if($productcode == "ULUS10391") return "Monster Hunter 2nd G";
+		// Monster Hunter Portable
+		if($productcode == "ULUS10084") return "Monster Hunter";
 		
-		// N+
-		if($productcode == "ULUS10340") return "N+";
+		// Monster Hunter Portable 2nd
+		if($productcode == "ULUS10266") return "Monster Hunter 2";
+		
+		// Monster Hunter Portable 2nd G (MHFU)
+		if($productcode == "ULUS10391") return "Monster Hunter 2G";
 		
 		// Japanese Monster Hunter Portable 3rd
 		if($productcode == "ULJM05800") return "Monster Hunter 3";
+		
+		// N+
+		if($productcode == "ULUS10340") return "N+";
 		
 		// MLB11 The Show
 		if($productcode == "UCUS98758") return "MLB11 The Show";

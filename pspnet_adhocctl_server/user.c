@@ -933,6 +933,18 @@ void game_product_override(SceNetAdhocctlProductCode * product)
 	// Monster Hunter 2nd G (MHFU) JPN -> US
 	game_product_relink(product, "ULJM05500", "ULUS10391");
 	
+	// Monster Hunter Portable JPN -> US
+	game_product_relink(product, "ULJM05066", "ULUS10084");
+	
+	// Monster Hunter Portable EU -> US
+	game_product_relink(product, "ULES00318", "ULUS10084");
+	
+	// Monster Hunter Freedom 2 JPN -> US
+	game_product_relink(product, "ULJM05156", "ULUS10266");
+	
+	// Monster Hunter Freedom 2 EU -> US
+	game_product_relink(product, "ULES00851", "ULUS10266");
+	
 	// N+ EU -> US
 	game_product_relink(product, "ULES01026", "ULUS10340");
 	
