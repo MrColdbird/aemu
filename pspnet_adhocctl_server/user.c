@@ -939,6 +939,9 @@ void game_product_override(SceNetAdhocctlProductCode * product)
 	// Virtua Tennis 3 EU -> US
 	game_product_relink(product, "ULES00763", "ULUS10246");
 	
+	// World Series of Poker 2008 EU -> US
+	game_product_relink(product, "ULES00991", "ULUS10321");
+	
 	// Worms Open Warfare 2 EU -> US
 	game_product_relink(product, "ULES00819", "ULUS10260");
 	

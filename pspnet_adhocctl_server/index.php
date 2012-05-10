@@ -50,6 +50,9 @@
 		// Fat Princess Fistful of Cake
 		if($productcode == "UCUS98740") return "Fat Princess";
 		
+		// flOw
+		if($productcode == "NPUG80086") return "flOw";
+		
 		// Japanese God Eater
 		if($productcode == "ULJS00237") return "God Eater";
 		
@@ -127,6 +130,9 @@
 		
 		// Virtua Tennis 3
 		if($productcode == "ULUS10246") return "Virtua Tennis 3";
+		
+		// World Series of Poker - Battle for the Bracelets
+		if($productcode == "ULUS10321") return "World Series of Poker 2008";
 		
 		// Worms Open Warfare
 		if($productcode == "ULUS10065") return "Worms Open Warfare";
