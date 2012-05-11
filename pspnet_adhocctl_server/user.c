@@ -3,6 +3,7 @@
 #include <user.h>
 #include <status.h>
 #include <config.h>
+#include <sqlite3.h>
 
 // User Count
 uint32_t _db_user_count = 0;
@@ -244,9 +245,6 @@ void free_database(void)
 	{
 		// Send Shutdown Notice
 		spread_message(NULL, SERVER_SHUTDOWN_MESSAGE);
-		
-		// Give them 1 minute time to flee
-		sleep(60);
 	}
 	
 	// Iterate Users for Deletion
@@ -793,177 +791,109 @@ void game_product_relink(SceNetAdhocctlProductCode * product, char * from, char 
  */
 void game_product_override(SceNetAdhocctlProductCode * product)
 {
-	// Ace Combat Joint Assault EU -> US
-	game_product_relink(product, "ULES01408", "ULUS10511");
+	// Safe Product Code
+	char productid[PRODUCT_CODE_LENGTH + 1];
 	
-	// Ace Combat Joint Assault JPN -> US
-	game_product_relink(product, "NPJH50263", "ULUS10511");
+	// Prepare Safe Product Code
+	strncpy(productid, product->data, PRODUCT_CODE_LENGTH);
+	productid[PRODUCT_CODE_LENGTH] = 0;
 	
-	// Armored Core 3 Portable JPN -> US
-	game_product_relink(product, "ULJM05492", "NPUH10023");
+	// Database Handle
+	sqlite3 * db = NULL;
 	
-	// Dungeon Siege Throne of Agony EU -> US
-	game_product_relink(product, "ULES00569", "ULUS10177");
-	
-	// God Eater Burst EU -> US
-	game_product_relink(product, "ULES01519", "ULUS10563");
-	
-	// God Eater Burst JPN -> US
-	game_product_relink(product, "NPJH50352", "ULUS10563");
-	
-	// Split Second EU -> US
-	game_product_relink(product, "ULES01402", "ULUS10513");
-	
-	// Split Second JPN -> US
-	game_product_relink(product, "ULJM05812", "ULUS10513");
-	
-	// Fat Princess EU -> US
-	game_product_relink(product, "UCES01312", "UCUS98740");
-	
-	// Fat Princess JPN -> US
-	game_product_relink(product, "NPHG00025", "UCUS98740");
-	
-	// SOCOM Fireteam Bravo EU -> US
-	game_product_relink(product, "UCES00038", "UCUS98615");
-	
-	// SOCOM Fireteam Bravo JPN -> US
-	game_product_relink(product, "UCJS10102", "UCUS98615");
-	
-	// SOCOM Fireteam Bravo 2 EU -> US
-	game_product_relink(product, "UCES00543", "UCUS98645");
-	
-	// SOCOM Fireteam Bravo 3 EU -> US
-	game_product_relink(product, "UCES01242", "UCUS98716");
-	
-	// SOCOM Fireteam Bravo 3 JPN -> US
-	game_product_relink(product, "NPJG00035", "UCUS98716");
-	
-	// Outrun 2006 Coast 2 Coast EU -> US
-	game_product_relink(product, "ULES00262", "ULUS10064");
-	
-	// Tekken 6 EU -> US
-	game_product_relink(product, "ULES01376", "ULUS10466");
-	
-	// Tekken 6 JPN PSN -> US
-	game_product_relink(product, "NPJH50184", "ULUS10466");
-	
-	// Tekken 6 JPN UMD -> US
-	game_product_relink(product, "ULJS00224", "ULUS10466");
-	
-	// Soul Calibur EU -> US
-	game_product_relink(product, "ULES01298", "ULUS10457");
-	
-	// Soul Calibur JPN -> US
-	game_product_relink(product, "ULJS00202", "ULUS10457");
-	
-	// Dissidia 012 EU -> US
-	game_product_relink(product, "ULES01505", "ULUS10566");
-	
-	// Dissidia 012 JPN -> US
-	game_product_relink(product, "NPJH50377", "ULUS10566");
-	
-	// Dissidia EU -> US
-	game_product_relink(product, "ULES01270", "ULUS10437");
-	
-	// Dissidia JPN -> US
-	game_product_relink(product, "ULJM05262", "ULUS10437");
-	
-	// Metal Gear Solid Portable Ops+ EU -> US
-	game_product_relink(product, "ULES01003", "ULUS10290");
-	
-	// Metal Gear Solid Portable Ops+ JPN -> US
-	game_product_relink(product, "ULJM05261", "ULUS10290");
-	
-	// Metal Gear Solid Portable Ops EU -> US
-	game_product_relink(product, "ULES00645", "ULUS10202");
-	
-	// Metal Gear Solid Portable Ops JPN -> US
-	game_product_relink(product, "ULJM05193", "ULUS10202");
-	
-	// Untold Legends The Warriors Code EU -> US
-	game_product_relink(product, "ULES00301", "ULUS10086");
-	
-	// Untold Legends The Warriors Code JPN -> US
-	game_product_relink(product, "ULJM05179", "ULUS10086");
-	
-	// Untold Legends The Warriors Code KOR -> US
-	game_product_relink(product, "ULKS46069", "ULUS10086");
-	
-	// Untold Legends Brotherhood of the Blade EU -> US
-	game_product_relink(product, "ULES00046", "ULUS10003");
-	
-	// Untold Legends Brotherhood of the Blade JPN -> US
-	game_product_relink(product, "ULJM05087", "ULUS10003");
-	
-	// Untold Legends Brotherhood of the Blade KOR -> US
-	game_product_relink(product, "ULKS46015", "ULUS10003");
-	
-	// Pangya Fantasy Golf JPN -> US
-	game_product_relink(product, "ULJM05440", "ULUS10438");
-	
-	// PES 2012 EU -> US
-	game_product_relink(product, "ULES01540", "ULUS10586");
-	game_product_relink(product, "ULES01541", "ULUS10586");
-	game_product_relink(product, "ULES01542", "ULUS10586");
-	
-	// PES 2012 (Winning Eleven) JPN -> US
-	game_product_relink(product, "ULAS42289", "ULUS10586");
-	
-	// Pangya Fantasy Golf KOR -> US
-	game_product_relink(product, "ULKS46164", "ULUS10438");
-	
-	// Midnight Club LA Remix EU -> US
-	game_product_relink(product, "ULES01144", "ULUS10383");
-	
-	// Midnight Club LA Remix JPN -> US
-	game_product_relink(product, "ULJS00180", "ULUS10383");
-	
-	// Mod Nation Racers EU -> US
-	game_product_relink(product, "UCES01327", "UCUS98741");
-	
-	// Mod Nation Racers JPN -> US
-	game_product_relink(product, "UCJS10112", "UCUS98741");
-	
-	// Mod Nation Racers ASIA -> US
-	game_product_relink(product, "UCAS40306", "UCUS98741");
-	
-	// Monster Hunter 2nd G (MHFU) EU -> US
-	game_product_relink(product, "ULES01213", "ULUS10391");
-	
-	// Monster Hunter 2nd G (MHFU) JPN -> US
-	game_product_relink(product, "ULJM05500", "ULUS10391");
-	
-	// Monster Hunter Portable JPN -> US
-	game_product_relink(product, "ULJM05066", "ULUS10084");
-	
-	// Monster Hunter Portable EU -> US
-	game_product_relink(product, "ULES00318", "ULUS10084");
-	
-	// Monster Hunter Freedom 2 JPN -> US
-	game_product_relink(product, "ULJM05156", "ULUS10266");
-	
-	// Monster Hunter Freedom 2 EU -> US
-	game_product_relink(product, "ULES00851", "ULUS10266");
-	
-	// N+ EU -> US
-	game_product_relink(product, "ULES01026", "ULUS10340");
-	
-	// Virtua Tennis 3 EU -> US
-	game_product_relink(product, "ULES00763", "ULUS10246");
-	
-	// World Series of Poker 2008 EU -> US
-	game_product_relink(product, "ULES00991", "ULUS10321");
-	
-	// Worms Open Warfare 2 EU -> US
-	game_product_relink(product, "ULES00819", "ULUS10260");
-	
-	// Worms Open Warfare EU -> US
-	game_product_relink(product, "ULES00268", "ULUS10065");
-	
-	// Worms Battle Islands EU -> US
-	game_product_relink(product, "NPEH00019", "NPUH10045");
-	
-	// Blood Bowl EU -> US
-	game_product_relink(product, "ULES01230", "ULUS10516");
+	// Open Database
+	if(sqlite3_open(SERVER_DATABASE, &db) == SQLITE_OK)
+	{
+		// Crosslinked Flag
+		int crosslinked = 0;
+		
+		// Exists Flag
+		int exists = 0;
+		
+		// SQL Statements
+		const char * sql = "SELECT id_to FROM crosslinks WHERE id_from=?;";
+		const char * sql2 = "SELECT * FROM productids WHERE id=?;";
+		const char * sql3 = "INSERT INTO productids(id, name) VALUES(?, ?);";
+		
+		// Prepared SQL Statement
+		sqlite3_stmt * statement = NULL;
+		
+		// Prepare SQL Statement
+		if(sqlite3_prepare_v2(db, sql, strlen(sql) + 1, &statement, NULL) == SQLITE_OK)
+		{
+			// Bind SQL Statement Data
+			if(sqlite3_bind_text(statement, 1, productid, strlen(productid), SQLITE_STATIC) == SQLITE_OK)
+			{
+				// Found Matching Row
+				if(sqlite3_step(statement) == SQLITE_ROW)
+				{
+					// Grab Crosslink ID
+					const char * crosslink = (const char *)sqlite3_column_text(statement, 0);
+					
+					// Crosslink Product Code
+					strncpy(product->data, crosslink, PRODUCT_CODE_LENGTH);
+					
+					// Log Crosslink
+					printf("Crosslinked %s to %s.\n", productid, crosslink);
+					
+					// Set Crosslinked Flag
+					crosslinked = 1;
+				}
+			}
+			
+			// Destroy Prepared SQL Statement
+			sqlite3_finalize(statement);
+			
+			// Delete Prepared SQL Statement Reference
+			statement = NULL;
+		}
+		
+		// Not Crosslinked
+		if(!crosslinked)
+		{
+			// Prepare SQL Statement
+			if(sqlite3_prepare_v2(db, sql2, strlen(sql2) + 1, &statement, NULL) == SQLITE_OK)
+			{
+				// Bind SQL Statement Data
+				if(sqlite3_bind_text(statement, 1, productid, strlen(productid), SQLITE_STATIC) == SQLITE_OK)
+				{
+					// Found Matching Row
+					if(sqlite3_step(statement) == SQLITE_ROW)
+					{
+						// Set Exists Flag
+						exists = 1;
+					}
+				}
+				
+				// Destroy Prepare SQL Statement
+				sqlite3_finalize(statement);
+				
+				// Delete Prepared SQL Statement Reference
+				statement = NULL;
+			}
+			
+			// Game doesn't exist in Database
+			if(!exists)
+			{
+				// Prepare SQL Statement
+				if(sqlite3_prepare_v2(db, sql3, strlen(sql3) + 1, &statement, NULL) == SQLITE_OK)
+				{
+					// Bind SQL Statement Data
+					if(sqlite3_bind_text(statement, 1, productid, strlen(productid), SQLITE_STATIC) == SQLITE_OK && sqlite3_bind_text(statement, 2, productid, strlen(productid), SQLITE_STATIC) == SQLITE_OK)
+					{
+						// Save Product ID to Database
+						if(sqlite3_step(statement) == SQLITE_DONE)
+						{
+							// Log Addition
+							printf("Added Unknown Product ID %s to Database.\n", productid);
+						}
+					}
+				}
+			}
+		}
+		
+		// Close Database
+		sqlite3_close(db);
+	}
 }
 

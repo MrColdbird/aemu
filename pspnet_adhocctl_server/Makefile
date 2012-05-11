@@ -3,12 +3,15 @@ CFLAGS = -fpack-struct -I.
 OBJ = main.o user.o status.o
 TARGET = pspnet_adhocctl_server
 
+LIBS = -lsqlite3
+
 %.o: %.c
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 $(TARGET): $(OBJ)
-	$(CC) -o $@ $^ $(CFLAGS)
+	$(CC) -o $@ $^ $(LIBS) $(CFLAGS)
 	mv $(TARGET) ../dist/server
+	cp database.db ../dist/server
 	cp index.php ../dist/server
 	cp -r icons ../dist/server
 

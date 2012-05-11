@@ -15,10 +15,13 @@
 // Server User Timeout (in seconds)
 #define SERVER_USER_TIMEOUT 15
 
+// Server SQLite3 Database
+#define SERVER_DATABASE "database.db"
+
 // Server Status Logfile
 #define SERVER_STATUS_LOGFILE "status.log"
 
 // Server Shutdown Message
-#define SERVER_SHUTDOWN_MESSAGE "PENDING SERVER UPDATES! 1 MINUTE UNTIL REBOOT!"
+#define SERVER_SHUTDOWN_MESSAGE "PROMETHEUS HUB IS SHUTTING DOWN!"
 
 #endif
