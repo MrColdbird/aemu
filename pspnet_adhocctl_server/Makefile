@@ -12,8 +12,7 @@ $(TARGET): $(OBJ)
 	$(CC) -o $@ $^ $(LIBS) $(CFLAGS)
 	mv $(TARGET) ../dist/server
 	cp database.db ../dist/server
-	cp index.php ../dist/server
-	cp -r icons ../dist/server
+	cp -r www ../dist/server
 
 clean:
 #	rm -rf $(TARGET) *.o *~

@@ -1,0 +1,177 @@
+a:link
+{
+	color:red;
+	text-decoration:none;
+}
+
+a:visited
+{
+	color:red;
+	text-decoration:none;
+}
+
+a:hover
+{
+	color:red;
+	text-decoration:none;
+}
+
+a:active
+{
+	color:red;
+	text-decoration:none;
+}
+
+a.netlink
+{
+	margin-left:10px;
+	margin-right:10px;
+}
+
+a.netlink:link
+{
+	color:green;
+	text-decoration:none;
+}
+
+a.netlink:visited
+{
+	color:green;
+	text-decoration:none;
+}
+
+a.netlink:hover
+{
+	color:green;
+	text-decoration:none;
+}
+
+a.netlink:active
+{
+	color:green;
+	text-decoration:none;
+}
+
+a.donatelink
+{
+	margin-left:10px;
+	margin-right:10px;
+}
+
+a.donatelink:link
+{
+	color:blue;
+	text-decoration:none;
+}
+
+a.donatelink:visited
+{
+	color:blue;
+	text-decoration:none;
+}
+
+a.donatelink:hover
+{
+	color:blue;
+	text-decoration:none;
+}
+
+a.donatelink:active
+{
+	color:blue;
+	text-decoration:none;
+}
+
+body
+{
+	background-image:url(bg.jpg);
+	background-repeat:repeat;
+	color:black;
+	font-family:sans-serif;
+	padding:10px;
+}
+
+div.headline
+{
+	background-color:white;
+	background-image:url(spinning.gif);
+	background-repeat:no-repeat;
+	background-position:5px center;
+	border-style:solid;
+	border-width:2px;
+	border-color:#E7E7E7;
+	padding:5px;
+	text-align:center;
+	margin-bottom:10px;
+}
+
+div.gametitle
+{
+	padding:5px;
+	text-align:left;
+	background-color:white;
+	border-style:solid;
+	border-width:2px;
+	border-color:#E7E7E7;
+	margin-bottom:5px;
+	padding:5px;
+	background-image:url(titlebg.png);
+	background-repeat:no-repeat;
+	background-position:right center;
+}
+
+div.navigation
+{
+	padding:5px;
+	text-align:center;
+	background-color:#F7F7F7;
+	border-style:solid;
+	border-width:2px;
+	border-color:#E7E7E7;
+	margin-bottom:5px;
+	padding:5px;
+	font-size:80%;
+}
+
+div.footer
+{
+	background-color:white;
+	border-style:solid;
+	border-width:2px;
+	border-color:#E7E7E7;
+	padding:5px;
+	text-align:center;
+	font-size:75%;
+}
+
+span.usercount
+{
+	text-transform:uppercase;
+	font-style:italic;
+	font-size:75%;
+}
+
+span.good
+{
+	color:green;
+}
+
+span.bad
+{
+	color:red;
+}
+
+table.splitter
+{
+	width:100%;
+}
+
+td.left
+{
+	text-align:left;
+}
+
+td.right
+{
+	text-align:right;
+}

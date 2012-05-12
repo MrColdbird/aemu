@@ -19,7 +19,7 @@
 #define SERVER_DATABASE "database.db"
 
 // Server Status Logfile
-#define SERVER_STATUS_LOGFILE "status.log"
+#define SERVER_STATUS_XMLOUT "www/status.xml"
 
 // Server Shutdown Message
 #define SERVER_SHUTDOWN_MESSAGE "PROMETHEUS HUB IS SHUTTING DOWN!"

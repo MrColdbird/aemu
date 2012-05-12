@@ -843,9 +843,6 @@ void game_product_override(SceNetAdhocctlProductCode * product)
 			
 			// Destroy Prepared SQL Statement
 			sqlite3_finalize(statement);
-			
-			// Delete Prepared SQL Statement Reference
-			statement = NULL;
 		}
 		
 		// Not Crosslinked
@@ -867,9 +864,6 @@ void game_product_override(SceNetAdhocctlProductCode * product)
 				
 				// Destroy Prepare SQL Statement
 				sqlite3_finalize(statement);
-				
-				// Delete Prepared SQL Statement Reference
-				statement = NULL;
 			}
 			
 			// Game doesn't exist in Database
@@ -888,6 +882,9 @@ void game_product_override(SceNetAdhocctlProductCode * product)
 							printf("Added Unknown Product ID %s to Database.\n", productid);
 						}
 					}
+					
+					// Destroy Prepare SQL Statement
+					sqlite3_finalize(statement);
 				}
 			}
 		}
