@@ -83,21 +83,20 @@ void login_user_data(SceNetAdhocctlUserNode * user, SceNetAdhocctlLoginPacketC2S
 {
 	// Product Code Check
 	int valid_product_code = 1;
-	{
-		// Iterate Characters
-		int i = 0; for(; i < PRODUCT_CODE_LENGTH && valid_product_code == 1; i++)
-		{
-			// Valid Characters
-			if(!((data->game.data[i] >= 'A' && data->game.data[i] <= 'Z') || (data->game.data[i] >= '0' && data->game.data[i] <= '9'))) valid_product_code = 0;
-		}
-	}
 	
-	// Game Product Override
-	game_product_override(&data->game);
+	// Iterate Characters
+	int i = 0; for(; i < PRODUCT_CODE_LENGTH && valid_product_code == 1; i++)
+	{
+		// Valid Characters
+		if(!((data->game.data[i] >= 'A' && data->game.data[i] <= 'Z') || (data->game.data[i] >= '0' && data->game.data[i] <= '9'))) valid_product_code = 0;
+	}
 	
 	// Valid Packet Data
 	if(valid_product_code == 1 && memcmp(&data->mac, "\xFF\xFF\xFF\xFF\xFF\xFF", sizeof(data->mac)) != 0 && memcmp(&data->mac, "\x00\x00\x00\x00\x00\x00", sizeof(data->mac)) != 0 && data->name.data[0] != 0)
 	{
+		// Game Product Override
+		game_product_override(&data->game);
+		
 		// Find existing Game
 		SceNetAdhocctlGameNode * game = _db_game;
 		while(game != NULL && strncmp(game->game.data, data->game.data, PRODUCT_CODE_LENGTH) != 0) game = game->next;
