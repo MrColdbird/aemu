@@ -5,6 +5,9 @@
 #include <config.h>
 #include <sqlite3.h>
 
+// Function Prototypes
+const char * strcpyxml(char * out, const char * in, uint32_t size);
+
 /**
  * Update Status Logfile
  */
@@ -62,14 +65,14 @@ void update_status(void)
 							const char * gamename = (const char *)sqlite3_column_text(statement, 0);
 							
 							// Copy Game Name
-							strncpy(displayname, gamename, sizeof(displayname) - 1);
+							strcpyxml(displayname, gamename, sizeof(displayname));
 						}
 						
 						// Game not in Database
 						else
 						{
 							// Use Product Code as Name
-							strcpy(displayname, productid);
+							strcpyxml(displayname, productid, sizeof(displayname));
 						}
 					}
 					
@@ -92,13 +95,13 @@ void update_status(void)
 					groupname[ADHOCCTL_GROUPNAME_LEN] = 0;
 					
 					// Output Group Tag + Group Name + User Count
-					fprintf(log, "\t\t<group name=\"%s\" usercount=\"%u\">\n", groupname, group->playercount);
+					fprintf(log, "\t\t<group name=\"%s\" usercount=\"%u\">\n", strcpyxml(displayname, groupname, sizeof(displayname)), group->playercount);
 					
 					// Iterate Users
 					SceNetAdhocctlUserNode * user = group->player; for(; user != NULL; user = user->group_next)
 					{
 						// Output User Tag + Username
-						fprintf(log, "\t\t\t<user>%s</user>\n", (const char *)user->resolver.name.data);
+						fprintf(log, "\t\t\t<user>%s</user>\n", strcpyxml(displayname, (const char *)user->resolver.name.data, sizeof(displayname)));
 					}
 					
 					// Output Closing Group Tag
@@ -129,5 +132,114 @@ void update_status(void)
 		// Close Logfile
 		fclose(log);
 	}
+}
+
+/**
+ * Escape XML Sequences to avoid malformed XML files.
+ * @param out Out Buffer
+ * @param in In Buffer
+ * @param size Size of Out Buffer
+ * @return Reference to Out Buffer
+ */
+const char * strcpyxml(char * out, const char * in, uint32_t size)
+{
+	// Valid Arguments
+	if(out != NULL && in != NULL && size > 0)
+	{
+		// Clear Memory
+		memset(out, 0, size);
+		
+		// Written Size Pointer
+		uint32_t written = 0;
+		
+		// Iterate In-Buffer Symbols
+		uint32_t i = 0; for(; i < strlen(in); i++)
+		{
+			// " Symbol
+			if(in[i] == '"')
+			{
+				// Enough Space in Out-Buffer (6B for &quot;)
+				if((size - written) > 6)
+				{
+					// Write Escaped Sequence
+					strcpy(out + written, "&quot;");
+					
+					// Move Pointer
+					written += 6;
+				}
+				
+				// Truncate required
+				else break;
+			}
+			
+			// < Symbol
+			else if(in[i] == '<')
+			{
+				// Enough Space in Out-Buffer (4B for &lt;)
+				if((size - written) > 4)
+				{
+					// Write Escaped Sequence
+					strcpy(out + written, "&lt;");
+					
+					// Move Pointer
+					written += 4;
+				}
+				
+				// Truncate required
+				else break;
+			}
+			
+			// > Symbol
+			else if(in[i] == '>')
+			{
+				// Enough Space in Out-Buffer (4B for &gt;)
+				if((size - written) > 4)
+				{
+					// Write Escaped Sequence
+					strcpy(out + written, "&gt;");
+					
+					// Move Pointer
+					written += 4;
+				}
+				
+				// Truncate required
+				else break;
+			}
+			
+			// & Symbol
+			else if(in[i] == '&')
+			{
+				// Enough Space in Out-Buffer (5B for &amp;)
+				if((size - written) > 5)
+				{
+					// Write Escaped Sequence
+					strcpy(out + written, "&amp;");
+					
+					// Move Pointer
+					written += 5;
+				}
+				
+				// Truncate required
+				else break;
+			}
+			
+			// Normal Character
+			else
+			{
+				// Enough Space in Out-Buffer (1B)
+				if((size - written) > 1)
+				{
+					// Write Character
+					out[written++] = in[i];
+				}
+			}
+		}
+		
+		// Return Reference
+		return out;
+	}
+	
+	// Invalid Arguments
+	return NULL;
 }
 
