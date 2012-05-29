@@ -5,6 +5,7 @@
 			<head>
 				<title>Prometheus Server Status</title>
 				<link rel="stylesheet" type="text/css" href="style.css" />
+				<link rel="icon" href="favicon.ico" type="image/x-icon" />
 				<meta http-equiv="refresh" content="120" />
 			</head>
 			<body>
