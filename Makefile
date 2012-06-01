@@ -64,14 +64,13 @@ all:
 	@mkdir $(DISTRIBUTE)/kd || true
 	@mkdir $(DISTRIBUTE)/server || true
 	@touch $(DISTRIBUTE)/seplugins/hotspot.txt || true
-	@cp -r $(CONTRIBUTIONS)/PSP $(DISTRIBUTE)
+#	@cp -r $(CONTRIBUTIONS)/PSP $(DISTRIBUTE)
 	@echo coldbird.uk.to > $(DISTRIBUTE)/seplugins/server.txt
 #	@echo home.coldbird.uk.to > $(DISTRIBUTE)/seplugins/server.txt
 #	@echo 192.168.1.103 > $(DISTRIBUTE)/seplugins/server.txt
 #	@touch $(DISTRIBUTE)/seplugins/server.txt || true
 
 	@cd $(PROCFW); make deps
-	@cd $(PROCFW); make $(FLAGS)
 	@cd $(ATPRO); make $(FLAGS)
 	@cd $(MEMAB); make $(FLAGS)
 	@cd $(PSPNET_ADHOC_AUTH); make $(FLAGS)
@@ -83,10 +82,7 @@ all:
 	@cd $(PSPNET_ADHOCCTL_SERVER); make $(FLAGS)
 	@cd $(PSPNET_MINIUPNC); make $(FLAGS)
 
-	@cp $(PROCFW)/dist/PSP/GAME/FastRecovery/EBOOT.PBP $(DISTRIBUTE)/kd/HOME.PBP
-
 clean:
-	@cd $(PROCFW); make clean $(FLAGS)
 	@cd $(ATPRO); make clean $(FLAGS)
 	@cd $(MEMAB); make clean $(FLAGS)
 	@cd $(PSPNET_ADHOC_AUTH); make clean $(FLAGS)

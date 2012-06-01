@@ -388,46 +388,12 @@ int online_patcher(SceModule2 * module)
 	return sysctrl_patcher(module);
 }
 
-// Safe Exit Function for High Memory Usage
-void safe_exit(void)
-{
-	// Get Current API Type
-	int api = sceKernelInitApitype();
-	
-	// Set Reboot API Type
-	int apitype = 0x141;
-	
-	// Rebooter Path
-	char * path = "ms0:/kd/HOME.PBP";
-	
-	// Prepare Reboot Structure
-	struct SceKernelLoadExecVSHParam param;
-	memset(&param, 0, sizeof(param));
-	param.size = sizeof(param);
-	param.args = strlen(path)+1;
-	param.argp = path;
-	param.key = "game";
-	
-	// Fix for PSP Go
-	if(api == 0x152 || api == 0x125)
-	{
-		// Fix Path
-		strncpy(path, "ef", 2);
-		
-		// Fix API Type
-		apitype = 0x152;
-	}
-	
-	// Trigger Reboot
-	sctrlKernelLoadExecVSHWithApitype(apitype, path, &param);
-}
-
 // Input Thread
 int input_thread(SceSize args, void * argp)
 {
 	// Previous Buttons
 	uint32_t prev_buttons = 0;
-
+	
 	// Current Buttons
 	uint32_t curr_buttons = 0;
 	
@@ -498,8 +464,8 @@ int input_thread(SceSize args, void * argp)
 			// Exit to VSH (if button got pressed for 3 seconds)
 			if(is_exit_button_pressed && (exit_press_end.low - exit_press_start.low) >= 3000000)
 			{
-				// Reboot into VSH Rebooter Homebrew (and reset memory layout at that)
-				safe_exit();
+				// Reboot into VSH
+				sceKernelExitVSHVSH(NULL);
 				
 				// Stop Processing
 				break;
