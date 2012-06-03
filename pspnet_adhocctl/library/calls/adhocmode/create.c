@@ -22,14 +22,20 @@ int proNetAdhocctlCreate(const SceNetAdhocctlGroupName * group_name)
 				// Set Network Name
 				if(group_name != NULL) _parameter.group_name = *group_name;
 				
+				// Reset Network Name
+				else memset(&_parameter.group_name, 0, sizeof(_parameter.group_name));
+				
 				// Prepare Connect Packet
 				SceNetAdhocctlConnectPacketC2S packet;
+				
+				// Clear Packet Memory
+				memset(&packet, 0, sizeof(packet));
 				
 				// Set Packet Opcode
 				packet.base.opcode = OPCODE_CONNECT;
 				
 				// Set Target Group
-				packet.group = *group_name;
+				if(group_name != NULL) packet.group = *group_name;
 				
 				// Acquire Network Lock
 				_acquireNetworkLock();
