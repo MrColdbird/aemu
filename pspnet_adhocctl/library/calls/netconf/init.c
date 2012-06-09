@@ -23,7 +23,8 @@ int proUtilityNetconfInitStart(SceUtilityNetconfParam * param)
 				if(param->adhoc_param != NULL)
 				{
 					// Disconnect from Network (if any)
-					proNetAdhocctlDisconnect();
+					// On second thought not such a good idea... produces invalid events...
+					// proNetAdhocctlDisconnect();
 					
 					// Create Network
 					if(proNetAdhocctlCreate(&param->adhoc_param->group_name) == 0)

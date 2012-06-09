@@ -1,11 +1,16 @@
 #ifndef LIBS_H
 #define LIBS_H
 
+#include "systemctrl.h"
+
 // ASM Patch
 #define MAKE_CALL(f) (0x0C000000 | (((u32)(f) >> 2) & 0x03ffffff))
 #define MAKE_JUMP(f) (0x08000000 | (((u32)(f) >> 2) & 0x03ffffff))
 #define MAKE_SYSCALL(n) ((n<<6)|12)
 #define NOP 0
+
+// JAL Target Getter
+#define GET_CALL_ADDR(i) ((i & 0x03ffffff) << 2)
 
 // ASM Redirect Patch
 #define REDIRECT_FUNCTION(new_func, original) \
@@ -41,6 +46,8 @@ unsigned int find_import_bynid(SceModule *pMod, char *library, unsigned int nid)
 void api_hook_addr(int addr, void *func);
 void api_hook_import(int addr, void *func);
 
+int hook_global_module_jal(SceModule2 * mod, uint32_t oldcall, uint32_t newcall);
+int hook_weak_user_bynid(SceModule2 * mod, char * library, unsigned int nid, void * func);
 int hook_import_bynid(SceModule *pMod, char *library, unsigned int nid, void *func);
 
 #endif

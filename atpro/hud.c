@@ -75,6 +75,12 @@ int shownotification = 0;
 // Show Server Notification Flag
 int showservernotification = 0;
 
+// Exit Button pressed
+int is_send_button_pressed = 0;
+
+// Exit Button Clock Variables
+SceKernelSysClock send_press_start, send_press_end;
+
 // Paint HUD Overlay
 void drawInfo(CANVAS * canvas)
 {
@@ -354,6 +360,50 @@ void handleKeyEvent(uint32_t prev, uint32_t curr)
 		// Connected to Server
 		if(connected_to_prometheus)
 		{
+			// Start Down
+			if(!is_send_button_pressed && (prev & PSP_CTRL_START) == 0 && (curr & PSP_CTRL_START) != 0)
+			{
+				// Activate Send Button Press Flag
+				is_send_button_pressed = 1;
+				
+				// Start Press Timer
+				sceKernelGetSystemTime(&send_press_start);
+				
+				// Clone Data to End Press Timer
+				send_press_end = send_press_start;
+			}
+			
+			// Start Up
+			else if(is_send_button_pressed && (prev & PSP_CTRL_START) != 0 && (curr & PSP_CTRL_START) == 0)
+			{
+				// Reset Press Flag
+				is_send_button_pressed = 0;
+				
+				// Long Press Time not reached (< 1s)
+				if((send_press_end.low - send_press_start.low) < 1000000)
+				{
+					// Message in Writing Queue
+					if(strlen(chatline) > 0)
+					{
+						// Schedule Chat Message for Sending via Adhoc Control Emulator
+						addToOutbox(chatline);
+						
+						// Add to own Chat Log
+						addChatLog("ME", chatline);
+						
+						// Clear Chat Line
+						chatline[0] = 0;
+					}
+				}
+			}
+			
+			// Start Press Update
+			else if(is_send_button_pressed && (prev & PSP_CTRL_START) != 0 && (curr & PSP_CTRL_START) != 0)
+			{
+				// Update End Timer
+				sceKernelGetSystemTime(&send_press_end);
+			}
+			
 			// Keyphrase Page
 			if((curr & PSP_CTRL_LTRIGGER) != 0 && (curr & PSP_CTRL_RTRIGGER) != 0) phrasepackage = 3;
 			else if((curr & PSP_CTRL_RTRIGGER) != 0) phrasepackage = 2;

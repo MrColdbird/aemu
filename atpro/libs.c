@@ -50,6 +50,105 @@ unsigned int find_import_bynid(SceModule *pMod, char *library, unsigned int nid)
 	return 0;
 }
 
+int hook_global_module_jal(SceModule2 * mod, uint32_t oldcall, uint32_t newcall)
+{
+	// Invalid Arguments
+	if(mod == NULL)
+		return -1;
+	
+	// Hook Counter
+	int counter = 0;
+	
+	// Machine Code of Module
+	uint32_t * asmtext = (uint32_t *)mod->text_addr;
+	
+	// Machine Code Segment Size
+	uint32_t asmsize = mod->text_size;
+	
+	// ASM Iterator
+	uint32_t i = 0;
+	
+	// Iterate Machine Code
+	for(; i < asmsize / 4; i ++)
+	{
+		// Get Instruction
+		uint32_t inst = asmtext[i];
+		
+		// JAL Instruction
+		if((inst & 0xFC000000) == 0x0C000000)
+		{
+			// Matching JAL found
+			if(GET_CALL_ADDR(inst) == oldcall)
+			{
+				// Overwrite JAL
+				asmtext[i] = MAKE_CALL(newcall);
+				
+				// Log Overwrite
+				counter++;
+			}
+		}
+	}
+	
+	// Hooked Calls
+	if(counter > 0)
+	{
+		// Synchronize Cache
+		sceKernelDcacheWritebackAll();
+		sceKernelIcacheInvalidateAll();
+	}
+	
+	// Return Hook Counter
+	return counter;
+}
+
+int hook_weak_user_bynid(SceModule2 * mod, char * library, unsigned int nid, void * func)
+{
+	// Invalid Arguments
+	if(mod == NULL || library == NULL || func == NULL)
+		return -1;
+	
+	// Stub Table
+	void * stubTab = mod->stub_top;
+	uint32_t stubLen = mod->stub_size;
+	
+	// Stub Iterator
+	uint32_t i = 0;
+	
+	// Iterate Stubs
+	while(i < stubLen)
+	{
+		// Grab Module Import
+		PspModuleImport * import = (PspModuleImport *)(stubTab + i);
+		
+		// Targeted Import found
+		if(import->name != NULL && strcmp(import->name, library) == 0)
+		{
+			// Function Iterator
+			uint32_t j = 0;
+			
+			// Iterate Functions
+			for(; j < import->funcCount; j++)
+			{
+				// Targeted Function found
+				if(import->fnids[j] == nid)
+				{
+					// Fetch Stub Address
+					uint32_t address = (uint32_t)&import->funcs[j * 2];
+					
+					// Patch Calls to Weak Stub
+					return hook_global_module_jal(mod, address, (uint32_t)func);
+				}
+			}
+		}
+		
+		// Move Pointer
+		i += import->entLen * 4;
+	}
+	
+	// No calls patched
+	return 0;
+}
+
 /**
  * Remember you have to export the hooker function if using syscall hook
  */

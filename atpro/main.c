@@ -45,6 +45,18 @@ int framecount = 0;
 // Online Mode Switch
 int onlinemode = 0;
 
+// sceKernelLoadModule Stub for 1.X FW
+void * loadmodulestub = NULL;
+
+// sceIoOpen Stub for 1.X FW
+void * ioopenstub = NULL;
+
+// sceKernelLoadModuleByID Stub for 1.X FW
+void * loadmoduleiostub = NULL;
+
+// sceIoClose Stub for 1.X FW
+void * ioclosestub = NULL;
+
 // Adhoc Module Names
 #define MODULE_LIST_SIZE 5
 char * module_names[MODULE_LIST_SIZE] = {
@@ -55,6 +67,17 @@ char * module_names[MODULE_LIST_SIZE] = {
 	"pspnet_adhoc_matching.prx",
 //	"pspnet_adhoc_download.prx",
 //	"pspnet_adhoc_discover.prx"
+};
+
+// Adhoc Module Dummy IO SceUIDs
+SceUID module_io_uids[MODULE_LIST_SIZE] = {
+	-1,
+	-1,
+	-1,
+	-1,
+	-1,
+//	-1,
+//	-1
 };
 
 // Kernel Module Loader
@@ -71,8 +94,14 @@ SceUID load_plugin(const char * path, int flags, SceKernelLMOption * option)
 				strcpy((char*)path, "ms0:/kd/");
 				strcpy((char*)path + strlen(path), module_names[i]);
 				
+				// Fix Permission Error
+				uint32_t k1 = pspSdkSetK1(0);
+				
 				// Load Module
 				SceUID result = sceKernelLoadModule(path, flags, option);
+				
+				// Restore K1 Register
+				pspSdkSetK1(k1);
 				
 				// Log Hotswapping
 				printk("Swapping %s, UID=0x%08X\n", module_names[i], result);
@@ -93,6 +122,109 @@ SceUID load_plugin_alt(const char * path, int unk1, int unk2, int flags, SceKern
 	// Thanks to CFW we can load whatever we want...
 	// No need to have different loader for user & kernel modules.
 	return load_plugin(path, flags, option);
+}
+
+// IO Plugin File Loader
+SceUID load_plugin_io(SceUID fd, int flags, SceKernelLMOption * option)
+{
+	// Online Mode Enabled
+	if(onlinemode)
+	{
+		// Replace Adhoc Modules
+		int i = 0; for(; i < MODULE_LIST_SIZE; i++) {
+			// Matching Fake UID
+			if(module_io_uids[i] == fd) {
+				// Create Module Path
+				char path[256];
+				strcpy(path, "ms0:/kd/");
+				strcpy(path + strlen(path), module_names[i]);
+				
+				// Avoid 0x80020149 Illegal Permission Error
+				uint32_t k1 = pspSdkSetK1(0);
+				
+				// Load Module
+				SceUID result = sceKernelLoadModule(path, flags, option);
+				
+				// Restore K1 Register
+				pspSdkSetK1(k1);
+				
+				// Log Hotswapping
+				printk("Swapping %s, UID=0x%08X\n", module_names[i], result);
+				
+				// Return Module UID
+				return result;
+			}
+		}
+	}
+	
+	// Find Function
+	int (* originalcall)(SceUID, int, SceKernelLMOption *) = (void *)sctrlHENFindFunction("sceModuleManager", "ModuleMgrForUser", 0xB7F46618);
+	
+	// Default Action - Load Module
+	return originalcall(fd, flags, option);
+}
+
+// Plugin File Loader
+SceUID open_plugin(char * path, int flags, int mode)
+{
+	// Online Mode Enabled
+	if(onlinemode)
+	{
+		// Compare Adhoc Module Names
+		int i = 0; for(; i < MODULE_LIST_SIZE; i++) {
+			// Matching Modulename
+			if(strstr(path, module_names[i]) != NULL) {
+				// Create File Path
+				strcpy(path, "ms0:/kd/");
+				strcpy(path + strlen(path), module_names[i]);
+				
+				// Open File
+				SceUID result = sceIoOpen(path, flags, mode);
+				
+				// Valid Result
+				if(result >= 0)
+				{
+					// Save UID
+					module_io_uids[i] = result;
+				}
+				
+				// Log File Open
+				printk("Opening %s File Handle, UID=0x%08X\n", module_names[i], result);
+				
+				// Return File UID
+				return result;
+			}
+		}
+	}
+	
+	// Default Action - Open File
+	return sceIoOpen(path, flags, mode);
+}
+
+// Plugin File Closer
+int close_plugin(SceUID fd)
+{
+	// Online Mode Enabled
+	if(onlinemode)
+	{
+		// Replace Adhoc Modules
+		int i = 0; for(; i < MODULE_LIST_SIZE; i++) {
+			// Matching IO UID
+			if(module_io_uids[i] == fd) {
+				// Log Close
+				printk("Closing %s File Handle, UID=0x%08X\n", module_names[i], module_io_uids[i]);
+				
+				// Erase UID
+				module_io_uids[i] = -1;
+				
+				// Stop Searching
+				break;
+			}
+		}
+	}
+	
+	// Default Action - Close File
+	return sceIoClose(fd);
 }
 
 // Game Code Getter
@@ -283,6 +415,134 @@ int peek_buffer_negative(SceCtrlData * pad_data, int count)
 	return result;
 }
 
+// Create 1.X FW sceKernelLoadModule Stub
+void * create_loadmodule_stub(void)
+{
+	// Find Allocator Functions in Memory
+	int (* alloc)(u32, char *, u32, u32, u32) = (void *)sctrlHENFindFunction("sceSystemMemoryManager", "SysMemUserForUser", 0x237DBD4F);
+	void * (* gethead)(u32) = (void *)sctrlHENFindFunction("sceSystemMemoryManager", "SysMemUserForUser", 0x9D9A5BA1);
+
+	// Allocate Memory
+	int result = alloc(2, "LoadModuleStub", PSP_SMEM_High, 8, 0);
+	
+	// Allocated Memory
+	if(result >= 0)
+	{
+		// Get Memory Block
+		uint32_t * asmblock = gethead(result);
+		
+		// Got Memory Block
+		if(asmblock != NULL)
+		{
+			// Link to Syscall
+			asmblock[0] = 0x03E00008; // jr $ra
+			asmblock[1] = MAKE_SYSCALL(sctrlKernelQuerySystemCall(load_plugin));
+			
+			// Return sceKernelLoadModule Stub
+			return (void *)asmblock;
+		}
+	}
+	
+	// Allocation Error
+	return NULL;
+}
+
+// Create 1.X FW sceIoOpen Stub
+void * create_ioopen_stub(void)
+{
+	// Find Allocator Functions in Memory
+	int (* alloc)(u32, char *, u32, u32, u32) = (void *)sctrlHENFindFunction("sceSystemMemoryManager", "SysMemUserForUser", 0x237DBD4F);
+	void * (* gethead)(u32) = (void *)sctrlHENFindFunction("sceSystemMemoryManager", "SysMemUserForUser", 0x9D9A5BA1);
+
+	// Allocate Memory
+	int result = alloc(2, "IOOpenStub", PSP_SMEM_High, 8, 0);
+	
+	// Allocated Memory
+	if(result >= 0)
+	{
+		// Get Memory Block
+		uint32_t * asmblock = gethead(result);
+		
+		// Got Memory Block
+		if(asmblock != NULL)
+		{
+			// Link to Syscall
+			asmblock[0] = 0x03E00008; // jr $ra
+			asmblock[1] = MAKE_SYSCALL(sctrlKernelQuerySystemCall(open_plugin));
+			
+			// Return sceKernelLoadModule Stub
+			return (void *)asmblock;
+		}
+	}
+	
+	// Allocation Error
+	return NULL;
+}
+
+// Create 1.X FW sceKernelLoadModuleByID Stub
+void * create_loadmoduleio_stub(void)
+{
+	// Find Allocator Functions in Memory
+	int (* alloc)(u32, char *, u32, u32, u32) = (void *)sctrlHENFindFunction("sceSystemMemoryManager", "SysMemUserForUser", 0x237DBD4F);
+	void * (* gethead)(u32) = (void *)sctrlHENFindFunction("sceSystemMemoryManager", "SysMemUserForUser", 0x9D9A5BA1);
+
+	// Allocate Memory
+	int result = alloc(2, "LoadModuleIOStub", PSP_SMEM_High, 8, 0);
+	
+	// Allocated Memory
+	if(result >= 0)
+	{
+		// Get Memory Block
+		uint32_t * asmblock = gethead(result);
+		
+		// Got Memory Block
+		if(asmblock != NULL)
+		{
+			// Link to Syscall
+			asmblock[0] = 0x03E00008; // jr $ra
+			asmblock[1] = MAKE_SYSCALL(sctrlKernelQuerySystemCall(load_plugin_io));
+			
+			// Return sceKernelLoadModule Stub
+			return (void *)asmblock;
+		}
+	}
+	
+	// Allocation Error
+	return NULL;
+}
+
+// Create 1.X FW sceIoClose Stub
+void * create_ioclose_stub(void)
+{
+	// Find Allocator Functions in Memory
+	int (* alloc)(u32, char *, u32, u32, u32) = (void *)sctrlHENFindFunction("sceSystemMemoryManager", "SysMemUserForUser", 0x237DBD4F);
+	void * (* gethead)(u32) = (void *)sctrlHENFindFunction("sceSystemMemoryManager", "SysMemUserForUser", 0x9D9A5BA1);
+
+	// Allocate Memory
+	int result = alloc(2, "IOCloseStub", PSP_SMEM_High, 8, 0);
+	
+	// Allocated Memory
+	if(result >= 0)
+	{
+		// Get Memory Block
+		uint32_t * asmblock = gethead(result);
+		
+		// Got Memory Block
+		if(asmblock != NULL)
+		{
+			// Link to Syscall
+			asmblock[0] = 0x03E00008; // jr $ra
+			asmblock[1] = MAKE_SYSCALL(sctrlKernelQuerySystemCall(close_plugin));
+			
+			// Return sceKernelLoadModule Stub
+			return (void *)asmblock;
+		}
+	}
+	
+	// Allocation Error
+	return NULL;
+}
+
 // Online Module Start Patcher
 int online_patcher(SceModule2 * module)
 {
@@ -371,6 +631,48 @@ int online_patcher(SceModule2 * module)
 				
 				// Log Game-Specific Patch
 				printk("Patched %s with Fixed Pool Size Limiter\n", getGameCode());
+			}
+		}
+		
+		// Generic 1.X Game User Module Fixer
+		else if(strstr(module->modname, "Adhoc") == NULL)
+		{
+			/*
+			// sceKernelLoadModule Stub not yet created
+			if(loadmodulestub == NULL)
+			{
+				// Create sceKernelLoadModule Stub
+				loadmodulestub = create_loadmodule_stub();
+				ioopenstub = create_ioopen_stub();
+				loadmoduleiostub = create_loadmoduleio_stub();
+				ioclosestub = create_ioclose_stub();
+			}
+			*/
+			
+			// sceKernelLoadModule Stub available
+			// if(loadmodulestub != NULL)
+			{
+				// hook_weak_user_bynid is more permanent than hook_import_bynid as it can't be undone by the module manager
+				// so... more games can be affected by it... however it causes a lot of games to glitch... :(
+				
+				// Hook sceKernelLoadModule
+				// hook_weak_user_bynid(module, "ModuleMgrForUser", 0x977DE386, loadmodulestub);
+				hook_import_bynid((SceModule *)module, "ModuleMgrForUser", 0x977DE386, load_plugin);
+				
+				// Hook sceIoOpen
+				// hook_weak_user_bynid(module, "IoFileMgrForUser", 0x109F50BC, ioopenstub);
+				hook_import_bynid((SceModule *)module, "IoFileMgrForUser", 0x109F50BC, open_plugin);
+				
+				// Hook sceKernelLoadModuleByID
+				// hook_weak_user_bynid(module, "ModuleMgrForUser", 0xB7F46618, loadmoduleiostub);
+				hook_import_bynid((SceModule *)module, "ModuleMgrForUser", 0xB7F46618, load_plugin_io);
+				
+				// Hook sceIoClose
+				// hook_weak_user_bynid(module, "IoFileMgrForUser", 0x810C4BC3, ioclosestub);
+				hook_import_bynid((SceModule *)module, "ModuleMgrForUser", 0x810C4BC3, close_plugin);
+				
+				// Log Patch
+				printk("Patched %s with sceKernelLoadModule Hook\n", module->modname);
 			}
 		}
 		

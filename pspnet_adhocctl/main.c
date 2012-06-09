@@ -175,12 +175,21 @@ int sceNetAdhocctlExitGameMode(void)
 	return result;
 }
 
+SceNetAdhocctlHandler orighandler = NULL;
+
+int loghandler(int event, int error, void * arg)
+{
+	printk("CTL: %d - %08X - %08X\n", event, error, (uint32_t)arg);
+	orighandler(event, error, arg);
+}
+
 int sceNetAdhocctlAddHandler(SceNetAdhocctlHandler handler, void * arg)
 {
 	#ifdef TRACE
 	printk("Entering %s\n", __func__);
 	#endif
-	int result = proNetAdhocctlAddHandler(handler, arg);
+	orighandler = handler;
+	int result = proNetAdhocctlAddHandler(/*loghandler*/handler, arg);
 	#ifdef TRACE
 	printk("Leaving %s with %08X\n", __func__, result);
 	#endif

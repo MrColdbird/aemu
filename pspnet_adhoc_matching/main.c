@@ -6,6 +6,21 @@
 PSP_MODULE_INFO(MODULENAME, PSP_MODULE_USER + 6, 1, 6);
 PSP_HEAP_SIZE_KB(HEAP_SIZE);
 
+// Original Matching Handler
+SceNetAdhocMatchingHandler originalHandler = NULL;
+
+// Replacement Matching Handler
+void replacementHandler(int id, int event, SceNetEtherAddr * peer, int optlen, void * opt)
+{
+	// Log Event
+	printk("%d - %d - ", id, event);
+	printk("%02X:%02X:%02X:%02X:%02X:%02X", peer->data[0], peer->data[1], peer->data[2], peer->data[3], peer->data[4], peer->data[5]);
+	printk(" - %d - %08X\n", optlen, (uint32_t)opt);
+	
+	// Forward Event
+	return originalHandler(id, event, peer, optlen, opt);
+}
+
 // Stubs
 int sceNetAdhocMatchingInit(uint32_t poolsize)
 {
@@ -36,7 +51,8 @@ int sceNetAdhocMatchingCreate(int mode, int maxnum, uint16_t port, int rxbuflen,
 	#ifdef TRACE
 	printk("Entering %s\n", __func__);
 	#endif
-	int result = proNetAdhocMatchingCreate(mode, maxnum, port, rxbuflen, hello_int, keepalive_int, init_count, rexmt_int, handler);
+	originalHandler = handler;
+	int result = proNetAdhocMatchingCreate(mode, maxnum, port, rxbuflen, hello_int, keepalive_int, init_count, rexmt_int, handler/*replacementHandler*/);
 	#ifdef TRACE
 	printk("Leaving %s with %08X\n", __func__, result);
 	#endif
