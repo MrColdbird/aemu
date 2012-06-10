@@ -177,7 +177,7 @@ int sceNetAdhocctlExitGameMode(void)
 
 SceNetAdhocctlHandler orighandler = NULL;
 
-int loghandler(int event, int error, void * arg)
+void loghandler(int event, int error, void * arg)
 {
 	printk("CTL: %d - %08X - %08X\n", event, error, (uint32_t)arg);
 	orighandler(event, error, arg);

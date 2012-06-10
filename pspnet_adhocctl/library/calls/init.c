@@ -448,6 +448,9 @@ int _friendFinder(SceSize args, void * argp)
 	// Last Ping Time
 	uint64_t lastping = 0;
 	
+	// Last Time Reception got updated
+	uint64_t lastreceptionupdate = 0;
+	
 	// Finder Loop
 	while(_init == 1)
 	{
@@ -682,9 +685,24 @@ int _friendFinder(SceSize args, void * argp)
 			}
 		}
 		
+		// Reception Update required
+		if((sceKernelGetSystemTimeWide() - lastreceptionupdate) > 5000000)
+		{
+			// Clone Time into Last Update Field
+			lastreceptionupdate = sceKernelGetSystemTimeWide();
+			
+			// Update Reception Level
+			union SceNetApctlInfo info;
+			if(sceNetApctlGetInfo(PSP_NET_APCTL_INFO_STRENGTH, &info) >= 0) setReceptionPercentage((int)info.strength);
+			else setReceptionPercentage(0);
+		}
+		
 		//	Delay Thread (10ms)
 		sceKernelDelayThread(10000);
 	}
+	
+	// Set WLAN HUD Reception to 0% on Shutdown
+	setReceptionPercentage(0);
 	
 	// Notify Caller of Shutdown
 	_init = -1;

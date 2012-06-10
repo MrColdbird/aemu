@@ -14,6 +14,8 @@
 #include "logs.h"
 #include "systemctrl.h"
 
+#include <psprtc.h>
+
 #ifdef ENABLE_LOGGER
 #include "jumper.h"
 #include "modulelogger.h"

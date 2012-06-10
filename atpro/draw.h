@@ -25,7 +25,7 @@ extern int draw_max_x;
 
 int getCanvas(CANVAS *canvas);
 void drawSmallFont(CANVAS *canvas, const char *text, int x, int y, u32 fillcolor);
-void drawSmallFontBack(CANVAS *canvas, const char *text, int x, int y, u32 back);
+void drawSmallFontVertical(CANVAS *canvas, const char *text, int x, int y, u32 fillcolor);
 void fillRectangle(CANVAS *canvas, int x, int y, int width, int height, u32 fill, u32 border);
 void canvasCopy(CANVAS *src, int sx, int sy, int width, int height, CANVAS *dest, int dx, int dy, u32 key);
 char convertChar(unsigned char c);

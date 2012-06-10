@@ -47,6 +47,12 @@ int popFromOutbox(char * buffer);
 void setConnectionStatus(int status);
 
 /**
+ * Set WLAN Reception for Homescreen HUD
+ * @param reception WLAN Reception Percentage
+ */
+void setReceptionPercentage(int reception);
+
+/**
  * Set User Count in Homescreen Chatroom HUD
  * @param count Number of Users online
  */

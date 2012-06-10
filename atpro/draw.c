@@ -936,6 +936,14 @@ static char small_font[][10] = {
     "-x---x-" ,
 	"-x-xx--" ,
     "-x---- " ,
+    	// (108) 0x6C <3 Symbol
+    	"       ",
+    	" -- -- ",
+    	"-RR-RR-",
+    	"-RRRRR-",
+    	" -RRR- ",
+    	"  -R-  ",
+    	"   -   ",
 	};
 
 /**************************************
@@ -957,6 +965,9 @@ char convertChar(unsigned char c)
     if(c == 0xDA || c == 0xDA) return 0x69;
     if(c == 0xD3 || c == 0xD3) return 0x6A;
     if(c == 0xDF || c == 0xDF) return 0x6B;
+    
+    // Heart Symbol
+    if(c == 0x80) return 0x6C;
 	return c;
 }
 
@@ -993,6 +1004,19 @@ u16 YELLOW_4444 = RGB_4444(255, 255, 0);
 int draw_min_x = -1;
 int draw_max_x = -1;
 
+void drawSmallFontVertical(CANVAS *canvas, const char *text, int x, int y, u32 fillcolor)
+{
+	// Iterate Characters
+	int i = 0; for(; i < strlen(text); i++)
+	{
+		// Wrapper String
+		char string[2]; string[0] = text[i]; string[1] = 0;
+		
+		// Print Character
+		drawSmallFont(canvas, string, x, y + i * 6, fillcolor);
+	}
+}
+
 void drawSmallFont(CANVAS *canvas, const char *text, int x, int y, u32 fillcolor)
 {
 	draw_min_x = -1;
@@ -1008,7 +1032,7 @@ void drawSmallFont(CANVAS *canvas, const char *text, int x, int y, u32 fillcolor
 		for(c = 0; c < len; c++) {
 			if(x < 0 || x + 8 > canvas->width || y < 0 || y + 8 > canvas->height) break;
 			int ch = (int)text[c];
-			if(ch >= 1 && ch <= 107) {
+			if(ch >= 1 && ch <= 108) {
 				switch(canvas->pixelFormat) {
 
 					case PSP_DISPLAY_PIXEL_FORMAT_8888:
@@ -1097,117 +1121,6 @@ void drawSmallFont(CANVAS *canvas, const char *text, int x, int y, u32 fillcolor
 		draw_max_x = x;
 	}
 }
-
-void drawSmallFontBack(CANVAS *canvas, const char *text, int x, int y, u32 back)
-{
-	draw_min_x = -1;
-	draw_max_x = -1;
-	if(canvas != NULL && text != NULL && canvas->width > 0 && canvas->height > 0 && canvas->lineWidth > 0 && canvas->buffer != NULL) {
-		draw_min_x = x;
-		u32 *vram32, *vram32_ptr;
-		u16 *vram16, *vram16_ptr;
-		u16 back16 = convert_u32_to_u16(back, canvas->pixelFormat);
-		int c, i, j, len;
-		char *font;
-		len = strlen(text);
-		for(c = 0; c < len; c++) {
-			if(x < 0 || x + 8 > canvas->width || y < 0 || y + 8 > canvas->height) break;
-			int ch = (int)text[c];
-			if(ch >= 96 && ch <= 127) ch -= 32;
-			if(ch >= 1 && ch <= 95) {
-				switch(canvas->pixelFormat) {
-
-					case PSP_DISPLAY_PIXEL_FORMAT_8888:
-						vram32 = canvas->buffer + x + y * canvas->lineWidth;				
-						for(i = 0; i < 7; i++) {
-							vram32_ptr = vram32;
-							font = small_font[((int)ch) * 7 + i];
-							for (j = 0; j < 7; j++) {
-								switch(font[j]) {
-									case 'x': *vram32_ptr = WHITE_8888; break;
-									case '-': *vram32_ptr = BLACK_8888; break;
-									case 'R': *vram32_ptr = RED_8888; break;
-									case 'G': *vram32_ptr = GREEN_8888; break;
-									case 'B': *vram32_ptr = BLUE_8888; break;
-									case 'Y': *vram32_ptr = YELLOW_8888; break;
-									default: *vram32_ptr = back;
-								}
-								vram32_ptr++;
-							}
-							vram32 += canvas->lineWidth;
-						}
-						break;
-
-					case PSP_DISPLAY_PIXEL_FORMAT_565:
-						vram16 = (u16*)canvas->buffer + x + y * canvas->lineWidth;				
-						for(i = 0; i < 7; i++) {
-							vram16_ptr = vram16;
-							font = small_font[((int)ch) * 7 + i];
-							for (j = 0; j < 7; j++) {
-								switch(font[j]) {
-									case 'x': *vram16_ptr = WHITE_565; break;
-									case '-': *vram16_ptr = BLACK_565; break;
-									case 'R': *vram16_ptr = RED_565; break;
-									case 'G': *vram16_ptr = GREEN_565; break;
-									case 'B': *vram16_ptr = BLUE_565; break;
-									case 'Y': *vram16_ptr = YELLOW_565; break;
-									default: *vram16_ptr = back16; break;
-								}
-								vram16_ptr++;
-							}
-							vram16 += canvas->lineWidth;
-						}
-						break;
-
-					case PSP_DISPLAY_PIXEL_FORMAT_5551:
-						vram16 = (u16*)canvas->buffer + x + y * canvas->lineWidth;				
-						for(i = 0; i < 7; i++) {
-							vram16_ptr = vram16;
-							font = small_font[((int)ch) * 7 + i];
-							for (j = 0; j < 7; j++) {
-								switch(font[j]) {
-									case 'x': *vram16_ptr = WHITE_5551; break;
-									case '-': *vram16_ptr = BLACK_5551; break;
-									case 'R': *vram16_ptr = RED_5551; break;
-									case 'G': *vram16_ptr = GREEN_5551; break;
-									case 'B': *vram16_ptr = BLUE_5551; break;
-									case 'Y': *vram16_ptr = YELLOW_5551; break;
-									default: *vram16_ptr = back16; break;
-								}
-								vram16_ptr++;
-							}
-							vram16 += canvas->lineWidth;
-						}
-						break;
-
-					case PSP_DISPLAY_PIXEL_FORMAT_4444:
-						vram16 = (u16*)canvas->buffer + x + y * canvas->lineWidth;				
-						for(i = 0; i < 7; i++) {
-							vram16_ptr = vram16;
-							font = small_font[((int)ch) * 7 + i];
-							for (j = 0; j < 7; j++) {
-								switch(font[j]) {
-									case 'x': *vram16_ptr = WHITE_4444; break;
-									case '-': *vram16_ptr = BLACK_4444; break;
-									case 'R': *vram16_ptr = RED_4444; break;
-									case 'G': *vram16_ptr = GREEN_4444; break;
-									case 'B': *vram16_ptr = BLUE_4444; break;
-									case 'Y': *vram16_ptr = YELLOW_4444; break;
-									default: *vram16_ptr = back16; break;
-								}
-								vram16_ptr++;
-							}
-							vram16 += canvas->lineWidth;
-						}
-						break;
-				}
-			}
-			x += 6;
-		}
-		draw_max_x = x;
-	}
-}
-
 
 void fillRectangle(CANVAS *canvas, int x, int y, int width, int height, u32 fill, u32 border)
 {
