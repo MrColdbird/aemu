@@ -1,7 +1,25 @@
+/*
+ * This file is part of PRO ONLINE.
+
+ * PRO ONLINE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * PRO ONLINE is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PRO ONLINE. If not, see <http://www.gnu.org/licenses/ .
+ */
+
 #include <pspsdk.h>
 #include <pspkernel.h>
 #include <pspinit.h>
 #include <pspdisplay.h>
+#include <psprtc.h>
 #include <psploadcore.h>
 #include <psputilsforkernel.h>
 #include <pspsysmem_kernel.h>
@@ -13,13 +31,6 @@
 #include "hud.h"
 #include "logs.h"
 #include "systemctrl.h"
-
-#include <psprtc.h>
-
-#ifdef ENABLE_LOGGER
-#include "jumper.h"
-#include "modulelogger.h"
-#endif
 
 PSP_MODULE_INFO("ATPRO", PSP_MODULE_KERNEL, 1, 0);
 
@@ -242,7 +253,6 @@ const char * getGameCode(void)
 int cbdeny(int cbid)
 {
 	// By doing nothing, we prevent exit callback registration, thus block the home menu.
-	// As our code requires high memory to work, exiting the game would crash anyway...
 	return 0;
 }
 
@@ -915,11 +925,6 @@ int module_start(SceSize args, void * argp)
 						scePowerLock(0);
 						printk("Disabled Power Button!\n");
 					}
-					
-					#ifdef ENABLE_LOGGER
-					// Allocate Jumper Log Memory
-					initUserTraceMemory();
-					#endif
 					
 					// Create Input Thread
 					int ctrl = sceKernelCreateThread("atpro_input", input_thread, 0x10, 32768, 0, NULL);

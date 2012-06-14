@@ -21,7 +21,6 @@ PSP_EXPORT_FUNC_HASH(read_buffer_positive)
 PSP_EXPORT_FUNC_HASH(peek_buffer_positive)
 PSP_EXPORT_FUNC_HASH(read_buffer_negative)
 PSP_EXPORT_FUNC_HASH(peek_buffer_negative)
-PSP_EXPORT_FUNC_HASH(dumpJAL)
 PSP_EXPORT_END
 
 PSP_EXPORT_START(GameFixes, 0, 0x4001)

@@ -2,7 +2,7 @@ all:
 	mv atpro.prx ../dist/seplugins
 
 TARGET = atpro
-OBJS = main.o libs.o hud.o draw.o logs.o jumper.o
+OBJS = main.o libs.o hud.o draw.o logs.o
 
 CFLAGS = -Os -G0 -Wall -fno-pic
 
@@ -15,12 +15,6 @@ ifeq ($(RELEASE), 1)
 CFLAGS += -DRELEASE=1
 else
 CFLAGS += -DDEBUG=1
-
-ifeq ($(ENABLE_LOGGER), 1)
-CFLAGS += -DENABLE_LOGGER=1
-OBJS += modulelogger.o
-endif
-
 endif
 
 ifeq ($(CONFIG_620), 1)

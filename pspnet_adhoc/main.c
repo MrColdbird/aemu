@@ -1,3 +1,20 @@
+/*
+ * This file is part of PRO ONLINE.
+
+ * PRO ONLINE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * PRO ONLINE is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PRO ONLINE. If not, see <http://www.gnu.org/licenses/ .
+ */
+
 #include <pspsdk.h>
 #include <pspkernel.h>
 #include "library/common.h"
@@ -81,13 +98,13 @@ int sceNetAdhocPdpCreate(const SceNetEtherAddr * saddr, uint16_t sport, int bufs
 
 int sceNetAdhocPdpSend(int id, const SceNetEtherAddr * daddr, uint16_t dport, const void * data, int len, uint32_t timeout, int flag)
 {
-	//#ifdef TRACE
-	//printk("Entering %s\n", __func__);
-	//#endif
+	#ifdef TRACE
+	printk("Entering %s\n", __func__);
+	#endif
 	int result = proNetAdhocPdpSend(id, daddr, dport, data, len, timeout, flag);
-	//#ifdef TRACE
-	//printk("Leaving %s with %08X\n", __func__, result);
-	//#endif
+	#ifdef TRACE
+	printk("Leaving %s with %08X\n", __func__, result);
+	#endif
 	return result;
 }
 
@@ -105,13 +122,13 @@ int sceNetAdhocPdpDelete(int id, int flag)
 
 int sceNetAdhocPdpRecv(int id, SceNetEtherAddr * saddr, uint16_t * sport, void * buf, int * len, uint32_t timeout, int flag)
 {
-	//#ifdef TRACE
-	//printk("Entering %s\n", __func__);
-	//#endif
+	#ifdef TRACE
+	printk("Entering %s\n", __func__);
+	#endif
 	int result = proNetAdhocPdpRecv(id, saddr, sport, buf, len, timeout, flag);
-	//#ifdef TRACE
-	//printk("Leaving %s with %08X\n", __func__, result);
-	//#endif
+	#ifdef TRACE
+	printk("Leaving %s with %08X\n", __func__, result);
+	#endif
 	return result;
 }
 
