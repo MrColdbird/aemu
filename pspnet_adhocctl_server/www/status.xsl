@@ -41,6 +41,27 @@
 									</span>
 								</td>
 							</tr>
+							<tr class="bottom">
+								<table class="groups">
+									<tr>
+										<th>Group</th>
+										<th>User Count</th>
+										<th>Players</th>
+									</tr>
+									<xsl:for-each select="./group">
+										<td><xsl:value-of select="./@name" /></td>
+										<td><xsl:value-of select="./@usercount" /></td>
+										<td>
+											<xsl:for-each select="./user">
+												<xsl:value-of select="."/>
+												<xsl:if test="position() != last()">
+												    <xsl:text>, </xsl:text>
+												</xsl:if>
+											</xsl:for-each>
+										</td>
+									</xsl:for-each>
+								</table>
+							</tr>
 						</table>
 					</div>
 				</xsl:for-each>
