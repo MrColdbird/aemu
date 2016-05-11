@@ -13,6 +13,7 @@
 					<xsl:value-of select="./prometheus/@usercount" /> Users are currently playing on <a href="http://www.prometheus.uk.to">Prometheus Online</a>!
 				</div>
 				<div class="navigation">
+					<a class="netlink" href="irc://irc.freenode.net/procfw">IRC Freenode chat #procfw</a>
 					<a class="netlink" href="http://forum.prometheus.uk.to">Community Forum</a>
 					<a class="netlink" href="http://code.google.com/p/procfw">Firmware Download</a>
 					<a class="netlink" href="http://forum.prometheus.uk.to/viewtopic.php?f=2&amp;t=23">Client Download</a>
