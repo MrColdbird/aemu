@@ -182,7 +182,7 @@ tr.bottom
 	visibility:hidden;
 }
 
-table.splitter:hover > tr.bottom
+table.splitter:hover tr.bottom
 {
 	display:block;
 	visibility:visible;
